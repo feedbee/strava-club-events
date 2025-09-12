@@ -23,12 +23,29 @@
         let calendarEvents = events.map(ev => ({
           title: ev.title,
           start: ev.start_date,
-          url: ev.route ? ev.route.url : undefined
+          url: ev.strava_event_url
         }));
 
         let calendar = new FullCalendar.Calendar(document.getElementById("calendar"), {
           initialView: "dayGridMonth",
-          events: calendarEvents
+          events: calendarEvents,
+          eventTimeFormat: {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          },
+          eventDidMount: function(info) {
+            // Add tooltip for event title
+            info.el.title = info.event.title;
+            
+            // Override click to open in new tab
+            info.el.addEventListener('click', function(e) {
+              e.preventDefault();
+              if (info.event.url) {
+                window.open(info.event.url, '_blank');
+              }
+            });
+          }
         });
         calendar.render();
       } catch (e) {

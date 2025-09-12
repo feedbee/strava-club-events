@@ -9,6 +9,13 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const REDIRECT_URI = `http://localhost:${PORT}/callback`;
 
+// Helper function to preserve large IDs as strings during JSON parsing
+function parseJsonWithStringIds(jsonText) {
+  // Replace large ID numbers with quoted strings before parsing
+  const modifiedText = jsonText.replace(/"id":\s*(\d{16,})/g, '"id":"$1"');
+  return JSON.parse(modifiedText);
+}
+
 if (!CLIENT_ID || !CLIENT_SECRET) {
   console.error("❌ Missing CLIENT_ID or CLIENT_SECRET in environment");
   process.exit(1);
@@ -63,7 +70,8 @@ app.get("/events", async (req, res) => {
     let clubsResp = await fetch("https://www.strava.com/api/v3/athlete/clubs", {
       headers: { Authorization: `Bearer ${token}` },
     });
-    let clubs = await clubsResp.json();
+    let clubsText = await clubsResp.text();
+    let clubs = parseJsonWithStringIds(clubsText);
 
     let allEvents = [];
     let now = new Date();
@@ -75,7 +83,8 @@ app.get("/events", async (req, res) => {
         `https://www.strava.com/api/v3/clubs/${club.id}/group_events?upcoming=true&per_page=200&page=1`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      let events = await eventsResp.json();
+      let eventsText = await eventsResp.text();
+      let events = parseJsonWithStringIds(eventsText);
       console.log(events);
 
       // Normalize to support upcoming_occurrences when start_date_local is absent
@@ -93,6 +102,8 @@ app.get("/events", async (req, res) => {
           if (match) {
             // Pass UTC value to frontend
             ev.start_date = match.toISOString();
+            // Add Strava event URL
+            ev.strava_event_url = `https://www.strava.com/clubs/${club.id}/group_events/${ev.id}`;
             filtered.push(ev);
           }
         }
