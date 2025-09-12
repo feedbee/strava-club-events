@@ -1,0 +1,227 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin: 0;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+h1 {
+  color: white;
+  text-align: center;
+  font-weight: 700;
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+#auth {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+#auth a {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+#auth a:hover {
+  background: rgba(255,255,255,0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+#preloader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  padding: 60px 20px;
+  margin-bottom: 20px;
+  backdrop-filter: blur(10px);
+}
+
+#preloader.hidden {
+  display: none;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+#preloader p {
+  color: #4a5568;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+#calendar {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+/* FullCalendar custom styling */
+.fc {
+  font-family: 'Inter', sans-serif;
+}
+
+.fc-toolbar {
+  padding: 20px 20px 0 20px;
+  background: white;
+}
+
+.fc-toolbar-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.fc-button {
+  background: #667eea !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  padding: 8px 16px !important;
+  transition: all 0.2s ease !important;
+}
+
+.fc-button:hover {
+  background: #5a67d8 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
+}
+
+.fc-button:focus {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2) !important;
+}
+
+.fc-daygrid-day {
+  border-color: #e2e8f0 !important;
+}
+
+.fc-daygrid-day-number {
+  color: #4a5568 !important;
+  font-weight: 500 !important;
+  padding: 8px !important;
+}
+
+.fc-day-today {
+  background-color: rgba(102, 126, 234, 0.05) !important;
+}
+
+.fc-day-today .fc-daygrid-day-number {
+  background: #667eea !important;
+  color: white !important;
+  border-radius: 50% !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 4px !important;
+}
+
+.fc-event {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  color: white !important;
+  font-weight: 500 !important;
+  font-size: 0.85rem !important;
+  padding: 4px 8px !important;
+  margin: 1px 0 !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+.fc-event:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
+  text-decoration: none !important;
+}
+
+.fc-event-title {
+  font-weight: 500 !important;
+}
+
+.fc-daygrid-event {
+  margin: 1px 2px !important;
+}
+
+.fc-col-header-cell {
+  background: #f7fafc !important;
+  color: #4a5568 !important;
+  font-weight: 600 !important;
+  padding: 12px 8px !important;
+  border-color: #e2e8f0 !important;
+}
+
+.fc-scrollgrid {
+  border: none !important;
+}
+
+.fc-scrollgrid-sync-table {
+  border: none !important;
+}
+
+.fc-daygrid-body {
+  border: none !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+  
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .fc-toolbar {
+    padding: 15px 15px 0 15px;
+  }
+  
+  .fc-toolbar-title {
+    font-size: 1.5rem;
+  }
+  
+  .fc-button {
+    padding: 6px 12px !important;
+    font-size: 0.9rem !important;
+  }
+}

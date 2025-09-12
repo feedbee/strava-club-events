@@ -2,58 +2,20 @@
 <html>
 <head>
   <title>Strava Club Events</title>
+  <link rel="icon" type="image/png" href="favicon.png">
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet"/>
+  <link href="styles.css" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 </head>
 <body>
   <h1>Strava Club Events</h1>
   <div id="auth"></div>
+  <div id="preloader">
+    <div class="spinner"></div>
+    <p>Loading your events...</p>
+  </div>
   <div id="calendar"></div>
 
-  <script>
-    async function loadEvents() {
-      try {
-        let resp = await fetch("/events");
-        if (resp.status === 401) {
-          document.getElementById("auth").innerHTML = '<a href="/login">Login with Strava</a>';
-          return;
-        }
-        let events = await resp.json();
-
-        let calendarEvents = events.map(ev => ({
-          title: ev.title,
-          start: ev.start_date,
-          url: ev.strava_event_url
-        }));
-
-        let calendar = new FullCalendar.Calendar(document.getElementById("calendar"), {
-          initialView: "dayGridMonth",
-          events: calendarEvents,
-          eventTimeFormat: {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-          },
-          eventDidMount: function(info) {
-            // Add tooltip for event title
-            info.el.title = info.event.title;
-            
-            // Override click to open in new tab
-            info.el.addEventListener('click', function(e) {
-              e.preventDefault();
-              if (info.event.url) {
-                window.open(info.event.url, '_blank');
-              }
-            });
-          }
-        });
-        calendar.render();
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    loadEvents();
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
