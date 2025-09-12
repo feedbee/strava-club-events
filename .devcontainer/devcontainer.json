@@ -1,0 +1,16 @@
+{
+    "name": "Strava Events App",
+    "dockerFile": "Dockerfile",
+    "context": "..",
+    "appPort": ["3000:3000"],
+    "envFile": ".env-local",
+    "postCreateCommand": "npm install",
+    "settings": {
+      "terminal.integrated.defaultProfile.linux": "bash"
+    },
+    "extensions": [
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode"
+    ]
+  }
+  

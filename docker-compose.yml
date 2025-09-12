@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  strava-app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/usr/src/app
+    env_file:
+      - .env-local
+    # environment:
+    #   - CLIENT_ID=your_strava_client_id
+    #   - CLIENT_SECRET=your_strava_client_secret
