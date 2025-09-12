@@ -72,15 +72,33 @@ app.get("/events", async (req, res) => {
 
     for (let club of clubs) {
       let eventsResp = await fetch(
-        `https://www.strava.com/api/v3/clubs/${club.id}/group_events`,
+        `https://www.strava.com/api/v3/clubs/${club.id}/group_events?upcoming=true&per_page=200&page=1`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       let events = await eventsResp.json();
+      console.log(events);
 
-      let filtered = events.filter((ev) => {
-        let start = new Date(ev.start_date_local);
-        return start >= now && start <= nextMonth;
-      });
+      // Normalize to support upcoming_occurrences when start_date_local is absent
+      let filtered = [];
+      for (let ev of events) {
+        let candidateDates = [];
+        
+        // Only use upcoming_occurrences, operate entirely in UTC
+        if (Array.isArray(ev.upcoming_occurrences) && ev.upcoming_occurrences.length > 0) {
+          const candidateDates = ev.upcoming_occurrences.map((d) => new Date(d));
+          
+          // Find the first occurrence within [now, nextMonth] - all dates are UTC
+          const match = candidateDates.find((d) => d >= now && d <= nextMonth);
+
+          if (match) {
+            // Pass UTC value to frontend
+            ev.start_date = match.toISOString();
+            filtered.push(ev);
+          }
+        }
+      }
+
+      filtered.sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
 
       allEvents.push(...filtered);
     }
