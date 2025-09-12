@@ -85,7 +85,6 @@ app.get("/events", async (req, res) => {
       );
       let eventsText = await eventsResp.text();
       let events = parseJsonWithStringIds(eventsText);
-      console.log(events);
 
       // Normalize to support upcoming_occurrences when start_date_local is absent
       let filtered = [];
