@@ -1,71 +1,136 @@
 # Strava Club Events Calendar
 
-A simple Node.js app that connects to Strava, fetches upcoming club events for the next 30 days for the authenticated user, and displays them in a browser using a basic calendar view.
+A modern web application that connects to Strava, fetches upcoming club events for the next 30 days, and displays them in an interactive calendar view with enhanced UI/UX.
 
-### Features
-- OAuth2 login with Strava
-- Fetches the user's clubs and their group events
-- Filters events to the next 30 days
-- Displays events in a calendar (FullCalendar via CDN)
-- Dockerized; reads environment from `.env-local`
-- Ready for Remote Containers/Dev Containers
+### ✨ Features
+- **Seamless OAuth2 Login** - Quick and secure authentication with Strava
+- **Smart Event Fetching** - Automatically retrieves events from all your Strava clubs
+- **Intelligent Filtering** - Shows only relevant events within the next 30 days
+- **Beautiful Calendar UI** - Built with FullCalendar featuring:
+  - Responsive design that works on all devices
+  - Event tooltips with detailed information
+  - Click to open events in Strava (new tab)
+  - Right-click to copy event URL to clipboard
+  - Clean, modern interface with Inter font
+- **Developer Friendly**
+  - Docker and Docker Compose support
+  - Development container configuration included
+  - Environment-based configuration
 
-### Prerequisites
-- Docker and Docker Compose (recommended), or Node.js 18+
-- A Strava API application (`CLIENT_ID`, `CLIENT_SECRET`)
+### 🚀 Getting Started
 
-### Environment Variables
-Provide via `.env-local` at the repo root or via shell envs:
-- `CLIENT_ID`: Strava app client ID
-- `CLIENT_SECRET`: Strava app client secret
-- `PORT` (optional): defaults to `3000`
+#### Prerequisites
+- [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) (recommended)
+- [Node.js 18+](https://nodejs.org/) (for local development without Docker)
+- A [Strava API application](https://www.strava.com/settings/api) with `CLIENT_ID` and `CLIENT_SECRET`
 
-Example `.env-local`:
-```
+### ⚙️ Configuration
+
+#### Environment Variables
+Create a `.env-local` file in the project root with the following variables:
+
+```env
+# Required
 CLIENT_ID=your_strava_client_id
 CLIENT_SECRET=your_strava_client_secret
+
+# Optional (defaults shown)
 PORT=3000
 ```
-Do not commit real secrets.
 
-### Run with Docker Compose
-1) Create `.env-local` as above.
-2) Start services:
-```
-docker compose up --build
-```
-3) Open `http://localhost:3000` and click "Login with Strava".
+> **Important:** Never commit your `.env-local` file or share your Strava API credentials.
 
-The project folder is bind-mounted into the container for quick iteration. If you add dependencies, rebuild the image or run `npm install` inside the container.
+### 🐳 Running with Docker Compose
 
-### Run locally (Node.js)
-```
-npm install
-# optionally: export envs from .env-local
-export $(grep -v '^#' .env-local | xargs -d'\n')
-npm start
-```
-Visit `http://localhost:3000`.
+1. Create `.env-local` with your Strava API credentials
+2. Start the application:
+   ```bash
+   docker compose up --build
+   ```
+3. Open your browser to [http://localhost:3000](http://localhost:3000)
+4. Click "Login with Strava" to authenticate
+
+#### Development Workflow
+- The project directory is bind-mounted into the container for live code changes
+- For new dependencies, either:
+  - Rebuild the container: `docker compose up --build`
+  - Or install inside the container: `docker compose exec app npm install <package>`
+
+### 💻 Local Development (Node.js)
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Set environment variables:
+   - Option 1: Create `.env-local` file (recommended)
+   - Option 2: Export variables manually:
+     ```bash
+     export $(grep -v '^#' .env-local | xargs -d'\n')
+     ```
+
+3. Start the development server:
+   ```bash
+   npm start
+   ```
+
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ### OAuth Callback URL
 The server expects `http://localhost:PORT/callback` (default: `http://localhost:3000/callback`). Configure this in your Strava app settings.
 
-### API
-- `GET /login`: Redirects to Strava OAuth authorization
-- `GET /callback`: Exchanges code for access token; stores it in session
-- `GET /events`: Returns JSON of upcoming group events across the user's clubs for the next 30 days (requires session)
+### 🔌 API Endpoints
 
-### Project Structure
-- `server.js`: Express server, OAuth, `/events` logic
-- `public/index.html`: Minimal UI with FullCalendar
-- `Dockerfile`: Node 18 base, apt update, installs deps, runs server
-- `docker-compose.yml`: Ports, bind mount, `env_file: .env-local`
-- `.env-local`: Local environment (not checked in with real secrets)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/login` | GET | Initiates OAuth flow with Strava |
+| `/callback` | GET | Handles OAuth callback and token exchange |
+| `/events` | GET | Returns JSON of upcoming club events (next 30 days) |
 
-### Notes / Limitations
-- Static session secret (demo only); not production-ready
-- No refresh token rotation; access token stored in memory session
-- No caching; events fetched per request, minimal error handling
+#### Example Event Response
+```json
+[
+  {
+    "title": "Morning Ride",
+    "start": "2023-10-15T09:00:00Z",
+    "url": "https://www.strava.com/clubs/123/group_events/456"
+  }
+]
+```
 
-### License
-BSD-2-Clause
+### 📁 Project Structure
+
+```
+├── .devcontainer/       # VS Code dev container configuration
+│   ├── devcontainer.json
+│   └── Dockerfile
+├── public/              # Static assets
+│   ├── index.html       # Main application UI
+│   ├── styles.css       # Custom styles
+│   └── app.js           # Frontend JavaScript
+├── .env-local           # Local environment variables (gitignored)
+├── .gitignore           # Git ignore rules
+├── Dockerfile           # Production Dockerfile
+├── docker-compose.yml   # Docker Compose configuration
+├── package.json         # Node.js dependencies and scripts
+└── server.js            # Express server and API endpoints
+```
+
+### ⚠️ Limitations
+
+This is a development-focused application with the following considerations:
+- Uses a static session secret (not suitable for production)
+- No refresh token rotation (sessions expire with the access token)
+- Events are fetched on each page load (no caching)
+- Minimal error handling in the UI
+
+### 📜 License
+
+This project is licensed under the [BSD-2-Clause License](LICENSE).
+
+### 🙏 Acknowledgments
+
+- Built with [Express.js](https://expressjs.com/)
+- UI powered by [FullCalendar](https://fullcalendar.io/)
+- Styled with [Inter](https://rsms.me/inter/) font
