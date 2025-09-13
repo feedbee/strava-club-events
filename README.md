@@ -10,16 +10,36 @@ A modern web application that connects to Strava, fetches upcoming club events f
   - Multiple view options: Month, Week, and Day views
   - Club logos displayed next to each event
   - Responsive design that works on all devices
-  - Event tooltips with detailed information
+  - Rich event tooltips with:
+    - Event title and club information
+    - Route details (distance, elevation gain, activity type)
+    - Estimated moving time
+    - Max slope percentage
+    - Elevation range
   - Click to open events in Strava (new tab)
   - Right-click to copy event URL to clipboard
-  - Clean, modern interface with Inter font
+  - Clean, modern interface with Inter font and custom styling
+  - Support for various activity types with appropriate icons
 - **Developer Friendly**
   - Docker and Docker Compose support
   - Development container configuration included
   - Environment-based configuration
 
-### 🚀 Getting Started
+### 🚀 Quick Start
+
+### Using Docker (Recommended)
+```bash
+docker-compose up -d
+```
+
+### Local Development
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Create a `.env` file with your Strava API credentials
+4. Start the server: `npm start`
+5. Open `http://localhost:3000` in your browser
+
+## 📱 Features in Detail
 
 #### Prerequisites
 - [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) (recommended)

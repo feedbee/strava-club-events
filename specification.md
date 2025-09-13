@@ -1,6 +1,6 @@
 # Strava Club Events Calendar — Technical Specification
 
-*Last Updated: September 13, 2025*
+*Last Updated: September 13, 2025 (v1.1.0)*
 
 ## 1. Overview
 
@@ -92,8 +92,13 @@ Build a modern web application that provides Strava users with a clean, interact
 - **User Interface**
   - Responsive calendar view (FullCalendar 6.1.8)
   - Multiple view options: Month, Week, and Day
-  - Club logos displayed next to event titles
-  - Event tooltips with details
+  - Club logos displayed next to each event in the calendar titles
+  - Rich event tooltips with:
+    - Event title and club information
+    - Route details (distance, elevation gain, activity type)
+    - Estimated moving time
+    - Max slope percentage
+    - Elevation range
   - Interactive event actions (open in Strava, copy URL)
   - Loading and error states
   - Intuitive view switching controls
