@@ -84,6 +84,7 @@ app.get("/events", async (req, res) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       let eventsText = await eventsResp.text();
+
       let events = parseJsonWithStringIds(eventsText);
 
       // Normalize to support upcoming_occurrences when start_date_local is absent
@@ -103,6 +104,8 @@ app.get("/events", async (req, res) => {
             ev.start_date = match.toISOString();
             // Add Strava event URL
             ev.strava_event_url = `https://www.strava.com/clubs/${club.id}/group_events/${ev.id}`;
+            // Add club logo if available
+            ev.club_logo = club.profile_medium || '';
             filtered.push(ev);
           }
         }

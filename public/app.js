@@ -18,7 +18,10 @@ async function loadEvents() {
     let calendarEvents = events.map(ev => ({
       title: ev.title,
       start: ev.start_date,
-      url: ev.strava_event_url
+      url: ev.strava_event_url,
+      extendedProps: {
+        club_logo: ev.club_logo || ''
+      }
     }));
 
     let calendar = new FullCalendar.Calendar(document.getElementById("calendar"), {
@@ -32,6 +35,16 @@ async function loadEvents() {
       eventDidMount: function(info) {
         // Add tooltip for event title
         info.el.title = info.event.title;
+        
+        // Create custom event content with club logo
+        const titleEl = info.el.querySelector('.fc-event-title');
+        if (titleEl) {
+          const clubLogo = info.event.extendedProps.club_logo;
+          if (clubLogo) {
+            const logoHtml = `<img src="${clubLogo}" class="club-logo" alt="Club Logo">`;
+            titleEl.insertAdjacentHTML('afterbegin', logoHtml);
+          }
+        }
         
         // Override click to open in new tab
         info.el.addEventListener('click', function(e) {
