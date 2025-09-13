@@ -3,7 +3,11 @@
 A modern web application that connects to Strava, fetches upcoming club events for the next 30 days, and displays them in an interactive calendar view with enhanced UI/UX.
 
 ### ✨ Features
-- **Seamless OAuth2 Login** - Quick and secure authentication with Strava
+- **Seamless OAuth2 Login** - Secure authentication with Strava using OAuth2
+  - Automatic token refresh before expiration
+  - Graceful session management
+  - Secure token storage
+
 - **Smart Event Fetching** - Automatically retrieves events from all your Strava clubs
 - **Intelligent Filtering** - Shows only relevant events within the next 30 days
 - **Beautiful Calendar UI** - Built with FullCalendar featuring:
@@ -45,6 +49,13 @@ docker-compose up -d
 - [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) (recommended)
 - [Node.js 18+](https://nodejs.org/) (for local development without Docker)
 - A [Strava API application](https://www.strava.com/settings/api) with `CLIENT_ID` and `CLIENT_SECRET`
+
+### 🔒 Security Features
+
+- **Token Rotation**: Access tokens are automatically refreshed before expiration
+- **Secure Storage**: Tokens stored in HTTP-only, secure cookies
+- **Session Management**: Automatic cleanup of expired sessions
+- **Error Handling**: Graceful degradation and user-friendly error messages
 
 ### ⚙️ Configuration
 

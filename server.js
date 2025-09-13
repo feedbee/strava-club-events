@@ -37,34 +37,105 @@ app.get("/login", (req, res) => {
   res.redirect(stravaAuthUrl);
 });
 
+// Token refresh function
+async function refreshAccessToken(refreshToken) {
+  try {
+    const tokenResp = await fetch("https://www.strava.com/oauth/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        refresh_token: refreshToken,
+        grant_type: "refresh_token",
+      }),
+    });
+    
+    if (!tokenResp.ok) {
+      throw new Error('Failed to refresh access token');
+    }
+    
+    return await tokenResp.json();
+  } catch (error) {
+    console.error('Error refreshing token:', error);
+    throw error;
+  }
+}
+
+// Middleware to check and refresh token if needed
+async function ensureValidToken(req, res, next) {
+  if (!req.session.tokens) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  // If token is expired or about to expire in the next 5 minutes
+  const now = Math.floor(Date.now() / 1000);
+  const expiresAt = req.session.tokens.expires_at || 0;
+  
+  if (now >= expiresAt - 300) { // 5 minutes buffer
+    try {
+      const newTokens = await refreshAccessToken(req.session.tokens.refresh_token);
+      req.session.tokens = {
+        access_token: newTokens.access_token,
+        refresh_token: newTokens.refresh_token || req.session.tokens.refresh_token, // Use new refresh token if provided, otherwise keep the old one
+        expires_at: now + newTokens.expires_in
+      };
+      console.log('Token refreshed successfully');
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      delete req.session.tokens; // Clear invalid session
+      return res.status(401).json({ error: "Session expired. Please log in again." });
+    }
+  }
+  
+  next();
+}
+
 // OAuth callback
 app.get("/callback", async (req, res) => {
-  const code = req.query.code;
+  try {
+    const code = req.query.code;
+    if (!code) {
+      throw new Error('No authorization code provided');
+    }
 
-  const tokenResp = await fetch("https://www.strava.com/oauth/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      code: code,
-      grant_type: "authorization_code",
-    }),
-  });
-  const data = await tokenResp.json();
+    const tokenResp = await fetch("https://www.strava.com/oauth/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        code: code,
+        grant_type: "authorization_code",
+      }),
+    });
 
-  req.session.access_token = data.access_token;
-  res.redirect("/");
+    if (!tokenResp.ok) {
+      const errorData = await tokenResp.text();
+      throw new Error(`OAuth error: ${errorData}`);
+    }
+
+    const data = await tokenResp.json();
+    const now = Math.floor(Date.now() / 1000);
+    
+    // Store tokens with expiration
+    req.session.tokens = {
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      expires_at: now + data.expires_in
+    };
+    
+    res.redirect("/");
+  } catch (error) {
+    console.error('OAuth callback error:', error);
+    res.status(500).send('Authentication failed. Please try again.');
+  }
 });
 
 // Get events (needs login)
-app.get("/events", async (req, res) => {
-  if (!req.session.access_token) {
-    return res.status(401).json({ error: "Not logged in" });
-  }
-
+app.get("/events", ensureValidToken, async (req, res) => {
   try {
-    const token = req.session.access_token;
+    const token = req.session.tokens.access_token;
 
     // Get clubs
     let clubsResp = await fetch("https://www.strava.com/api/v3/athlete/clubs", {

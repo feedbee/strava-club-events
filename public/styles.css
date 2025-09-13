@@ -51,7 +51,7 @@ h1 .title-icon {
 
 #auth a:hover {
   background: rgba(255,255,255,0.3);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 

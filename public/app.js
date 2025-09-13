@@ -1,21 +1,43 @@
+// Handle API errors consistently
+async function handleApiResponse(resp) {
+  if (resp.ok) return resp;
+  
+  const error = await resp.json().catch(() => ({}));
+  
+  if (resp.status === 401) {
+    // Clear any invalid session
+    document.cookie = 'connect.sid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    // Only show login button, don't throw an error
+    document.getElementById("auth").innerHTML = '<a href="/login">Login with Strava</a>';
+    return null; // Return null to indicate auth required
+  }
+  
+  const errorMessage = error.message || 'An error occurred';
+  throw new Error(`API Error: ${errorMessage}`);
+}
+
 async function loadEvents() {
   const preloaderElement = document.getElementById("preloader");
   const calendarElement = document.getElementById("calendar");
+  const errorElement = document.getElementById("error-message");
   
   try {
-    // Show preloader
+    // Reset UI state
     preloaderElement.classList.remove("hidden");
     calendarElement.style.display = "none";
+    if (errorElement) errorElement.textContent = '';
     
-    let resp = await fetch("/events");
-    if (resp.status === 401) {
-      document.getElementById("auth").innerHTML = '<a href="/login">Login with Strava</a>';
-      preloader.classList.add("hidden");
-      return;
-    }
-    let events = await resp.json();
+    // Make the API request
+    const resp = await fetch("/events");
+    const handledResponse = await handleApiResponse(resp);
+    
+    // If handleApiResponse returns null, it means we need to authenticate
+    if (!handledResponse) return;
+    
+    const events = await handledResponse.json();
 
-    let calendarEvents = events.map(ev => ({
+    // Transform events for FullCalendar
+    const calendarEvents = events.map(ev => ({
       title: ev.title,
       start: ev.start_date,
       url: ev.strava_event_url,
@@ -110,9 +132,22 @@ async function loadEvents() {
     calendarElement.style.display = "block";
 
     calendar.render();
-  } catch (e) {
-    console.error(e);
-    // Hide preloader even on error
+  } catch (error) {
+    console.error("Error loading events:", error);
+    
+    // Only show error message for non-auth related errors
+    if (!error.message.includes('Session expired') && !error.message.includes('401')) {
+      const errorElement = document.getElementById("error-message") || (() => {
+        const el = document.createElement('div');
+        el.id = 'error-message';
+        el.className = 'error-message';
+        document.body.prepend(el);
+        return el;
+      })();
+      
+      errorElement.textContent = 'Failed to load events. Please try again.';
+    }
+  } finally {
     preloaderElement.classList.add("hidden");
     calendarElement.style.display = "block";
   }

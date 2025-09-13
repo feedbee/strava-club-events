@@ -369,9 +369,25 @@ interface Event {
 5. Code review
 6. Merge to main
 
-## 18. Acceptance Criteria
+## 18. Authentication Flow
 
-### 18.1 Functional Requirements
+### 18.1 OAuth2 Flow
+1. User clicks "Login with Strava"
+2. Redirected to Strava for authorization
+3. On approval, receives authorization code
+4. Server exchanges code for access and refresh tokens
+5. Tokens stored in secure HTTP-only session
+6. Access token automatically refreshed before expiration
+
+### 18.2 Error Handling
+- First-time users see a clean login prompt
+- Expired sessions automatically prompt for re-authentication
+- Network errors show user-friendly messages
+- Console logging for debugging (not shown to users)
+
+## 19. Acceptance Criteria
+
+### 19.1 Functional Requirements
 - [x] User can authenticate with Strava
 - [x] Calendar displays events from all user's clubs
 - [x] Events are filtered to next 30 days
@@ -379,19 +395,20 @@ interface Event {
 - [x] Clicking events opens them in Strava
 - [x] Right-click copies event URL
 
-### 18.2 Non-Functional Requirements
+### 19.2 Non-Functional Requirements
 - [x] Responsive design
 - [x] Loading states
-- [x] Error handling
-- [x] Secure authentication
+- [x] Graceful error handling with user-friendly messages
+- [x] Secure authentication with token rotation
 - [x] Environment-based configuration
+- [x] Session management with proper expiry handling
 
-## 19. Future Enhancements
+## 20. Future Enhancements
 
-### 19.1 High Priority
-- [ ] Refresh token rotation
+### 20.1 High Priority
+- [x] Refresh token rotation
 - [ ] Event caching
-- [ ] Improved error handling
+- [x] Improved error handling
 - [ ] Better mobile experience
 
 ### 19.2 Medium Priority
