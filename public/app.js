@@ -26,6 +26,22 @@ async function loadEvents() {
 
     let calendar = new FullCalendar.Calendar(document.getElementById("calendar"), {
       initialView: "dayGridMonth",
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+      },
+      buttonText: {
+        today: 'Today',
+        month: 'Month',
+        week: 'Week',
+        day: 'Day'
+      },
+      views: {
+        timeGrid: {
+          dayMaxEventRows: 4 // adjust to 6 only for timeGridWeek/timeGridDay
+        }
+      },
       events: calendarEvents,
       eventTimeFormat: {
         hour: 'numeric',

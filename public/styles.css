@@ -134,8 +134,53 @@ h1 {
 }
 
 .fc-toolbar {
-  padding: 20px 20px 0 20px;
+  padding: 15px 20px 10px 20px;
   background: white;
+  margin: 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* View switching buttons */
+.fc-button {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  color: #4a5568;
+  font-weight: 500;
+  padding: 6px 12px;
+  margin: 0 2px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  text-transform: capitalize;
+}
+
+.fc-button:first-of-type {
+  margin-left: 0;
+}
+
+.fc-button:last-of-type {
+  margin-right: 0;
+}
+
+.fc-button:hover {
+  background: #edf2f7;
+  border-color: #cbd5e0;
+}
+
+.fc-button:active, 
+.fc-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.fc-button-active {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+}
+
+.fc-button-active:hover {
+  background: #5a67d8;
+  border-color: #5a67d8;
 }
 
 .fc-toolbar-title {
