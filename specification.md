@@ -20,8 +20,11 @@ Build a modern web application that provides Strava users with a clean, interact
 
 ### 2.2 Technology Stack
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **UI Components**: FullCalendar 6.1.8 (via CDN)
-- **Styling**: Custom CSS with Inter font
+- **UI Components**: FullCalendar 6.1.8 (via CDN) with:
+  - Month, Week, and Day view support
+  - Custom event rendering with club logos
+  - Responsive design for all screen sizes
+- **Styling**: Custom CSS with Inter font and modern UI components
 - **Backend**: Node.js 18+, Express.js
 - **Authentication**: OAuth2 with Strava
 - **Containerization**: Docker, Docker Compose
@@ -83,12 +86,17 @@ Build a modern web application that provides Strava users with a clean, interact
   - Filter events: now → now + 30 days
   - Support for recurring events via `upcoming_occurrences`
   - Timezone-aware date handling (UTC)
+  - Club logo integration with each event
+  - Event grouping by club in calendar views
 
 - **User Interface**
   - Responsive calendar view (FullCalendar 6.1.8)
+  - Multiple view options: Month, Week, and Day
+  - Club logos displayed next to event titles
   - Event tooltips with details
   - Interactive event actions (open in Strava, copy URL)
   - Loading and error states
+  - Intuitive view switching controls
 
 - **Development Experience**
   - Docker and Docker Compose support

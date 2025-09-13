@@ -7,6 +7,8 @@ A modern web application that connects to Strava, fetches upcoming club events f
 - **Smart Event Fetching** - Automatically retrieves events from all your Strava clubs
 - **Intelligent Filtering** - Shows only relevant events within the next 30 days
 - **Beautiful Calendar UI** - Built with FullCalendar featuring:
+  - Multiple view options: Month, Week, and Day views
+  - Club logos displayed next to each event
   - Responsive design that works on all devices
   - Event tooltips with detailed information
   - Click to open events in Strava (new tab)
@@ -94,7 +96,10 @@ The server expects `http://localhost:PORT/callback` (default: `http://localhost:
   {
     "title": "Morning Ride",
     "start": "2023-10-15T09:00:00Z",
-    "url": "https://www.strava.com/clubs/123/group_events/456"
+    "url": "https://www.strava.com/clubs/123/group_events/456",
+    "extendedProps": {
+      "club_logo": "https://dgalywyr863hv.cloudfront.net/pictures/clubs/123/medium.jpg"
+    }
   }
 ]
 ```
