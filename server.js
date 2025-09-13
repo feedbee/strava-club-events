@@ -90,8 +90,6 @@ app.get("/events", async (req, res) => {
       // Normalize to support upcoming_occurrences when start_date_local is absent
       let filtered = [];
       for (let ev of events) {
-        let candidateDates = [];
-        
         // Only use upcoming_occurrences, operate entirely in UTC
         if (Array.isArray(ev.upcoming_occurrences) && ev.upcoming_occurrences.length > 0) {
           const candidateDates = ev.upcoming_occurrences.map((d) => new Date(d));
@@ -104,8 +102,95 @@ app.get("/events", async (req, res) => {
             ev.start_date = match.toISOString();
             // Add Strava event URL
             ev.strava_event_url = `https://www.strava.com/clubs/${club.id}/group_events/${ev.id}`;
-            // Add club logo if available
-            ev.club_logo = club.profile_medium || '';
+            // Add club info
+            ev.club_info = {
+              name: club.name || '',
+              logo: club.profile_medium || ''
+            };
+            
+            // Add route information if available
+            if (ev.route && ev.route.id) {
+              try {
+                // Fetch detailed route information
+                const routeUrl = `https://www.strava.com/api/v3/routes/${ev.route.id}`;
+                const routeResponse = await fetch(routeUrl, {
+                  headers: { Authorization: `Bearer ${token}` }
+                });
+                
+                if (routeResponse.ok) {
+                  const routeDetails = await routeResponse.json();
+                  
+                  // Format moving time
+                  const formatMovingTime = (seconds) => {
+                    if (!seconds) return 'N/A';
+                    const hours = Math.floor(seconds / 3600);
+                    const minutes = Math.floor((seconds % 3600) / 60);
+                    return hours > 0 
+                      ? `${hours}h ${minutes}m` 
+                      : `${minutes}m`;
+                  };
+                  
+                  // Get route type as text
+                  const getRouteType = (type, subType) => {
+                    const types = {
+                      1: 'Ride',
+                      2: 'Run',
+                      3: 'Walk',
+                      4: 'Hike',
+                      5: 'Trail',
+                      6: 'Gravel Ride',
+                      7: 'Mountain Biking',
+                      8: 'E-Mountain Biking'
+                    };
+                    
+                    const subTypes = {
+                      1: 'Road',
+                      2: 'Mountain Bike',
+                      3: 'Cross',
+                      4: 'Trail',
+                      5: 'Mixed'
+                    };
+                    
+                    const typeText = types[type] || 'Unknown: ' + type;
+                    const subTypeText = subTypes[subType] || 'Unknown: ' + subType;
+                    
+                    return `${typeText} / ${subTypeText}`;
+                  };
+                  
+                  ev.route_info = {
+                    name: routeDetails.name || 'Unnamed Route',
+                    distance: routeDetails.distance ? `${(routeDetails.distance / 1000).toFixed(1)} km` : 'N/A',
+                    elevation_gain: routeDetails.elevation_gain ? `${Math.round(routeDetails.elevation_gain)}m` : 'N/A',
+                    activity_type: getRouteType(routeDetails.type, routeDetails.sub_type) || ev.activity_type || 'Ride',
+                    estimated_moving_time: formatMovingTime(routeDetails.estimated_moving_time),
+                    max_slope: routeDetails.maximum_grade ? `${routeDetails.maximum_grade}%` : 'N/A',
+                    elevation_high: routeDetails.elevation_high ? `${Math.round(routeDetails.elevation_high)}m` : 'N/A',
+                    elevation_low: routeDetails.elevation_low ? `${Math.round(routeDetails.elevation_low)}m` : 'N/A'
+                  };
+                } else {
+                  // Fallback to basic route info if detailed fetch fails
+                  ev.route_info = getBasicRouteInfo(ev);
+                }
+              } catch (error) {
+                console.error('Error fetching route details:', error);
+                ev.route_info = getBasicRouteInfo(ev);
+              }
+            }
+            
+            // Helper function for basic route info
+            function getBasicRouteInfo(event) {
+              return {
+                name: event.route?.name || 'Unnamed Route',
+                distance: event.route?.distance ? `${(event.route.distance / 1000).toFixed(1)} km` : 'N/A',
+                elevation_gain: event.route?.elevation_gain ? `${Math.round(event.route.elevation_gain)}m` : 'N/A',
+                activity_type: event.activity_type || 'Ride',
+                estimated_moving_time: 'N/A',
+                max_slope: 'N/A',
+                elevation_high: 'N/A',
+                elevation_low: 'N/A'
+              };
+            }
+            
             filtered.push(ev);
           }
         }

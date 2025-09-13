@@ -20,7 +20,8 @@ async function loadEvents() {
       start: ev.start_date,
       url: ev.strava_event_url,
       extendedProps: {
-        club_logo: ev.club_logo || ''
+        club_info: ev.club_info || { name: '', logo: '' },
+        route_info: ev.route_info || null
       }
     }));
 
@@ -49,13 +50,45 @@ async function loadEvents() {
         hour12: true
       },
       eventDidMount: function(info) {
-        // Add tooltip for event title
-        info.el.title = info.event.title;
+        // Build tooltip content
+        let tooltipContent = `🚀 ${info.event.title}`;
+        
+        // Add club info if available
+        if (info.event.extendedProps.club_info && info.event.extendedProps.club_info.name) {
+          tooltipContent += `\n\n♣️ ${info.event.extendedProps.club_info.name}`;
+        }
+        
+        // Add route info to tooltip if available
+        const routeInfo = info.event.extendedProps.route_info;
+        if (routeInfo) {
+          tooltipContent += `\n\n🗺️ ${routeInfo.name}`;
+          tooltipContent += `\n📏 ${routeInfo.distance} • 🏔️ ${routeInfo.elevation_gain}`;
+          tooltipContent += `\n🚴 ${routeInfo.activity_type}`;
+          
+          // Add additional route details if available
+          if (routeInfo.estimated_moving_time !== 'N/A') {
+            tooltipContent += `\n⏱️ ${routeInfo.estimated_moving_time}`;
+          }
+          
+          // Add max slope if available
+          if (routeInfo.max_slope !== 'N/A') {
+            tooltipContent += `\n📐 Max Slope: ${routeInfo.max_slope}%`;
+          }
+          
+          // Add elevation range if available
+          if (routeInfo.elevation_low !== 'N/A' && routeInfo.elevation_high !== 'N/A') {
+            tooltipContent += `\n📈 Elevation: ${routeInfo.elevation_low} → ${routeInfo.elevation_high}`;
+          }
+        }
+        
+        // Set the tooltip content
+        info.el.title = tooltipContent;
+        info.el.setAttribute('data-tooltip', tooltipContent);
         
         // Create custom event content with club logo
         const titleEl = info.el.querySelector('.fc-event-title');
         if (titleEl) {
-          const clubLogo = info.event.extendedProps.club_logo;
+          const clubLogo = info.event.extendedProps.club_info.logo;
           if (clubLogo) {
             const logoHtml = `<img src="${clubLogo}" class="club-logo" alt="Club Logo">`;
             titleEl.insertAdjacentHTML('afterbegin', logoHtml);

@@ -18,7 +18,18 @@ h1 {
   font-weight: 700;
   font-size: 2.5rem;
   margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
   text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+h1 .title-icon {
+  width: 1.2em;
+  height: 1.2em;
+  vertical-align: middle;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
 }
 
 #auth {
@@ -94,6 +105,55 @@ h1 {
 /* FullCalendar custom styling */
 .fc {
   font-family: 'Inter', sans-serif;
+}
+
+/* Tooltip styling for calendar events */
+.fc-event[title] {
+  position: relative;
+  cursor: help;
+}
+
+.fc-event[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.9em;
+  white-space: pre-line;
+  z-index: 1000;
+  min-width: 200px;
+  max-width: 300px;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.fc-event[title]:hover::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% - 1px);
+  transform: translateX(-50%);
+  border-width: 6px 6px 0;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 0.85) transparent transparent;
+  z-index: 1001;
+}
+
+/* Remove tooltips from navigation buttons */
+.fc-toolbar .fc-button[title] {
+  cursor: pointer;
+}
+
+.fc-toolbar .fc-button[title]:hover::after,
+.fc-toolbar .fc-button[title]:hover::before {
+  display: none;
 }
 
 /* Club logo styling */
