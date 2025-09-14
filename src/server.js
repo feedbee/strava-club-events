@@ -1,6 +1,6 @@
-import { app } from './src/app.js';
-import { config } from './src/config/index.js';
-import routes from './src/routes/index.js';
+import { app } from './app.js';
+import { config } from './config/index.js';
+import routes from './routes/index.js';
 
 const { port } = config;
 

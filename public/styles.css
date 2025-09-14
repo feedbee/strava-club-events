@@ -102,6 +102,11 @@ h1 .title-icon {
   backdrop-filter: blur(10px);
 }
 
+/* Weekend day styling */
+.fc .weekend-day {
+  background-color: rgba(208, 208, 219, 0.25);
+}
+
 /* FullCalendar custom styling */
 .fc {
   font-family: 'Inter', sans-serif;
@@ -279,7 +284,7 @@ h1 .title-icon {
 }
 
 .fc-day-today {
-  background-color: rgba(102, 126, 234, 0.05) !important;
+  background-color: rgba(40, 130, 255, 0.14) !important;
 }
 
 .fc-day-today .fc-daygrid-day-number {

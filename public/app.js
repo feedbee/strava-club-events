@@ -49,10 +49,17 @@ async function loadEvents() {
 
     let calendar = new FullCalendar.Calendar(document.getElementById("calendar"), {
       initialView: "dayGridMonth",
+      firstDay: 1, // Monday
       headerToolbar: {
         left: 'prev,next today',
         center: 'title',
         right: 'dayGridMonth,timeGridWeek,timeGridDay'
+      },
+      dayCellDidMount: function(arg) {
+        // Add 'weekend-day' class to Saturday (6) and Sunday (0) cells
+        if (arg.date.getDay() === 0 || arg.date.getDay() === 6) {
+          arg.el.classList.add('weekend-day');
+        }
       },
       buttonText: {
         today: 'Today',
