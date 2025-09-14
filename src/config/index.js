@@ -9,6 +9,17 @@ function getConfig() {
     process.exit(1);
   }
 
+  // Cache configuration
+  const CACHE_DRIVER = process.env.CACHE_DRIVER || 'memory'; // 'memory' or 'mongodb'
+  const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+  const MONGODB_DB = process.env.MONGODB_DB || 'strava-club-events';
+  const CACHE_TTL = {
+    DEFAULT: parseInt(process.env.CACHE_TTL_DEFAULT) || 15 * 60 * 1000, // 15 minutes
+    CLUBS: parseInt(process.env.CACHE_TTL_CLUBS) || 15 * 60 * 1000, // 15 minutes
+    EVENTS: parseInt(process.env.CACHE_TTL_EVENTS) || 15 * 60 * 1000, // 15 minutes
+    ROUTE: parseInt(process.env.CACHE_TTL_ROUTE) || 60 * 60 * 1000, // 1 hour
+  };
+
   return {
     port: PORT,
     clientId: CLIENT_ID,
@@ -16,7 +27,18 @@ function getConfig() {
     sessionSecret: SESSION_SECRET,
     redirectUri: `http://localhost:${PORT}/callback`,
     stravaAuthUrl: (clientId, redirectUri) => 
-      `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&approval_prompt=auto&scope=read`
+      `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&approval_prompt=auto&scope=read`,
+    
+    // Cache configuration
+    cache: {
+      driver: CACHE_DRIVER,
+      ttl: CACHE_TTL,
+      mongodb: {
+        uri: MONGODB_URI,
+        dbName: MONGODB_DB,
+        collectionName: 'cache'
+      }
+    }
   };
 }
 

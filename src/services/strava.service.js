@@ -5,27 +5,29 @@ import { Logger } from '../utils/logger.js';
 
 const logger = Logger.create('strava:api');
 
-// Create a default in-memory cache instance
+import { config } from '../config/index.js';
+
+// Cache instance
 let cache;
 
-// Initialize cache immediately
+// Initialize cache
 (async () => {
   try {
-    cache = await AbstractCache.create('memory', {
-      defaultTTL: 15 * 60 * 1000 // 15 minutes default
-    });
+    const cacheConfig = {
+      defaultTTL: config.cache.ttl.DEFAULT,
+      ...config.cache.mongodb
+    };
+    
+    cache = await AbstractCache.create(config.cache.driver, cacheConfig);
+    logger.info(`Cache initialized with ${config.cache.driver} driver`);
   } catch (error) {
     logger.error('Failed to initialize cache:', error);
     process.exit(1);
   }
 })();
 
-// Cache TTLs in milliseconds
-const CACHE_TTL = {
-  CLUBS: 15 * 60 * 1000, // 15 minutes
-  EVENTS: 15 * 60 * 1000, // 15 minutes
-  ROUTE: 60 * 60 * 1000,  // 1 hour (routes don't change often)
-};
+// Use configured TTLs
+const CACHE_TTL = config.cache.ttl;
 
 /**
  * Refreshes the access token using the refresh token

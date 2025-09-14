@@ -84,8 +84,12 @@ class AbstractCache {
         const { default: InMemoryCache } = await import('./drivers/in-memory-cache.js');
         return new InMemoryCache(options);
       }
-      case DRIVERS.MONGODB:
-        throw new Error('MongoDB cache driver is not implemented yet');
+      case DRIVERS.MONGODB: {
+        const { default: MongoDBCache } = await import('./drivers/mongodb-cache.js');
+        const instance = new MongoDBCache(options);
+        await instance.init(); // Ensure the connection is established
+        return instance;
+      }
       default:
         throw new Error(`Unsupported cache driver: ${type}`);
     }
