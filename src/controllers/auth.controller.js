@@ -41,12 +41,23 @@ async function oauthCallback(req, res) {
     const data = await tokenResp.json();
     const now = Math.floor(Date.now() / 1000);
     
-    // Store tokens with expiration
+    // Store tokens and user information
     req.session.tokens = {
       access_token: data.access_token,
       refresh_token: data.refresh_token,
       expires_at: now + data.expires_in
     };
+    
+    // Store athlete information
+    if (data.athlete) {
+      req.session.user = {
+        id: `strava_${data.athlete.id}`,
+        athleteId: data.athlete.id,
+        username: data.athlete.username || `user_${data.athlete.id}`,
+        firstname: data.athlete.firstname,
+        lastname: data.athlete.lastname
+      };
+    }
     
     res.redirect("/");
   } catch (error) {

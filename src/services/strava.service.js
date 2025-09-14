@@ -1,5 +1,31 @@
 import fetch from 'node-fetch';
 import { parseJsonWithStringIds } from '../utils/parsing.js';
+import AbstractCache from '../cache/abstract-cache.js';
+import { Logger } from '../utils/logger.js';
+
+const logger = Logger.create('strava:api');
+
+// Create a default in-memory cache instance
+let cache;
+
+// Initialize cache immediately
+(async () => {
+  try {
+    cache = await AbstractCache.create('memory', {
+      defaultTTL: 15 * 60 * 1000 // 15 minutes default
+    });
+  } catch (error) {
+    logger.error('Failed to initialize cache:', error);
+    process.exit(1);
+  }
+})();
+
+// Cache TTLs in milliseconds
+const CACHE_TTL = {
+  CLUBS: 15 * 60 * 1000, // 15 minutes
+  EVENTS: 15 * 60 * 1000, // 15 minutes
+  ROUTE: 60 * 60 * 1000,  // 1 hour (routes don't change often)
+};
 
 /**
  * Refreshes the access token using the refresh token
@@ -9,6 +35,7 @@ import { parseJsonWithStringIds } from '../utils/parsing.js';
  * @returns {Promise<Object>} - The new access token data
  */
 async function refreshAccessToken(refreshToken, clientId, clientSecret) {
+  logger.debug('Refreshing access token');
   const tokenResp = await fetch("https://www.strava.com/oauth/token", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -33,11 +60,30 @@ async function refreshAccessToken(refreshToken, clientId, clientSecret) {
  * @param {string} accessToken - The OAuth access token
  * @returns {Promise<Array>} - List of user's clubs
  */
-async function getUserClubs(accessToken) {
+async function getUserClubs(accessToken, userId) {
+  const cacheKey = AbstractCache.generateKey(userId, 'clubs');
+  
+  // Try to get from cache first
+  const cached = await cache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  // If not in cache, fetch from API
   const response = await fetch("https://www.strava.com/api/v3/athlete/clubs", {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
-  return parseJsonWithStringIds(await response.text());
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch clubs: ${response.statusText}`);
+  }
+  
+  const clubs = parseJsonWithStringIds(await response.text());
+  
+  // Cache the result
+  await cache.set(cacheKey, clubs, CACHE_TTL.CLUBS);
+  
+  return clubs;
 }
 
 /**
@@ -46,12 +92,36 @@ async function getUserClubs(accessToken) {
  * @param {string|number} clubId - The club ID
  * @returns {Promise<Array>} - List of raw club events
  */
-async function fetchRawClubEvents(accessToken, clubId) {
-  const response = await fetch(
-    `https://www.strava.com/api/v3/clubs/${clubId}/group_events?upcoming=true&per_page=200&page=1`,
-    { headers: { Authorization: `Bearer ${accessToken}` } }
-  );
-  return parseJsonWithStringIds(await response.text());
+async function fetchRawClubEvents(accessToken, userId, clubId) {
+  const cacheKey = AbstractCache.generateKey(userId, 'club_events', clubId);
+  
+  // Try to get from cache first
+  const cached = await cache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  // If not in cache, fetch from API
+  const url = `https://www.strava.com/api/v3/clubs/${clubId}/group_events?upcoming=true&per_page=200&page=1`;
+  logger.debug(`Fetching club events from: ${url}`);
+  
+  const response = await fetch(url, {
+    headers: { 
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch events for club ${clubId}: ${response.statusText}`);
+  }
+  
+  const events = parseJsonWithStringIds(await response.text());
+  
+  // Cache the result
+  await cache.set(cacheKey, events, CACHE_TTL.EVENTS);
+  
+  return events;
 }
 
 /**
@@ -60,12 +130,42 @@ async function fetchRawClubEvents(accessToken, clubId) {
  * @param {string|number} routeId - The route ID
  * @returns {Promise<Object|null>} - Route details or null if not found
  */
-async function getRouteDetails(accessToken, routeId) {
-  const response = await fetch(
-    `https://www.strava.com/api/v3/routes/${routeId}`,
-    { headers: { Authorization: `Bearer ${accessToken}` } }
-  );
-  return response.ok ? await response.json() : null;
+async function getRouteDetails(accessToken, userId, routeId) {
+  if (!routeId) return null;
+  
+  const cacheKey = AbstractCache.generateKey(userId, 'route', routeId);
+  
+  // Try to get from cache first
+  const cached = await cache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  // If not in cache, fetch from API
+  const url = `https://www.strava.com/api/v3/routes/${routeId}`;
+  logger.debug(`Fetching route details from: ${url}`);
+  
+  const response = await fetch(url, {
+    headers: { 
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  if (!response.ok) {
+    console.error(`Failed to fetch route ${routeId}: ${response.statusText}`);
+    return null;
+  }
+  
+  const routeDetails = await parseJsonWithStringIds(await response.text());
+  
+  // Cache the result
+  if (routeDetails) {
+    logger.debug(`Caching route details for route ID: ${routeId}`);
+    await cache.set(cacheKey, routeDetails, CACHE_TTL.ROUTE);
+  }
+  
+  return routeDetails;
 }
 
 /**
@@ -75,7 +175,7 @@ async function getRouteDetails(accessToken, routeId) {
  * @param {string} accessToken - The OAuth access token
  * @returns {Promise<Object|null>} - Prepared event or null if not within date range
  */
-async function prepareEvent(event, club, accessToken) {
+async function prepareEvent(event, club, accessToken, userId) {
   // Process upcoming occurrences
   const now = new Date();
   const nextMonth = new Date();
@@ -103,13 +203,20 @@ async function prepareEvent(event, club, accessToken) {
     }
   };
 
-  // Add route information if available
+  // Get route details if route.id is available
   if (event.route?.id) {
     try {
-      const routeDetails = await getRouteDetails(accessToken, event.route.id);
-      processedEvent.route_info = routeDetails 
-        ? createRouteInfo(routeDetails)
-        : getBasicRouteInfo(event);
+      event.route = await getRouteDetails(accessToken, userId, event.route.id);
+    } catch (error) {
+      console.error(`Error fetching route details for route ${event.route.id}:`, error);
+      event.route = getBasicRouteInfo(event);
+    }
+  }
+
+  // Add route information if available
+  if (event.route) {
+    try {
+      processedEvent.route_info = createRouteInfo(event.route);
     } catch (error) {
       console.error('Error fetching route details:', error);
       processedEvent.route_info = getBasicRouteInfo(event);
@@ -195,9 +302,14 @@ function getBasicRouteInfo(event) {
  * @param {Object} club - The club object
  * @returns {Promise<Array>} - Array of prepared events
  */
-async function getClubEvents(accessToken, club) {
-  const events = await fetchRawClubEvents(accessToken, club.id);
-  const eventPromises = events.map(event => prepareEvent(event, club, accessToken));
+async function getClubEvents(accessToken, club, userId) {
+  const events = await fetchRawClubEvents(accessToken, userId, club.id);
+  
+  // Process events in parallel
+  const eventPromises = events.map(event => 
+    prepareEvent(event, club, accessToken, userId)
+  );
+  
   const preparedEvents = await Promise.all(eventPromises);
   return preparedEvents.filter(Boolean); // Filter out null/undefined events
 }

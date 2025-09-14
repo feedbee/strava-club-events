@@ -13,13 +13,19 @@ async function getEvents(req, res) {
     const token = req.token; // Token attached by ensureValidToken middleware
     const allEvents = [];
 
+    // Get user ID from the authenticated user
+    if (!req.user?.id) {
+      throw new Error('User not authenticated');
+    }
+    const userId = req.user.id;
+    
     // Get user's clubs
-    const clubs = await getUserClubs(token);
+    const clubs = await getUserClubs(token, userId);
 
     // Get events for each club
     for (const club of clubs) {
       try {
-        const clubEvents = await getClubEvents(token, club);
+        const clubEvents = await getClubEvents(token, club, userId);
         allEvents.push(...clubEvents);
       } catch (error) {
         console.error(`Error getting events for club ${club.id}:`, error);

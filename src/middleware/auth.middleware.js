@@ -34,8 +34,17 @@ async function ensureValidToken(req, res, next) {
     }
   }
   
-  // Attach the valid token to the request for use in subsequent middleware
+  // Attach the valid token and user info to the request
   req.token = req.session.tokens.access_token;
+  
+  // Set req.user from session if available
+  if (req.session.user) {
+    req.user = { ...req.session.user };
+  } else {
+    console.warn('No user data found in session');
+    req.user = null;
+  }
+  
   next();
 }
 
