@@ -1,0 +1,186 @@
+[
+    {
+        "id": 1234567890123456789,
+        "resource_state": 2,
+        "title": "Weekend Group Ride - Scenic Route",
+        "description": "Join us for a fun group ride this weekend! We'll be taking a scenic route through the countryside with a coffee stop halfway. All skill levels welcome.\n\n🚴 Distance: 60km\n⏱️ Average speed: 25-28 km/h\n📍 Meeting point: Central Park Main Gate\n\nPlease ensure your bike is in good working condition and bring water, snacks, and a spare tube. Helmets are mandatory.",
+        "club_id": 987654,
+        "club": {
+            "id": 987654,
+            "resource_state": 1,
+            "name": "City Cyclists"
+        },
+        "organizing_athlete": {
+            "id": 54321,
+            "username": "johndoe",
+            "resource_state": 2,
+            "firstname": "John",
+            "lastname": "Doe | City Cyclists",
+            "bio": "Cycling enthusiast and event organizer",
+            "city": "Metropolis",
+            "state": "",
+            "country": "United States",
+            "sex": "M",
+            "premium": true,
+            "summit": false,
+            "created_at": "2020-01-15T08:30:00Z",
+            "updated_at": "2025-08-20T14:22:10Z",
+            "badge_type_id": 1,
+            "profile_medium": "https://example.com/profiles/medium/johndoe.jpg",
+            "profile": "https://example.com/profiles/large/johndoe.jpg",
+            "friend": null,
+            "follower": null,
+            "blocked": false,
+            "can_follow": true
+        },
+        "activity_type": "Ride",
+        "created_at": "2025-08-25T10:00:00Z",
+        "route_id": 1234567890123456789,
+        "route": {
+            "id": 1234567890123456789,
+            "id_str": "1234567890123456789",
+            "resource_state": 1,
+            "name": "Weekend Scenic Loop",
+            "map": {
+                "id": "r1234567890123456789",
+                "summary_polyline": "abc123def456ghi789jkl012mno345pqr678stu901vwx234yza567bcd890efg123hij456klm789nop012qrs345tuv678wxy901zab234cde567fgh890",
+                "resource_state": 2
+            },
+            "map_urls": {
+                "url": "https://example.com/maps/route123",
+                "retina_url": "https://example.com/maps/route123@2x",
+                "light_url": "https://example.com/maps/route123/light",
+                "dark_url": "https://example.com/maps/route123/dark"
+            }
+        },
+        "women_only": false,
+        "private": false,
+        "skill_levels": 2,
+        "terrain": 1,
+        "upcoming_occurrences": [
+            "2025-09-14T08:00:00Z",
+            "2025-09-21T08:00:00Z"
+        ],
+        "zone": "America/New_York",
+        "address": "Central Park, New York, NY",
+        "joined": false,
+        "start_latlng": [40.7829, -73.9654]
+    },
+    {
+        "id": 9876543210987654321,
+        "resource_state": 2,
+        "title": "Morning Gravel Grinder",
+        "description": "Early morning gravel ride through the forest trails. Technical terrain with some climbing. Bring a gravel or mountain bike.\n\n🚴 Distance: 45km\n⛰️ Elevation: 600m\n⏱️ Average speed: 20-22 km/h\n📍 Meeting point: Trailhead Parking",
+        "club_id": 567890,
+        "club": {
+            "id": 567890,
+            "resource_state": 1,
+            "name": "Gravel Riders"
+        },
+        "organizing_athlete": {
+            "id": 98765,
+            "username": "janesmith",
+            "resource_state": 2,
+            "firstname": "Jane",
+            "lastname": "Smith | Gravel Riders",
+            "bio": "Gravel and adventure cycling",
+            "city": "Outdoorville",
+            "state": "",
+            "country": "Canada",
+            "sex": "F",
+            "premium": true,
+            "summit": true,
+            "created_at": "2019-05-10T07:15:00Z",
+            "updated_at": "2025-08-18T09:45:30Z",
+            "badge_type_id": 1,
+            "profile_medium": "https://example.com/profiles/medium/janesmith.jpg",
+            "profile": "https://example.com/profiles/large/janesmith.jpg",
+            "friend": null,
+            "follower": null,
+            "blocked": false,
+            "can_follow": true
+        },
+        "activity_type": "Ride",
+        "created_at": "2025-08-20T15:30:00Z",
+        "route_id": 9876543210987654321,
+        "route": {
+            "id": 9876543210987654321,
+            "id_str": "9876543210987654321",
+            "resource_state": 1,
+            "name": "Forest Gravel Loop",
+            "map": {
+                "id": "r9876543210987654321",
+                "summary_polyline": "xyz789abc456def123ghi890jkl567mno234pqr901stu678vwx345yza012bcd789efg456hij123klm890nop567qrs234tuv901wxy678",
+                "resource_state": 2
+            },
+            "map_urls": {
+                "url": "https://example.com/maps/gravel123",
+                "retina_url": "https://example.com/maps/gravel123@2x",
+                "light_url": "https://example.com/maps/gravel123/light",
+                "dark_url": "https://example.com/maps/gravel123/dark"
+            }
+        },
+        "women_only": true,
+        "private": false,
+        "skill_levels": 3,
+        "terrain": 2,
+        "upcoming_occurrences": [
+            "2025-09-16T05:30:00Z",
+            "2025-09-23T05:30:00Z"
+        ],
+        "zone": "America/Toronto",
+        "address": "Forest Trailhead, Outdoorville, ON",
+        "joined": true,
+        "start_latlng": [43.6532, -79.3832]
+    },
+    {
+        "id": 2468135790246801357,
+        "resource_state": 2,
+        "title": "Weekend Cycling Camp",
+        "description": "Join us for a weekend of cycling in the mountains! This event includes guided rides, skills clinics, and social activities. Accommodation and meals included.\n\n📅 Date: October 4-6, 2025\n📍 Location: Mountain View Resort\n💪 Skill level: Intermediate to Advanced\n\nRegistration required - limited spots available!",
+        "club_id": 135792,
+        "club": {
+            "id": 135792,
+            "resource_state": 1,
+            "name": "Mountain Cyclists"
+        },
+        "organizing_athlete": {
+            "id": 24680,
+            "username": "mikej",
+            "resource_state": 2,
+            "firstname": "Michael",
+            "lastname": "Johnson | Mountain Cyclists",
+            "bio": "Mountain guide and cycling coach",
+            "city": "Summitville",
+            "state": "",
+            "country": "United States",
+            "sex": "M",
+            "premium": true,
+            "summit": true,
+            "created_at": "2018-03-12T11:20:00Z",
+            "updated_at": "2025-08-10T16:45:22Z",
+            "badge_type_id": 1,
+            "profile_medium": "https://example.com/profiles/medium/mikej.jpg",
+            "profile": "https://example.com/profiles/large/mikej.jpg",
+            "friend": null,
+            "follower": null,
+            "blocked": false,
+            "can_follow": true
+        },
+        "activity_type": "Ride",
+        "created_at": "2025-07-15T09:10:00Z",
+        "route_id": null,
+        "route": null,
+        "women_only": false,
+        "private": true,
+        "skill_levels": 3,
+        "terrain": 3,
+        "upcoming_occurrences": [
+            "2025-10-04T08:00:00Z"
+        ],
+        "zone": "America/Denver",
+        "address": "Mountain View Resort, 123 Alpine Way, Summitville, CO",
+        "joined": false,
+        "start_latlng": [39.5501, -105.7821]
+    }
+]
