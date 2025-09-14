@@ -3,7 +3,7 @@
     "dockerFile": "Dockerfile",
     "context": "..",
     "appPort": ["3000:3000"],
-    "envFile": ".env-local",
+    "envFile": ".env.local",
     "postCreateCommand": "npm install",
     "settings": {
       "terminal.integrated.defaultProfile.linux": "bash"

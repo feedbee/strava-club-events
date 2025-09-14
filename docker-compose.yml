@@ -7,7 +7,7 @@ services:
     volumes:
       - .:/usr/src/app
     env_file:
-      - .env-local
+      - .env.local
     # environment:
     #   - CLIENT_ID=your_strava_client_id
     #   - CLIENT_SECRET=your_strava_client_secret

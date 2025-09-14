@@ -354,7 +354,7 @@ interface Event {
 
 ### 15.1 Development
 1. Clone repository
-2. Create `.env-local` with Strava API credentials
+2. Create `.env.local` with Strava API credentials
 3. Run `docker compose up --build`
 4. Access at `http://localhost:3000`
 

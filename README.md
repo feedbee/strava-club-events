@@ -60,7 +60,7 @@ docker-compose up -d
 ### ⚙️ Configuration
 
 #### Environment Variables
-Create a `.env-local` file in the project root with the following variables:
+Create a `.env.local` file in the project root with the following variables:
 
 ```env
 # Required
@@ -71,11 +71,11 @@ CLIENT_SECRET=your_strava_client_secret
 PORT=3000
 ```
 
-> **Important:** Never commit your `.env-local` file or share your Strava API credentials.
+> **Important:** Never commit your `.env.local` file or share your Strava API credentials.
 
 ### 🐳 Running with Docker Compose
 
-1. Create `.env-local` with your Strava API credentials
+1. Create `.env.local` with your Strava API credentials
 2. Start the application:
    ```bash
    docker compose up --build
@@ -97,10 +97,10 @@ PORT=3000
    ```
 
 2. Set environment variables:
-   - Option 1: Create `.env-local` file (recommended)
+   - Option 1: Create `.env.local` file (recommended)
    - Option 2: Export variables manually:
      ```bash
-     export $(grep -v '^#' .env-local | xargs -d'\n')
+     export $(grep -v '^#' .env.local | xargs -d'\n')
      ```
 
 3. Start the development server:
@@ -173,7 +173,7 @@ strava-events-calendar/
 │   ├── services/        # Business logic
 │   └── utils/           # Utility functions
 │       └── parsing.js
-├── .env-local           # Local environment variables (gitignored)
+├── .env.local           # Local environment variables (gitignored)
 ├── .gitignore           # Git ignore rules
 ├── Dockerfile           # Production Dockerfile
 ├── docker-compose.yml   # Docker Compose configuration
