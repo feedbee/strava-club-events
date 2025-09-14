@@ -1,17 +1,15 @@
 import { app } from './app.js';
 import { config } from './config/index.js';
 import routes from './routes/index.js';
+import { errorHandler } from './middleware/error.middleware.js';
 
 const { port } = config;
 
 // Use routes
 app.use('/', routes);
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
-});
+// Use error handling middleware
+app.use(errorHandler);
 
 // Start server
 app.listen(port, () => {
