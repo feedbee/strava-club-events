@@ -1,4 +1,5 @@
 import { refreshAccessToken } from '../services/strava.service.js';
+import { config } from "../config/index.js";
 
 /**
  * Middleware to check and refresh the access token if needed
@@ -17,8 +18,8 @@ async function ensureValidToken(req, res, next) {
     try {
       const newTokens = await refreshAccessToken(
         req.session.tokens.refresh_token,
-        req.app.locals.config.clientId,
-        req.app.locals.config.clientSecret
+        config.clientId,
+        config.clientSecret
       );
       
       req.session.tokens = {
