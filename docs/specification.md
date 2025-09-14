@@ -100,7 +100,7 @@ Build a modern web application that provides Strava users with a clean, interact
   - **Static Files**
     - `GET /`: Serve static frontend
     - `GET /index.html`: Serve frontend HTML
-    - `GET /app.js`: Serve frontend JavaScript
+    - `GET /index.js`: Serve frontend JavaScript
     - `GET /styles.css`: Serve frontend styles
   - Static file serving for frontend assets
 

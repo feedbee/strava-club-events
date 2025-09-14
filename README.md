@@ -157,7 +157,7 @@ strava-events-calendar/
 ├── public/              # Static assets
 │   ├── index.html       # Main application UI
 │   ├── styles.css       # Custom styles
-│   └── app.js           # Frontend JavaScript
+│   └── index.js         # Frontend JavaScript
 ├── src/
 │   ├── config/          # Configuration files
 │   │   └── index.js
