@@ -11,11 +11,21 @@ Build a modern web application that provides Strava users with a clean, interact
 
 ### 2.1 High-Level Architecture
 ```
-┌─────────────┐     ┌───────────────┐     ┌─────────────┐
-│             │     │               │     │             │
-│  Frontend   │◄───►│  Backend API  │◄───►│  Strava API │
-│  (Browser)  │     │  (Node.js)    │     │             │
-└─────────────┘     └───────────────┘     └─────────────┘
+┌─────────────┐     ┌─────────────────────────────────────┐     ┌─────────────┐
+│             │     │                                     │     │             │
+│  Frontend   │◄───►│           Backend API               │◄───►│  Strava API │
+│  (Browser)  │     │  ┌─────────────┐    ┌─────────────┐ │     │             │
+└─────────────┘     │  │  Routes     │    │  Auth       │ │     └─────────────┘
+                    │  ├─────────────┤    │  Middleware │ │
+                    │  │ Controllers │    └─────────────┘ │
+                    │  └─────────────┘                    │
+                    │  ┌───────────┐                      │
+                    │  │ Services  │                      │
+                    │  └───────────┘                      │
+                    │  ┌───────────┐                      │
+                    │  │  Utils    │                      │
+                    │  └───────────┘                      │
+                    └─────────────────────────────────────┘
 ```
 
 ### 2.2 Technology Stack
@@ -26,7 +36,13 @@ Build a modern web application that provides Strava users with a clean, interact
   - Responsive design for all screen sizes
 - **Styling**: Custom CSS with Inter font and modern UI components
 - **Backend**: Node.js 18+, Express.js
+  - **Routes**: Modular route definitions in `src/routes/`
+  - **Controllers**: Request handlers in `src/controllers/`
+  - **Middleware**: Authentication and utilities in `src/middleware/`
+  - **Services**: Business logic in `src/services/`
+  - **Utils**: Helper functions in `src/utils/`
 - **Authentication**: OAuth2 with Strava
+- **Configuration**: Environment-based config in `src/config/`
 - **Containerization**: Docker, Docker Compose
 - **Development**: VS Code Dev Containers
 
@@ -76,9 +92,16 @@ Build a modern web application that provides Strava users with a clean, interact
   - Secure token handling
 
 - **API Endpoints**
-  - `GET /login`: Initiate OAuth flow
-  - `GET /callback`: Handle OAuth callback
-  - `GET /events`: Fetch filtered club events
+  - **Authentication**
+    - `GET /login`: Initiate OAuth flow with Strava
+    - `GET /callback`: Handle OAuth callback and token exchange
+  - **Events**
+    - `GET /events`: Fetch filtered club events (next 30 days)
+  - **Static Files**
+    - `GET /`: Serve static frontend
+    - `GET /index.html`: Serve frontend HTML
+    - `GET /app.js`: Serve frontend JavaScript
+    - `GET /styles.css`: Serve frontend styles
   - Static file serving for frontend assets
 
 - **Event Management**

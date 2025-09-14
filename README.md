@@ -115,11 +115,23 @@ The server expects `http://localhost:PORT/callback` (default: `http://localhost:
 
 ### 🔌 API Endpoints
 
+#### Authentication
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/login` | GET | Initiates OAuth flow with Strava |
 | `/callback` | GET | Handles OAuth callback and token exchange |
+
+#### Events
+| Endpoint | Method | Description |
+|----------|--------|-------------|
 | `/events` | GET | Returns JSON of upcoming club events (next 30 days) |
+
+### Code Organization
+- **Routes** are defined in `src/routes/`
+- **Controllers** contain request handling logic in `src/controllers/`
+- **Middleware** for authentication and other concerns in `src/middleware/`
+- **Configuration** in `src/config/`
+- **Static files** served from `public/`
 
 #### Example Event Response
 ```json
@@ -138,19 +150,35 @@ The server expects `http://localhost:PORT/callback` (default: `http://localhost:
 ### 📁 Project Structure
 
 ```
-├── .devcontainer/       # VS Code dev container configuration
+strava-events-calendar/
+├── .devcontainer/       # VS Code Dev Container configuration
 │   ├── devcontainer.json
 │   └── Dockerfile
 ├── public/              # Static assets
 │   ├── index.html       # Main application UI
 │   ├── styles.css       # Custom styles
 │   └── app.js           # Frontend JavaScript
+├── src/
+│   ├── config/          # Configuration files
+│   │   └── index.js
+│   ├── controllers/     # Route controllers
+│   │   ├── auth.controller.js
+│   │   └── events.controller.js
+│   ├── middleware/      # Express middleware
+│   │   └── auth.middleware.js
+│   ├── routes/          # Route definitions
+│   │   ├── auth.routes.js
+│   │   ├── events.routes.js
+│   │   └── index.js
+│   ├── services/        # Business logic
+│   └── utils/           # Utility functions
+│       └── parsing.js
 ├── .env-local           # Local environment variables (gitignored)
 ├── .gitignore           # Git ignore rules
 ├── Dockerfile           # Production Dockerfile
 ├── docker-compose.yml   # Docker Compose configuration
 ├── package.json         # Node.js dependencies and scripts
-└── server.js            # Express server and API endpoints
+└── README.md            # This file
 ```
 
 ### ⚠️ Limitations
