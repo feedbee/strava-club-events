@@ -37,22 +37,30 @@ h1 .title-icon {
   margin-bottom: 2rem;
 }
 
-#auth a {
-  background: rgba(255,255,255,0.2);
-  color: white;
-  padding: 12px 24px;
-  border-radius: 25px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.3);
+.strava-connect-btn {
+  display: inline-block;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  line-height: 0; /* Remove extra space below image */
 }
 
-#auth a:hover {
-  background: rgba(255,255,255,0.3);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+.strava-connect-img {
+  height: 40px; /* Default height for the button */
+  width: auto;
+  max-width: 100%;
+  border-radius: 4px;
+  transition: transform 0.2s ease;
+  display: block;
+}
+
+.strava-connect-btn:hover .strava-connect-img {
+  transform: translateY(-3px);
+}
+
+.strava-connect-btn:active .strava-connect-img {
+  transform: translateY(0);
 }
 
 #preloader {
@@ -267,6 +275,45 @@ h1 .title-icon {
   background: #5a67d8 !important;
   transform: translateY(-1px) !important;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
+}
+
+/* Footer Styles */
+.app-footer {
+  margin-top: 2rem;
+  padding: 1rem 0;
+  text-align: center;
+  color: #ffffff;
+  font-size: 0.9rem;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+}
+
+.strava-logo {
+  height: 20px;
+  margin-left: 1rem;
+  transition: opacity 0.2s ease;
+}
+
+.strava-logo:hover {
+  opacity: 0.8;
+}
+
+.email-link {
+  color: #ffffff;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.email-link:hover {
+  text-decoration: underline;
+  color: #ffffff;
 }
 
 .fc-button:focus {
