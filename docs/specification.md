@@ -1,6 +1,6 @@
 # Strava Club Events Calendar — Technical Specification
 
-*Last Updated: September 13, 2025 (v1.1.0)*
+*Last Updated: September 15, 2025 (v1.0.0)*
 
 ## 1. Overview
 
@@ -9,7 +9,27 @@ Build a modern web application that provides Strava users with a clean, interact
 
 ## 2. System Architecture
 
-### 2.1 High-Level Architecture
+### 2.1 Implemented Features
+- **Authentication**
+  - OAuth2 with Strava
+  - Token refresh implementation
+  - Basic session management
+
+- **Caching**
+  - In-memory caching for Strava API responses
+  - Caching for clubs, events, and routes data
+  - Basic cache invalidation
+
+- **Error Handling**
+  - Centralized error handling middleware
+  - Basic error responses for API endpoints
+
+- **Development**
+  - Docker and Docker Compose setup
+  - Environment-based configuration
+  - VS Code Dev Container configuration
+
+### 2.2 High-Level Architecture
 ```
 ┌─────────────┐     ┌─────────────────────────────────────┐     ┌─────────────┐
 │             │     │                                     │     │             │
@@ -430,11 +450,13 @@ interface Event {
 
 ### 20.1 High Priority
 - [x] Refresh token rotation
-- [ ] Event caching
+- [x] Event caching (in-memory and MongoDB implementations)
 - [x] Improved error handling
 - [ ] Better mobile experience
+- [ ] Better session management
 
 ### 19.2 Medium Priority
+- [ ] Rate limiting
 - [ ] Advanced filtering
 - [ ] Export to calendar
 - [ ] Notifications

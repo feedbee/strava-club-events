@@ -5,11 +5,16 @@ A modern web application that connects to Strava, fetches upcoming club events f
 ### ✨ Features
 - **Seamless OAuth2 Login** - Secure authentication with Strava using OAuth2
   - Automatic token refresh before expiration
-  - Graceful session management
+  - Basic session management
   - Secure token storage
 
-- **Smart Event Fetching** - Automatically retrieves events from all your Strava clubs
+- **Event Management**
+  - Fetches events from all your Strava clubs
+  - Filters events to show only upcoming ones (next 30 days)
+  - Displays basic event information
+
 - **Intelligent Filtering** - Shows only relevant events within the next 30 days
+
 - **Beautiful Calendar UI** - Built with FullCalendar featuring:
   - Multiple view options: Month, Week, and Day views
   - Club logos displayed next to each event
@@ -24,10 +29,21 @@ A modern web application that connects to Strava, fetches upcoming club events f
   - Right-click to copy event URL to clipboard
   - Clean, modern interface with Inter font and custom styling
   - Support for various activity types with appropriate icons
+
 - **Developer Friendly**
   - Docker and Docker Compose support
   - Development container configuration included
   - Environment-based configuration
+
+- **Performance**
+  - Configurable caching system with multiple backends:
+    - In-memory cache (default)
+    - MongoDB for persistent caching
+  - Granular TTL settings for different data types:
+    - Clubs: 15 minutes
+    - Events: 15 minutes
+    - Routes: 1 hour
+  - Basic error handling with middleware
 
 ### 🚀 Quick Start
 
@@ -184,10 +200,9 @@ strava-events-calendar/
 ### ⚠️ Limitations
 
 This is a development-focused application with the following considerations:
-- Uses a static session secret (not suitable for production)
-- No refresh token rotation (sessions expire with the access token)
-- Events are fetched on each page load (no caching)
-- Minimal error handling in the UI
+- Limited security features (no session invalidation, no rate limiting)
+- Limited error handling in the UI
+- Mobile UI is not optimized
 
 ### 📜 License
 
