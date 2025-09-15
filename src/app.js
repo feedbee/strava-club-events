@@ -1,6 +1,5 @@
 import express from "express";
-import session from "express-session";
-import { config } from "./config/index.js";
+import { sessionMiddleware } from "./middleware/session.middleware.js";
 
 // Create Express app
 const app = express();
@@ -8,13 +7,7 @@ const app = express();
 // Configure middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(
-  session({
-    secret: config.sessionSecret,
-    resave: false,
-    saveUninitialized: true,
-  })
-);
+app.use(sessionMiddleware);
 app.use(express.static("public"));
 
 // Export the app
