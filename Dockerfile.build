@@ -1,0 +1,56 @@
+# syntax=docker/dockerfile:1.4
+# Use Node.js LTS with Alpine Linux for smaller image size
+# Build for both amd64 and arm64
+# Use --platform=$BUILDPLATFORM to ensure the build runs on the host architecture
+FROM --platform=$BUILDPLATFORM node:18-alpine as builder
+
+# Set build arguments for platform-specific builds
+ARG TARGETARCH
+ARG TARGETOS
+
+# Set app directory
+WORKDIR /usr/src/app
+
+# Copy package.json and package-lock.json if present
+COPY package*.json ./
+
+# Install production dependencies only
+RUN npm ci --only=production \
+    && npm cache clean --force
+
+# Copy rest of the app
+COPY . .
+
+# Create a non-root user and set permissions
+RUN addgroup -S appgroup && \
+    adduser -S appuser -G appgroup && \
+    chown -R appuser:appgroup /usr/src/app
+
+# Final stage - use the same base image but without build tools
+FROM node:18-alpine
+
+# Copy built application from builder
+COPY --from=builder /usr/src/app /usr/src/app
+COPY --from=builder /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=builder /usr/local/bin/npm /usr/local/bin/npm
+
+WORKDIR /usr/src/app
+
+# Switch to non-root user
+USER appuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+
+# Expose port (matches server.js)
+EXPOSE 3000
+
+# Start the app with node
+CMD ["node", "src/server.js"]
+
+# Add labels for better image management
+LABEL maintainer="Your Name <your.email@example.com>" \
+      org.opencontainers.image.title="Strava Club Events" \
+      org.opencontainers.image.description="Strava Club Events Calendar Application" \
+      org.opencontainers.image.vendor="Your Organization"
