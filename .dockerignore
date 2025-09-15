@@ -1,0 +1,57 @@
+# Dependency directories
+node_modules/
+npm-debug.log
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+build/
+
+# Version control
+.git
+.gitignore
+.github/
+.husky/
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.devcontainer/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker files
+.dockerignore
+Dockerfile
+.docker
+docker-compose.yml
+
+# Local development
+.cache/
+coverage/
+
+# Test files
+__tests__/
+*.test.js
+*.spec.js
