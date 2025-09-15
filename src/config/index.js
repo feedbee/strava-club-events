@@ -1,5 +1,12 @@
 function getConfig() {
+  // Server bind configuration
   const PORT = process.env.PORT || 3000;
+  const HOST = process.env.HOST || '0.0.0.0'; // Bind to all interfaces by default
+  
+  // Public URL configuration (for callbacks and redirects)
+  const PUBLIC_URL = process.env.PUBLIC_URL || `http://localhost:${PORT}`;
+  
+  // App secrets
   const CLIENT_ID = process.env.CLIENT_ID;
   const CLIENT_SECRET = process.env.CLIENT_SECRET;
   const SESSION_SECRET = process.env.SESSION_SECRET || 'supersecret';
@@ -21,11 +28,18 @@ function getConfig() {
   };
 
   return {
+    // Server configuration
     port: PORT,
+    host: HOST,
+    
+    // Public URL configuration
+    publicUrl: PUBLIC_URL,
+    redirectUri: `${PUBLIC_URL}/callback`,
+    
+    // App secrets
     clientId: CLIENT_ID,
     clientSecret: CLIENT_SECRET,
     sessionSecret: SESSION_SECRET,
-    redirectUri: `http://localhost:${PORT}/callback`,
     stravaAuthUrl: (clientId, redirectUri) => 
       `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&approval_prompt=auto&scope=read`,
     
