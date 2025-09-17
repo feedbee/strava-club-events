@@ -87,6 +87,27 @@ CLIENT_SECRET=your_strava_client_secret
 PORT=3000
 ```
 
+The app supports the following configuration variables:
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `CLIENT_ID` | Yes | - | Strava API client ID |
+| `CLIENT_SECRET` | Yes | - | Strava API client secret |
+| `SESSION_SECRET` | No | `supersecret` | Secret for session signing (HTTP-only cookies) |
+| `NODE_ENV` | No | `development` | Runtime environment |
+| `HOST` | No | `0.0.0.0` | Bind address for the HTTP server (use `0.0.0.0` in Docker) |
+| `PORT` | No | `3000` | Port for the HTTP server |
+| `PUBLIC_URL` | No | `http://localhost:${PORT}` | Public base URL used to build OAuth redirect URI (`${PUBLIC_URL}/callback`) |
+| `DEV_CALLBACK_REDIRECT` | No | - | Optional base URL for dev forwarding. When set in prod, login flow appends `dev-callback-redirect=<dev-base>/callback` and `/callback` forwards to it |
+| `CACHE_DRIVER` | No | `memory` | Cache driver: `memory` or `mongodb` |
+| `MONGODB_URI` | No | `mongodb://localhost:27017` | MongoDB connection string (when `CACHE_DRIVER=mongodb`) |
+| `MONGODB_DB` | No | `strava-club-events` | MongoDB database name (when `CACHE_DRIVER=mongodb`) |
+| `CACHE_TTL_DEFAULT` | No | `900000` | Default cache TTL in ms (15 minutes) |
+| `CACHE_TTL_CLUBS` | No | `900000` | Clubs cache TTL in ms (15 minutes) |
+| `CACHE_TTL_EVENTS` | No | `900000` | Events cache TTL in ms (15 minutes) |
+| `CACHE_TTL_ROUTE` | No | `3600000` | Route cache TTL in ms (1 hour) |
+
+
 > **Important:** Never commit your `.env.local` file or share your Strava API credentials.
 
 ### 🐳 Running with Docker Compose
@@ -153,11 +174,23 @@ The server expects `http://localhost:PORT/callback` (default: `http://localhost:
 ```json
 [
   {
+    "id": 456,
     "title": "Morning Ride",
-    "start": "2023-10-15T09:00:00Z",
-    "url": "https://www.strava.com/clubs/123/group_events/456",
-    "extendedProps": {
-      "club_logo": "https://dgalywyr863hv.cloudfront.net/pictures/clubs/123/medium.jpg"
+    "start_date": "2025-10-15T09:00:00Z",
+    "strava_event_url": "https://www.strava.com/clubs/123/group_events/456",
+    "club_info": {
+      "name": "Cycling Club",
+      "logo": "https://dgalywyr863hv.cloudfront.net/pictures/clubs/123/medium.jpg"
+    },
+    "route_info": {
+      "name": "City Loop",
+      "distance": "42.5 km",
+      "elevation_gain": "520m",
+      "activity_type": "Ride / Road",
+      "estimated_moving_time": "2h 10m",
+      "max_slope": "8%",
+      "elevation_high": "320m",
+      "elevation_low": "40m"
     }
   }
 ]
@@ -167,34 +200,23 @@ The server expects `http://localhost:PORT/callback` (default: `http://localhost:
 
 ```
 strava-events-calendar/
-├── .devcontainer/       # VS Code Dev Container configuration
-│   ├── devcontainer.json
-│   └── Dockerfile
-├── public/              # Static assets
-│   ├── index.html       # Main application UI
-│   ├── styles.css       # Custom styles
-│   └── index.js         # Frontend JavaScript
-├── src/
-│   ├── config/          # Configuration files
-│   │   └── index.js
-│   ├── controllers/     # Route controllers
-│   │   ├── auth.controller.js
-│   │   └── events.controller.js
-│   ├── middleware/      # Express middleware
-│   │   └── auth.middleware.js
-│   ├── routes/          # Route definitions
-│   │   ├── auth.routes.js
-│   │   ├── events.routes.js
-│   │   └── index.js
-│   ├── services/        # Business logic
-│   └── utils/           # Utility functions
-│       └── parsing.js
-├── .env.local           # Local environment variables (gitignored)
-├── .gitignore           # Git ignore rules
-├── Dockerfile           # Production Dockerfile
-├── docker-compose.yml   # Docker Compose configuration
-├── package.json         # Node.js dependencies and scripts
-└── README.md            # This file
+├── .devcontainer/     # VS Code Dev Container setup
+├── public/            # Static frontend assets
+│   ├── index.html     # Main application UI
+│   ├── index.js       # Frontend JavaScript
+│   └── styles.css     # Global styles
+├── src/               # Backend source code
+│   ├── config/        # Application configuration
+│   ├── controllers/   # Request handlers
+│   ├── middleware/    # Express middleware
+│   ├── routes/        # API route definitions
+│   ├── services/      # Business logic
+│   └── utils/         # Helper functions
+│   ├── app.js         # Express app configuration
+│   ├── server.js      # HTTP server bootstrap
+├── .env.local         # Local environment variables
+├── Dockerfile         # Production container setup
+└── docker-compose.yml # Local development stack
 ```
 
 ### ⚠️ Limitations

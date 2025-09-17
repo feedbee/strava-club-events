@@ -16,8 +16,8 @@ Build a modern web application that provides Strava users with a clean, interact
   - Basic session management
 
 - **Caching**
-  - In-memory caching for Strava API responses
-  - Caching for clubs, events, and routes data
+  - In-memory and MongoDB cache drivers
+  - Caching for clubs, events, and routes with per-type TTL
   - Basic cache invalidation
 
 - **Error Handling**
@@ -25,8 +25,8 @@ Build a modern web application that provides Strava users with a clean, interact
   - Basic error responses for API endpoints
 
 - **Development**
-  - Docker and Docker Compose setup
-  - Environment-based configuration
+  - Docker setup with multi-arch builds (via buildx)
+  - Environment-based configuration (production/public vs bind host/port)
   - VS Code Dev Container configuration
 
 ### 2.2 High-Level Architecture
@@ -79,6 +79,7 @@ Build a modern web application that provides Strava users with a clean, interact
 2. **OAuth Authorization**
    - User clicks "Login with Strava"
    - App redirects to Strava's OAuth authorization page
+   - In production, when `DEV_CALLBACK_REDIRECT` is configured, the callback URL sent to Strava includes an extra query parameter: `dev-callback-redirect=<dev-base>/callback`
    - User reviews permissions and grants access
    - Strava redirects to `/callback?code=...`
 
@@ -197,10 +198,12 @@ Build a modern web application that provides Strava users with a clean, interact
 - **Response**: 302 Redirect to Strava OAuth URL
 
 #### GET /callback
-- **Description**: Handles OAuth callback
+- **Description**: Handles OAuth callback and optional forwarding to a dev environment
 - **Parameters**:
   - `code`: Authorization code from Strava
-- **Response**: 302 Redirect to `/`
+  - `dev-callback-redirect` (optional): Absolute URL to a dev environment base (including `/callback`). If present, the server redirects to this URL and forwards original query params instead of exchanging tokens.
+- **Response**:
+  - 302 Redirect to `/` after successful token exchange, or 302 redirect to the provided dev callback URL when forwarding is used
 
 #### GET /events
 - **Description**: Returns filtered club events
@@ -285,9 +288,19 @@ interface Event {
 |----------|----------|---------|-------------|
 | `CLIENT_ID` | Yes | - | Strava API client ID |
 | `CLIENT_SECRET` | Yes | - | Strava API client secret |
-| `PORT` | No | `3000` | Port for the web server |
 | `SESSION_SECRET` | No | `supersecret` | Secret for session encryption |
 | `NODE_ENV` | No | `development` | Runtime environment |
+| `HOST` | No | `0.0.0.0` | Bind address for the HTTP server |
+| `PORT` | No | `3000` | Port for the HTTP server |
+| `PUBLIC_URL` | No | `http://localhost:${PORT}` | Public base URL used to build OAuth redirect URI (`${PUBLIC_URL}/callback`) |
+| `DEV_CALLBACK_REDIRECT` | No | - | Optional base URL for dev forwarding. When set in prod, login flow appends `dev-callback-redirect=<dev-base>/callback` and `/callback` forwards to it |
+| `CACHE_DRIVER` | No | `memory` | Cache driver: `memory` or `mongodb` |
+| `MONGODB_URI` | No | `mongodb://localhost:27017` | MongoDB connection string for cache driver |
+| `MONGODB_DB` | No | `strava-club-events` | MongoDB database name for cache |
+| `CACHE_TTL_DEFAULT` | No | `900000` | Default cache TTL in ms (15 minutes) |
+| `CACHE_TTL_CLUBS` | No | `900000` | Clubs cache TTL in ms (15 minutes) |
+| `CACHE_TTL_EVENTS` | No | `900000` | Events cache TTL in ms (15 minutes) |
+| `CACHE_TTL_ROUTE` | No | `3600000` | Route cache TTL in ms (1 hour) |
 
 ### 9.2 OAuth Configuration
 - **Redirect URI**: `http://localhost:${PORT}/callback`
@@ -379,10 +392,11 @@ interface Event {
 4. Access at `http://localhost:3000`
 
 ### 15.2 Production
-1. Set up production environment variables
-2. Configure HTTPS
-3. Use a process manager (PM2, systemd)
-4. Set up monitoring and logging
+1. Set up production environment variables (`PUBLIC_URL`, cache settings)
+2. Build and push multi-arch Docker image (from Apple Silicon or x86): `./build.sh`
+3. Configure HTTPS and reverse proxy
+4. Run the container with `HOST`/`PORT` for bind address and port
+5. Set up monitoring and logging
 
 ## 16. Maintenance
 
