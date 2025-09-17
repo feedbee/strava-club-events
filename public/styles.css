@@ -43,11 +43,10 @@ h1 .title-icon {
   background: none;
   padding: 0;
   cursor: pointer;
-  line-height: 0; /* Remove extra space below image */
 }
 
 .strava-connect-img {
-  height: 40px; /* Default height for the button */
+  max-height: 80px;
   width: auto;
   max-width: 100%;
   border-radius: 4px;
