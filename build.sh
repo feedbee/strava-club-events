@@ -13,6 +13,7 @@ docker buildx build \
   --platform ${PLATFORMS} \
   -t ${IMAGE_NAME}:${TAG} \
   --push \
+  -f Dockerfile.build \
   .
 
 echo "✅ Build and push complete!"
