@@ -5,6 +5,8 @@ function getConfig() {
   
   // Public URL configuration (for callbacks and redirects)
   const PUBLIC_URL = process.env.PUBLIC_URL || `http://localhost:${PORT}`;
+  // Optional dev callback redirect target (used to bounce OAuth callback to a dev machine)
+  const DEV_CALLBACK_REDIRECT = process.env.DEV_CALLBACK_REDIRECT || '';
   
   // App secrets
   const CLIENT_ID = process.env.CLIENT_ID;
@@ -35,6 +37,8 @@ function getConfig() {
     // Public URL configuration
     publicUrl: PUBLIC_URL,
     redirectUri: `${PUBLIC_URL}/callback`,
+    // Optional dev callback redirect target
+    devCallbackRedirect: DEV_CALLBACK_REDIRECT,
     
     // App secrets
     clientId: CLIENT_ID,

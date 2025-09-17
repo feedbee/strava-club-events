@@ -1,12 +1,14 @@
 import fetch from "node-fetch";
 import { config } from "../config/index.js";
+import { buildEffectiveRedirect, maybeForwardDevCallback } from "../utils/dev-callback.helper.js";
 
 /**
  * Handles the login redirect to Strava OAuth
  */
 function login(req, res) {
-  const { clientId, redirectUri, stravaAuthUrl } = config;
-  const authUrl = stravaAuthUrl(clientId, redirectUri);
+  const { clientId, redirectUri, devCallbackRedirect, stravaAuthUrl } = config;
+  const effectiveRedirect = buildEffectiveRedirect(redirectUri, devCallbackRedirect);
+  const authUrl = stravaAuthUrl(clientId, effectiveRedirect);
   res.redirect(authUrl);
 }
 
@@ -17,7 +19,10 @@ async function oauthCallback(req, res) {
   try {
     const { clientId, clientSecret } = config;
     const { code } = req.query;
-    
+
+    // If a dev-callback-redirect parameter is present, forward the callback there with the same params
+    if (maybeForwardDevCallback(req, res)) return;
+
     if (!code) {
       throw new Error('No authorization code provided');
     }
