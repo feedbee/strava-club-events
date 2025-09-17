@@ -304,13 +304,13 @@ h1 .title-icon {
   opacity: 0.8;
 }
 
-.email-link {
+.footer-content a {
   color: #ffffff;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
-.email-link:hover {
+.footer-content a:hover {
   text-decoration: underline;
   color: #ffffff;
 }
@@ -417,4 +417,38 @@ h1 .title-icon {
     padding: 6px 12px !important;
     font-size: 0.9rem !important;
   }
+}
+
+/* About Page Styles */
+.about-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 24px 16px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.about-container h2 {
+  margin-top: 0;
+  color: #2d3748;
+  text-align: left;
+}
+
+.notice {
+  border: 1px solid #e2e8f0;
+  padding: 16px;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.back-link {
+  display: inline-block;
+  margin-top: 24px;
+  color: #1a202c;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
 }
