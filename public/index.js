@@ -223,29 +223,43 @@ function loadFilterState() {
     const savedState = localStorage.getItem('stravaEventsFilterState');
     if (savedState) {
       const state = JSON.parse(savedState);
-      // Apply saved state with defaults for any missing properties
-      Object.assign(filterState, DEFAULT_FILTER_STATE, state);
-      
-      // Update UI to reflect saved state
-      const filterCheckbox = document.getElementById('filter-joined');
-      filterCheckbox.checked = filterState.joinedOnly;
-      
-      // Show/hide clear filters button
-      updateClearFiltersButton();
+      applyFilterState(state);
     }
   } catch (e) {
     console.error('Error loading filter state:', e);
   }
 }
 
+function applyFilterState(newState) {
+  // Apply saved state with defaults for any missing properties
+  Object.assign(filterState, DEFAULT_FILTER_STATE, newState);
+      
+  // Update UI to reflect saved state
+  const filterCheckbox = document.getElementById('filter-joined');
+  filterCheckbox.checked = filterState.joinedOnly;
+  
+  // Show/hide clear filters button
+  updateClearFiltersButton();
+
+  // Update filter count
+  updateFilterCount();
+}
+
 // Save filter state to localStorage
 function saveFilterState() {
   try {
     localStorage.setItem('stravaEventsFilterState', JSON.stringify(filterState));
-    updateClearFiltersButton();
   } catch (e) {
     console.error('Error saving filter state:', e);
   }
+}
+
+// Set new filter state
+function setFilterState(newState) {
+  applyFilterState(newState);
+
+  // Save the new state
+  saveFilterState();
 }
 
 // Update the visibility of the clear filters button
@@ -254,34 +268,38 @@ function updateClearFiltersButton() {
   clearFiltersBtn.style.display = filterState.joinedOnly ? 'flex' : 'none';
 }
 
+// Update active filter count
+function updateFilterCount() {
+  const activeFilterCount = document.getElementById('active-filter-count');
+  
+  // Count how many filters differ from their default values
+  let activeFilters = 0;
+  for (const key in filterState) {
+    if (filterState[key] !== DEFAULT_FILTER_STATE[key]) {
+      activeFilters++;
+    }
+  }
+  
+  activeFilterCount.textContent = activeFilters > 0 ? activeFilters : '';
+  activeFilterCount.style.display = activeFilters > 0 ? 'inline-block' : 'none';
+}
+
 // Set up event listeners for filter controls
 function setupFilterEventListeners() {
   // Toggle joined filter
   const filterJoined = document.getElementById('filter-joined');
   filterJoined.addEventListener('change', (e) => {
-    filterState.joinedOnly = e.target.checked;
-    saveFilterState();
+    setFilterState({ joinedOnly: e.target.checked });
     updateCalendarWithFilteredEvents();
   });
   
   // Clear filters button
   const clearFiltersBtn = document.getElementById('clear-filters');
   clearFiltersBtn.addEventListener('click', () => {
-    // Reset filter state to defaults
-    Object.assign(filterState, DEFAULT_FILTER_STATE);
-    
-    // Update UI
-    filterJoined.checked = false;
-    saveFilterState();
+    setFilterState(DEFAULT_FILTER_STATE);
     updateCalendarWithFilteredEvents();
   });
 }
-
-// Initialize filter state and event listeners when the script loads
-document.addEventListener('DOMContentLoaded', () => {
-  loadFilterState();
-  setupFilterEventListeners();
-});
 
 // Apply filters to events
 function applyFilters(events) {
@@ -316,6 +334,30 @@ function updateCalendarWithFilteredEvents() {
     calendarInstance.render();
   }
 }
+
+// Initialize filter state and event listeners when the script loads
+document.addEventListener('DOMContentLoaded', () => {
+  loadFilterState();
+  updateFilterCount();
+  setupFilterEventListeners();
+});
+
+// Toggle filters when clicking the filter link or count
+document.addEventListener('DOMContentLoaded', function() {
+  const toggleFiltersBtn = document.getElementById('toggle-filters');
+  const eventFilters = document.getElementById('event-filters');
+  
+  // Toggle filters when clicking the filter link or count
+  toggleFiltersBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    const isVisible = eventFilters.style.display === 'block';
+    eventFilters.style.display = isVisible ? 'none' : 'block';
+    
+    // Update ARIA attributes for accessibility
+    const toggleButton = document.getElementById('toggle-filters');
+    toggleButton.setAttribute('aria-expanded', !isVisible);
+  });
+});
 
 
 // Initialize the app when the page loads
