@@ -470,17 +470,15 @@ interface Event {
 - [ ] Better session management
 
 ### 19.2 Medium Priority
+- [ ] Advanced filtering (joined, by clubs)
+- [ ] Multi-language support
 - [ ] Rate limiting
-- [ ] Advanced filtering
+
+### 19.3 Low Priority
+- [ ] Advanced analytics
 - [ ] Export to calendar
 - [ ] Notifications
 - [ ] Dark mode
-
-### 19.3 Low Priority
-- [ ] Offline support
-- [ ] PWA installation
-- [ ] Advanced analytics
-- [ ] Multi-language support
 
 ## 20. Appendix
 
