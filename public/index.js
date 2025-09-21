@@ -67,7 +67,7 @@ async function loadEvents() {
         center: 'title',
         right: 'dayGridMonth,timeGridWeek,timeGridDay'
       },
-      events: filteredEvents, // Add filtered events directly
+      events: filteredEvents,
       dayCellDidMount: function(arg) {
         // Add 'weekend-day' class to Saturday (6) and Sunday (0) cells
         if (arg.date.getDay() === 0 || arg.date.getDay() === 6) {
@@ -83,15 +83,26 @@ async function loadEvents() {
       views: {
         timeGrid: {
           dayMaxEventRows: 4 // adjust to 6 only for timeGridWeek/timeGridDay
+        },
+        dayGridMonth: {
+          dayMaxEvents: 5, // Maximum number of events to show per day
+          dayMaxEventRows: 5 // Maximum number of event rows to show per day
         }
       },
-      events: allEvents,
       eventTimeFormat: {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true
       },
       eventDidMount: function(info) {
+        // Add a class for styling based on view type
+        const view = info.view;
+        if (view.type === 'dayGridMonth') {
+          info.el.classList.add('fc-month-event');
+        } else {
+          info.el.classList.add('fc-list-event');
+        }
+        
         // Build tooltip content
         let tooltipContent = `🚀 ${info.event.title}`;
         

@@ -276,6 +276,68 @@ h1 .title-icon {
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
 }
 
+/* Calendar Event Styles */
+.fc-event {
+  border: none !important;
+  border-radius: 6px !important;
+  padding: 4px 8px !important;
+  margin: 1px 0 !important;
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+/* Style for month view events */
+.fc-daygrid-event {
+  background: #4f46e5 !important;
+  color: white !important;
+  border-left: 3px solid #4338ca !important;
+}
+
+/* Style for list view events */
+.fc-list-event {
+  background: white !important;
+  color: #4f46e5 !important;
+  border-left: 3px solid #4f46e5 !important;
+  margin: 4px 0 !important;
+}
+
+/* Hover effects */
+.fc-event:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+}
+
+/* Event title */
+.fc-event-title {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: block !important;
+}
+
+/* Club logo in events */
+.club-logo {
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 50% !important;
+  margin-right: 6px !important;
+  vertical-align: middle !important;
+  border: 1px solid rgba(255,255,255,0.3) !important;
+}
+
+/* Event dot in month view */
+.fc-daygrid-event-dot {
+  display: none !important;
+}
+
+/* Event time */
+.fc-event-time {
+  font-weight: 600 !important;
+}
+
 /* Footer Styles */
 .app-footer {
   margin-top: 2rem;
