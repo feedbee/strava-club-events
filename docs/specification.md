@@ -15,6 +15,13 @@ Build a modern web application that provides Strava users with a clean, interact
   - Token refresh implementation
   - Basic session management
 
+- **Filtering System**
+  - Dynamic filter state management
+  - Filter by event join status
+  - Active filter counter
+  - Persistent filter preferences using localStorage
+  - One-click filter reset
+
 - **Caching**
   - In-memory and MongoDB cache drivers
   - Caching for clubs, events, and routes with per-type TTL
@@ -92,12 +99,18 @@ Build a modern web application that provides Strava users with a clean, interact
 1. **Initial Load**
    - Frontend fetches events via `GET /events`
    - Shows loading state while fetching
+   - Navigation bar is hidden during initial load for cleaner UI
+   - Applies any saved filter preferences from localStorage
    - Renders events in FullCalendar month view
+   - Shows navigation bar once calendar is fully loaded
 
 2. **Event Interaction**
    - **Left Click**: Opens event in Strava (new tab)
    - **Right Click**: Copies event URL to clipboard
    - **Hover**: Displays tooltip with event details
+   - **Filter Toggle**: Click filter button to show/hide filter options
+   - **Filter Application**: Filters update the view in real-time
+   - **Filter Reset**: One-click button to reset all filters to defaults
 
 3. **Navigation**
    - Month/Week/Day view toggles
@@ -466,6 +479,7 @@ interface Event {
 - [x] Refresh token rotation
 - [x] Event caching (in-memory and MongoDB implementations)
 - [x] Improved error handling
+- [x] Advanced filtation (by joined)
 - [ ] Show recurring events correct way
 - [ ] Implement pagination for clubs and events
 - [ ] Implement too many events for a given user protection (request too many routes from Strava)
@@ -473,7 +487,7 @@ interface Event {
 - [ ] Better session management
 
 ### 19.2 Medium Priority
-- [ ] Advanced filtering (joined, by clubs)
+- [ ] Advanced filtering (by clubs)
 - [ ] Multi-language support
 - [ ] Rate limiting
 

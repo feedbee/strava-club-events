@@ -11,11 +11,16 @@ A modern web application that connects to Strava, fetches upcoming club events f
 - **Event Management**
   - Fetches events from all your Strava clubs
   - Filters events to show only upcoming ones (next 30 days)
-  - Displays basic event information
-
-- **Intelligent Filtering** - Shows only relevant events within the next 30 days
+  - Displays detailed event information
+  - **Smart Filtering System**
+    - Filter events by join status (show only joined events)
+    - Active filter counter shows number of applied filters
+    - One-click filter reset
+    - Persistent filter preferences across sessions
 
 - **Beautiful Calendar UI** - Built with FullCalendar featuring:
+  - Clean, modern interface with smooth loading states
+  - Navigation bar that appears after calendar loads for a cleaner initial experience
   - Multiple view options: Month, Week, and Day views
   - Club logos displayed next to each event
   - Responsive design that works on all devices
