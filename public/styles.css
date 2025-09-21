@@ -114,6 +114,11 @@ h1 .title-icon {
   background-color: rgba(208, 208, 219, 0.25);
 }
 
+/* Utility classes */
+.hidden {
+  display: none !important;
+}
+
 /* FullCalendar overrides */
 .fc .fc-toolbar.fc-header-toolbar {
   margin-bottom: 0 !important;

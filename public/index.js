@@ -176,6 +176,12 @@ async function loadEvents() {
     
     // Render the calendar with the initial filtered events
     calendarInstance.render();
+    
+    // Show the navigation bar now that the calendar is loaded
+    const navBar = document.querySelector('.nav-bar');
+    if (navBar) {
+      navBar.classList.remove('hidden');
+    }
   } catch (error) {
     console.error("Error loading events:", error);
     
