@@ -277,65 +277,107 @@ h1 .title-icon {
 }
 
 /* Calendar Event Styles */
-.fc-event {
-  border: none !important;
-  border-radius: 6px !important;
-  padding: 4px 8px !important;
-  margin: 1px 0 !important;
-  font-size: 0.85rem !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+/* Base event styles */
+#calendar .fc-event {
+  border: none;
+  border-left: 3px solid #4338ca;
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin: 1px 0;
+  font-weight: 500;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* Style for month view events */
-.fc-daygrid-event {
-  background: #4f46e5 !important;
-  color: white !important;
-  border-left: 3px solid #4338ca !important;
+/* Month view events */
+#calendar .fc-daygrid-event {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
 }
 
-/* Style for list view events */
-.fc-list-event {
-  background: white !important;
-  color: #4f46e5 !important;
-  border-left: 3px solid #4f46e5 !important;
-  margin: 4px 0 !important;
+/* Week/Day view events */
+#calendar .fc-timegrid-event {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2px 6px;
 }
 
-/* Hover effects */
-.fc-event:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+/* List view events */
+#calendar .fc-list-event {
+  border-left-color: #4f46e5;
+  margin: 4px 0;
+}
+
+/* Joined events */
+#calendar .fc-event-joined,
+#calendar .fc-event-joined:hover {
+  background: #15803d;
+  border-left-color: #14532d;
+  color: white;
+}
+
+/* Event hover effect */
+#calendar .fc-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 /* Event title */
-.fc-event-title {
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  display: block !important;
+#calendar .fc-event-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Club logo in events */
-.club-logo {
-  width: 16px !important;
-  height: 16px !important;
-  border-radius: 50% !important;
-  margin-right: 6px !important;
-  vertical-align: middle !important;
-  border: 1px solid rgba(255,255,255,0.3) !important;
+#calendar .club-logo {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+/* Hide event dot in month view */
+#calendar .fc-daygrid-event-dot {
+  display: none;
+}
+
+/* Hover effects */
+#calendar .fc-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Event title */
+#calendar .fc-event-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+/* Club logo in events */
+#calendar .club-logo {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+  border: 1px solid rgba(255,255,255,0.3);
 }
 
 /* Event dot in month view */
-.fc-daygrid-event-dot {
-  display: none !important;
+#calendar .fc-daygrid-event-dot {
+  display: none;
 }
 
 /* Event time */
-.fc-event-time {
-  font-weight: 600 !important;
+#calendar .fc-event-time {
+  font-weight: 600;
 }
 
 /* Footer Styles */
@@ -407,19 +449,19 @@ h1 .title-icon {
   margin: 4px !important;
 }
 
+/* Base event styles */
 .fc-event {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  border: none !important;
-  border-radius: 6px !important;
-  color: white !important;
-  font-weight: 500 !important;
-  font-size: 0.85rem !important;
-  padding: 4px 8px !important;
-  margin: 1px 0 !important;
-  cursor: pointer !important;
-  text-decoration: none !important;
-  transition: all 0.2s ease !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: 500;
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  margin: 1px 0;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .fc-event:hover {
@@ -428,12 +470,14 @@ h1 .title-icon {
   text-decoration: none !important;
 }
 
-.fc-event-title {
-  font-weight: 500 !important;
+/* Event title styling */
+#calendar .fc-event-title {
+  font-weight: 500;
 }
 
-.fc-daygrid-event {
-  margin: 1px 2px !important;
+/* Adjust day grid event margins */
+#calendar .fc-daygrid-event {
+  margin: 1px 2px;
 }
 
 .fc-col-header-cell {

@@ -95,20 +95,27 @@ async function loadEvents() {
         hour12: true
       },
       eventDidMount: function(info) {
-        // Add a class for styling based on view type
+        const event = info.event;
         const view = info.view;
+        
+        // Add appropriate class based on view type
         if (view.type === 'dayGridMonth') {
           info.el.classList.add('fc-month-event');
         } else {
           info.el.classList.add('fc-list-event');
         }
         
+        // Add joined class if user is attending
+        if (event.extendedProps.joined) {
+          info.el.classList.add('fc-event-joined');
+        }
+        
         // Build tooltip content
-        let tooltipContent = `🚀 ${info.event.title}`;
+        let tooltipContent = `🚀 ${event.title}`;
         
         // Add club info if available
-        if (info.event.extendedProps.club_info && info.event.extendedProps.club_info.name) {
-          tooltipContent += `\n\n♣️ ${info.event.extendedProps.club_info.name}`;
+        if (event.extendedProps.club_info?.name) {
+          tooltipContent += `\n\n♣️ ${event.extendedProps.club_info.name}`;
         }
         
         // Add route info to tooltip if available
@@ -132,6 +139,11 @@ async function loadEvents() {
           if (routeInfo.elevation_low !== 'N/A' && routeInfo.elevation_high !== 'N/A') {
             tooltipContent += `\n📈 Elevation: ${routeInfo.elevation_low} → ${routeInfo.elevation_high}`;
           }
+        }
+        
+        // Add joined status to tooltip (always at the end)
+        if (event.extendedProps.joined) {
+          tooltipContent += '\n\n✅ You decided to join the event! 🎉';
         }
         
         // Set the tooltip content
