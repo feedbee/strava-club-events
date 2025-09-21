@@ -44,18 +44,22 @@ async function loadEvents() {
     
     const events = await handledResponse.json();
 
-    // Transform events for FullCalendar
-    const calendarEvents = events.map(ev => ({
+    // Transform events for FullCalendar and store them
+    allEvents = events.map(ev => ({
       title: ev.title,
       start: ev.start_date,
       url: ev.strava_event_url,
       extendedProps: {
         club_info: ev.club_info || { name: '', logo: '' },
-        route_info: ev.route_info || null
+        route_info: ev.route_info || null,
+        joined: ev.joined || false
       }
     }));
+    
+    // Apply filters to get the initial set of events
+    const filteredEvents = applyFilters(allEvents);
 
-    let calendar = new FullCalendar.Calendar(document.getElementById("calendar"), {
+    calendarInstance = new FullCalendar.Calendar(document.getElementById("calendar"), {
       initialView: "dayGridMonth",
       firstDay: 1, // Monday
       headerToolbar: {
@@ -63,6 +67,7 @@ async function loadEvents() {
         center: 'title',
         right: 'dayGridMonth,timeGridWeek,timeGridDay'
       },
+      events: filteredEvents, // Add filtered events directly
       dayCellDidMount: function(arg) {
         // Add 'weekend-day' class to Saturday (6) and Sunday (0) cells
         if (arg.date.getDay() === 0 || arg.date.getDay() === 6) {
@@ -80,7 +85,7 @@ async function loadEvents() {
           dayMaxEventRows: 4 // adjust to 6 only for timeGridWeek/timeGridDay
         }
       },
-      events: calendarEvents,
+      events: allEvents,
       eventTimeFormat: {
         hour: 'numeric',
         minute: '2-digit',
@@ -145,8 +150,9 @@ async function loadEvents() {
     // Hide preloader and show calendar
     preloaderElement.classList.add("hidden");
     calendarElement.style.display = "block";
-
-    calendar.render();
+    
+    // Render the calendar with the initial filtered events
+    calendarInstance.render();
   } catch (error) {
     console.error("Error loading events:", error);
     
@@ -167,6 +173,121 @@ async function loadEvents() {
     calendarElement.style.display = "block";
   }
 }
+
+
+// -- Filtering --
+
+// Default filter state values
+const DEFAULT_FILTER_STATE = {
+  joinedOnly: false
+};
+
+
+// Store all events and filter state
+let allEvents = [];
+let calendarInstance = null; // Module-level variable for the FullCalendar instance
+const filterState = { ...DEFAULT_FILTER_STATE };
+
+// Load filter state from localStorage
+function loadFilterState() {
+  try {
+    const savedState = localStorage.getItem('stravaEventsFilterState');
+    if (savedState) {
+      const state = JSON.parse(savedState);
+      // Apply saved state with defaults for any missing properties
+      Object.assign(filterState, DEFAULT_FILTER_STATE, state);
+      
+      // Update UI to reflect saved state
+      const filterCheckbox = document.getElementById('filter-joined');
+      filterCheckbox.checked = filterState.joinedOnly;
+      
+      // Show/hide clear filters button
+      updateClearFiltersButton();
+    }
+  } catch (e) {
+    console.error('Error loading filter state:', e);
+  }
+}
+
+// Save filter state to localStorage
+function saveFilterState() {
+  try {
+    localStorage.setItem('stravaEventsFilterState', JSON.stringify(filterState));
+    updateClearFiltersButton();
+  } catch (e) {
+    console.error('Error saving filter state:', e);
+  }
+}
+
+// Update the visibility of the clear filters button
+function updateClearFiltersButton() {
+  const clearFiltersBtn = document.getElementById('clear-filters');
+  clearFiltersBtn.style.display = filterState.joinedOnly ? 'flex' : 'none';
+}
+
+// Set up event listeners for filter controls
+function setupFilterEventListeners() {
+  // Toggle joined filter
+  const filterJoined = document.getElementById('filter-joined');
+  filterJoined.addEventListener('change', (e) => {
+    filterState.joinedOnly = e.target.checked;
+    saveFilterState();
+    updateCalendarWithFilteredEvents();
+  });
+  
+  // Clear filters button
+  const clearFiltersBtn = document.getElementById('clear-filters');
+  clearFiltersBtn.addEventListener('click', () => {
+    // Reset filter state to defaults
+    Object.assign(filterState, DEFAULT_FILTER_STATE);
+    
+    // Update UI
+    filterJoined.checked = false;
+    saveFilterState();
+    updateCalendarWithFilteredEvents();
+  });
+}
+
+// Initialize filter state and event listeners when the script loads
+document.addEventListener('DOMContentLoaded', () => {
+  loadFilterState();
+  setupFilterEventListeners();
+});
+
+// Apply filters to events
+function applyFilters(events) {
+  if (!events) return [];
+  
+  return events.filter(event => {
+    // Apply joined filter
+    if (filterState.joinedOnly && !event.extendedProps.joined) {
+      return false;
+    }
+    return true;
+  });
+}
+
+// Update calendar with filtered events
+function updateCalendarWithFilteredEvents() {
+  if (!calendarInstance) return;
+  
+  const filteredEvents = applyFilters(allEvents);
+  
+  // Remove all existing events
+  const eventSources = calendarInstance.getEventSources();
+  eventSources.forEach(source => source.remove());
+  
+  // Add filtered events
+  if (filteredEvents.length > 0) {
+    calendarInstance.addEventSource(filteredEvents);
+  }
+  
+  // Only render if the calendar is already rendered
+  if (calendarInstance.view) {
+    calendarInstance.render();
+  }
+}
+
 
 // Initialize the app when the page loads
 loadEvents();

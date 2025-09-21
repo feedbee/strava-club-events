@@ -419,6 +419,128 @@ h1 .title-icon {
   }
 }
 
+/* Event Filters */
+.event-filters {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 0 0 16px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.filter-toggle {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+  font-size: 0.95rem;
+  color: #2d3748;
+}
+
+.filter-checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.filter-slider {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  background-color: #e2e8f0;
+  border-radius: 20px;
+  margin-right: 8px;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.filter-slider:before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  left: 2px;
+  top: 2px;
+  background-color: white;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.filter-checkbox:checked + .filter-slider {
+  background-color: #667eea;
+}
+
+.filter-checkbox:checked + .filter-slider:before {
+  transform: translateX(20px);
+  background-color: white;
+}
+
+.filter-checkbox:focus + .filter-slider {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+}
+
+.filter-label {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.clear-filters-btn {
+  background: none;
+  border: 1px solid #e2e8f0;
+  color: #4a5568;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+  margin-left: auto;
+}
+
+.clear-filters-btn:hover {
+  background-color: #f7fafc;
+  border-color: #cbd5e0;
+}
+
+.clear-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* Responsive adjustments for filters */
+@media (max-width: 768px) {
+  .event-filters {
+    padding: 10px 12px;
+    margin: 0 0 12px 0;
+  }
+  
+  .filter-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .filter-label {
+    font-size: 0.9rem;
+  }
+  
+  .clear-filters-btn {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+  }
+}
+
 /* About Page Styles */
 .about-container {
   max-width: 800px;
