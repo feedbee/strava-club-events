@@ -1,6 +1,6 @@
 # Strava Club Events Calendar — Technical Specification
 
-*Last Updated: September 15, 2025 (v1.0.0)*
+*Last Updated: September 22, 2025 (v0.3.0)*
 
 ## 1. Overview
 
@@ -13,7 +13,8 @@ Build a modern web application that provides Strava users with a clean, interact
 - **Authentication**
   - OAuth2 with Strava
   - Token refresh implementation
-  - Basic session management
+  - Session-based authentication with secure logout
+  - Session cleanup on logout
 
 - **Filtering System**
   - Dynamic filter state management
