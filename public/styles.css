@@ -773,3 +773,41 @@ h1 .title-icon {
 .back-link:hover {
   text-decoration: underline;
 }
+
+/* Error Message Styling */
+.error-message {
+  position: relative;
+  margin: 1rem auto 0;
+  max-width: 1200px;
+  width: calc(100% - 2rem);
+  background-color: #fef2f2;
+  color: #b91c1c;
+  padding: 12px 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #dc2626;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: fadeIn 0.3s ease-out;
+  opacity: 0.95;
+}
+
+.error-message::before {
+  content: '⚠️';
+  margin-right: 6px;
+  font-size: 16px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 0.95;
+    transform: translateY(0);
+  }
+}

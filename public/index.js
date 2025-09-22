@@ -188,14 +188,16 @@ async function loadEvents() {
     // Only show error message for non-auth related errors
     if (!error.message.includes('Session expired') && !error.message.includes('401')) {
       const errorElement = document.getElementById("error-message") || (() => {
+        const title = document.querySelector('h1');
         const el = document.createElement('div');
         el.id = 'error-message';
         el.className = 'error-message';
-        document.body.prepend(el);
+        // Insert after the title and before the auth div
+        title.parentNode.insertBefore(el, title.nextSibling);
         return el;
       })();
       
-      errorElement.textContent = 'Failed to load events. Please try again.';
+      errorElement.textContent = 'Unable to load events. Please try to reload the page.';
     }
   } finally {
     preloaderElement.classList.add("hidden");
