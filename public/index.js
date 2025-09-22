@@ -1,3 +1,5 @@
+// -- API calls ---
+
 // Handle API errors consistently
 async function handleApiResponse(resp) {
   if (resp.ok) return resp;
@@ -19,14 +21,40 @@ async function handleApiResponse(resp) {
   throw new Error(`API Error: ${errorMessage}`);
 }
 
+
+// -- Preloader --
+
+const preloaderElement = document.getElementById("preloader");
+function showPreloader() {
+  preloaderElement.classList.remove("hidden");
+}
+
+function hidePreloader() {
+  preloaderElement.classList.add("hidden");
+}
+
+
+// -- Navigation bar --
+
+const navBar = document.querySelector('.nav-bar');
+function showNavBar() {
+  navBar.classList.remove('hidden');
+}
+function hideNavBar() {
+  navBar.classList.add('hidden');
+}
+
+
+// -- Calendar UI --
+
 async function loadEvents() {
-  const preloaderElement = document.getElementById("preloader");
   const calendarElement = document.getElementById("calendar");
   const errorElement = document.getElementById("error-message");
   
   try {
     // Reset UI state
-    preloaderElement.classList.remove("hidden");
+    showPreloader();
+    hideNavBar();
     calendarElement.style.display = "none";
     if (errorElement) errorElement.textContent = '';
     
@@ -166,17 +194,14 @@ async function loadEvents() {
     });
     
     // Hide preloader and show calendar
-    preloaderElement.classList.add("hidden");
+    hidePreloader();
     calendarElement.style.display = "block";
     
     // Render the calendar with the initial filtered events
     calendarInstance.render();
     
     // Show the navigation bar now that the calendar is loaded
-    const navBar = document.querySelector('.nav-bar');
-    if (navBar) {
-      navBar.classList.remove('hidden');
-    }
+    showNavBar();
   } catch (error) {
     console.error("Error loading events:", error);
     
@@ -195,7 +220,7 @@ async function loadEvents() {
       errorElement.textContent = 'Unable to load events. Please try to reload the page.';
     }
   } finally {
-    preloaderElement.classList.add("hidden");
+    hidePreloader();
     calendarElement.style.display = "block";
   }
 }
