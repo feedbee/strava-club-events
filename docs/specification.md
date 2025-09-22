@@ -481,7 +481,7 @@ interface Event {
 - [x] Event caching (in-memory and MongoDB implementations)
 - [x] Improved error handling
 - [x] Advanced filtation (by joined)
-- [ ] Show recurring events correct way
+- [x] Show recurring events correct way
 - [ ] Implement pagination for clubs and events
 - [ ] Implement too many events for a given user protection (request too many routes from Strava)
 - [ ] Better mobile experience
