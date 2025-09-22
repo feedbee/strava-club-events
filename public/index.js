@@ -1,7 +1,20 @@
 // -- Global variables --
 let allEvents = [];
 
+
 // -- API calls ---
+
+// Retrive events from the server
+async function getEvents() {
+  const resp = await fetch("/events");
+  const handledResponse = await handleApiResponse(resp);
+  
+  // If handleApiResponse returns null, it means we need to authenticate
+  if (!handledResponse) return;
+  
+  const events = await handledResponse.json();
+  return events;
+}
 
 // Handle API errors consistently
 async function handleApiResponse(resp) {
@@ -63,16 +76,8 @@ async function loadEvents() {
     if (errorElement) errorElement.textContent = '';
     
     // Make the API request
-    const resp = await fetch("/events");
-    const handledResponse = await handleApiResponse(resp);
-    
-    // If handleApiResponse returns null, it means we need to authenticate
-    if (!handledResponse) return;
-    
-    const events = await handledResponse.json();
-
-    // Store raw events from the server
-    allEvents = events;
+    allEvents = await getEvents();
+    if (!allEvents) return; // Return if auth is needed
     
     // Apply filters to get the filtered set of events
     const filteredEvents = applyFilters(allEvents);
@@ -219,7 +224,6 @@ async function loadEvents() {
     }
   } finally {
     hidePreloader();
-    calendarElement.style.display = "block";
   }
 }
 
