@@ -63,16 +63,177 @@ function hideNavBar() {
 
 // -- Calendar UI --
 
+const calendarElement = document.getElementById("calendar");
 let calendarInstance = null; // Module-level variable for the FullCalendar instance
+function buildCalendar(events) {
+  // Transform filtered events for FullCalendar
+  const calendarEvents = transformEventsForCalendar(events);
+
+  calendarInstance = new FullCalendar.Calendar(calendarElement, {
+    initialView: "dayGridMonth",
+    firstDay: 1, // Monday
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,timeGridDay'
+    },
+    events: calendarEvents,
+    dayCellDidMount: function(arg) {
+      // Add 'weekend-day' class to Saturday (6) and Sunday (0) cells
+      if (arg.date.getDay() === 0 || arg.date.getDay() === 6) {
+        arg.el.classList.add('weekend-day');
+      }
+    },
+    buttonText: {
+      today: 'Today',
+      month: 'Month',
+      week: 'Week',
+      day: 'Day'
+    },
+    views: {
+      timeGrid: {
+        dayMaxEventRows: 4 // adjust to 6 only for timeGridWeek/timeGridDay
+      },
+      dayGridMonth: {
+        dayMaxEvents: 5, // Maximum number of events to show per day
+        dayMaxEventRows: 5 // Maximum number of event rows to show per day
+      }
+    },
+    eventTimeFormat: {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    },
+    eventDidMount: function(info) {
+      const event = info.event;
+      const view = info.view;
+      
+      // Add appropriate class based on view type
+      if (view.type === 'dayGridMonth') {
+        info.el.classList.add('fc-month-event');
+      } else {
+        info.el.classList.add('fc-list-event');
+      }
+      
+      // Add joined class if user is attending
+      if (event.extendedProps.joined) {
+        info.el.classList.add('fc-event-joined');
+      }
+      
+      // Build tooltip content
+      let tooltipContent = `🚀 ${event.title}`;
+      
+      // Add club info if available
+      if (event.extendedProps.club_info?.name) {
+        tooltipContent += `\n\n♣️ ${event.extendedProps.club_info.name}`;
+      }
+      
+      // Add route info to tooltip if available
+      const routeInfo = info.event.extendedProps.route_info;
+      if (routeInfo) {
+        tooltipContent += `\n\n🗺️ ${routeInfo.name}`;
+        tooltipContent += `\n📏 ${routeInfo.distance} • 🏔️ ${routeInfo.elevation_gain}`;
+        tooltipContent += `\n🚴 ${routeInfo.activity_type}`;
+        
+        // Add additional route details if available
+        if (routeInfo.estimated_moving_time !== 'N/A') {
+          tooltipContent += `\n⏱️ ${routeInfo.estimated_moving_time}`;
+        }
+        
+        // Add max slope if available
+        if (routeInfo.max_slope !== 'N/A') {
+          tooltipContent += `\n📐 Max Slope: ${routeInfo.max_slope}%`;
+        }
+        
+        // Add elevation range if available
+        if (routeInfo.elevation_low !== 'N/A' && routeInfo.elevation_high !== 'N/A') {
+          tooltipContent += `\n📈 Elevation: ${routeInfo.elevation_low} → ${routeInfo.elevation_high}`;
+        }
+      }
+      
+      // Add joined status to tooltip (always at the end)
+      if (event.extendedProps.joined) {
+        tooltipContent += '\n\n✅ You decided to join the event! 🎉';
+      }
+      
+      // Set the tooltip content
+      info.el.title = tooltipContent;
+      info.el.setAttribute('data-tooltip', tooltipContent);
+      
+      // Create custom event content with club logo
+      const titleEl = info.el.querySelector('.fc-event-title');
+      if (titleEl) {
+        const clubLogo = info.event.extendedProps.club_info.logo;
+        if (clubLogo) {
+          const logoHtml = `<img src="${clubLogo}" class="club-logo" alt="Club Logo">`;
+          titleEl.insertAdjacentHTML('afterbegin', logoHtml);
+        }
+      }
+      
+      // Override click to open in new tab
+      info.el.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (info.event.url) {
+          window.open(info.event.url, '_blank');
+        }
+      });
+    }
+  });
+  
+  // Hide preloader and show calendar
+  showCalendar();
+  
+  // Render the calendar with the initial filtered events
+  calendarInstance.render();
+}
+
+// Update calendar with filtered events
+function updateCalendarWithFilteredEvents() {
+  if (!calendarInstance) return;
+  
+  // Apply filters to raw events
+  const filteredEvents = applyFilters(allEvents);
+  
+  // Transform filtered events for FullCalendar
+  const calendarEvents = transformEventsForCalendar(filteredEvents);
+  
+  // Remove all existing events
+  const eventSources = calendarInstance.getEventSources();
+  eventSources.forEach(source => source.remove());
+  
+  // Add filtered and transformed events
+  if (calendarEvents.length > 0) {
+    calendarInstance.addEventSource(calendarEvents);
+  }
+  
+  // Only render if the calendar is already rendered
+  if (calendarInstance.view) {
+    calendarInstance.render();
+  }
+}
+
+// Show the calendar
+function showCalendar() {
+  calendarElement.style.display = "block";
+}
+
+// Hide the calendar
+function hideCalendar() {
+  calendarElement.style.display = "none";
+}
+
+
+// -- Event loading --
+
+// Load events and build the calendar
 async function loadEvents() {
-  const calendarElement = document.getElementById("calendar");
   const errorElement = document.getElementById("error-message");
   
   try {
     // Reset UI state
     showPreloader();
     hideNavBar();
-    calendarElement.style.display = "none";
+    hideCalendar();
     if (errorElement) errorElement.textContent = '';
     
     // Make the API request
@@ -81,127 +242,8 @@ async function loadEvents() {
     
     // Apply filters to get the filtered set of events
     const filteredEvents = applyFilters(allEvents);
-    
-    // Transform filtered events for FullCalendar
-    const calendarEvents = transformEventsForCalendar(filteredEvents);
 
-    calendarInstance = new FullCalendar.Calendar(document.getElementById("calendar"), {
-      initialView: "dayGridMonth",
-      firstDay: 1, // Monday
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-      },
-      events: calendarEvents,
-      dayCellDidMount: function(arg) {
-        // Add 'weekend-day' class to Saturday (6) and Sunday (0) cells
-        if (arg.date.getDay() === 0 || arg.date.getDay() === 6) {
-          arg.el.classList.add('weekend-day');
-        }
-      },
-      buttonText: {
-        today: 'Today',
-        month: 'Month',
-        week: 'Week',
-        day: 'Day'
-      },
-      views: {
-        timeGrid: {
-          dayMaxEventRows: 4 // adjust to 6 only for timeGridWeek/timeGridDay
-        },
-        dayGridMonth: {
-          dayMaxEvents: 5, // Maximum number of events to show per day
-          dayMaxEventRows: 5 // Maximum number of event rows to show per day
-        }
-      },
-      eventTimeFormat: {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      },
-      eventDidMount: function(info) {
-        const event = info.event;
-        const view = info.view;
-        
-        // Add appropriate class based on view type
-        if (view.type === 'dayGridMonth') {
-          info.el.classList.add('fc-month-event');
-        } else {
-          info.el.classList.add('fc-list-event');
-        }
-        
-        // Add joined class if user is attending
-        if (event.extendedProps.joined) {
-          info.el.classList.add('fc-event-joined');
-        }
-        
-        // Build tooltip content
-        let tooltipContent = `🚀 ${event.title}`;
-        
-        // Add club info if available
-        if (event.extendedProps.club_info?.name) {
-          tooltipContent += `\n\n♣️ ${event.extendedProps.club_info.name}`;
-        }
-        
-        // Add route info to tooltip if available
-        const routeInfo = info.event.extendedProps.route_info;
-        if (routeInfo) {
-          tooltipContent += `\n\n🗺️ ${routeInfo.name}`;
-          tooltipContent += `\n📏 ${routeInfo.distance} • 🏔️ ${routeInfo.elevation_gain}`;
-          tooltipContent += `\n🚴 ${routeInfo.activity_type}`;
-          
-          // Add additional route details if available
-          if (routeInfo.estimated_moving_time !== 'N/A') {
-            tooltipContent += `\n⏱️ ${routeInfo.estimated_moving_time}`;
-          }
-          
-          // Add max slope if available
-          if (routeInfo.max_slope !== 'N/A') {
-            tooltipContent += `\n📐 Max Slope: ${routeInfo.max_slope}%`;
-          }
-          
-          // Add elevation range if available
-          if (routeInfo.elevation_low !== 'N/A' && routeInfo.elevation_high !== 'N/A') {
-            tooltipContent += `\n📈 Elevation: ${routeInfo.elevation_low} → ${routeInfo.elevation_high}`;
-          }
-        }
-        
-        // Add joined status to tooltip (always at the end)
-        if (event.extendedProps.joined) {
-          tooltipContent += '\n\n✅ You decided to join the event! 🎉';
-        }
-        
-        // Set the tooltip content
-        info.el.title = tooltipContent;
-        info.el.setAttribute('data-tooltip', tooltipContent);
-        
-        // Create custom event content with club logo
-        const titleEl = info.el.querySelector('.fc-event-title');
-        if (titleEl) {
-          const clubLogo = info.event.extendedProps.club_info.logo;
-          if (clubLogo) {
-            const logoHtml = `<img src="${clubLogo}" class="club-logo" alt="Club Logo">`;
-            titleEl.insertAdjacentHTML('afterbegin', logoHtml);
-          }
-        }
-        
-        // Override click to open in new tab
-        info.el.addEventListener('click', function(e) {
-          e.preventDefault();
-          if (info.event.url) {
-            window.open(info.event.url, '_blank');
-          }
-        });
-      }
-    });
-    
-    // Hide preloader and show calendar
-    hidePreloader();
-    calendarElement.style.display = "block";
-    
-    // Render the calendar with the initial filtered events
-    calendarInstance.render();
+    buildCalendar(filteredEvents);
     
     // Show the navigation bar now that the calendar is loaded
     showNavBar();
@@ -349,31 +391,6 @@ function applyFilters(events) {
     }
     return true;
   });
-}
-
-// Update calendar with filtered events
-function updateCalendarWithFilteredEvents() {
-  if (!calendarInstance) return;
-  
-  // Apply filters to raw events
-  const filteredEvents = applyFilters(allEvents);
-  
-  // Transform filtered events for FullCalendar
-  const calendarEvents = transformEventsForCalendar(filteredEvents);
-  
-  // Remove all existing events
-  const eventSources = calendarInstance.getEventSources();
-  eventSources.forEach(source => source.remove());
-  
-  // Add filtered and transformed events
-  if (calendarEvents.length > 0) {
-    calendarInstance.addEventSource(calendarEvents);
-  }
-  
-  // Only render if the calendar is already rendered
-  if (calendarInstance.view) {
-    calendarInstance.render();
-  }
 }
 
 // Initialize filter state and event listeners when the script loads
