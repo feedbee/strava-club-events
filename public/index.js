@@ -7,16 +7,11 @@ async function handleApiResponse(resp) {
   if (resp.status === 401) {
     // Clear any invalid session
     document.cookie = 'connect.sid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    // Show Strava Connect button with responsive image
-    document.getElementById("auth").innerHTML = `
-      <a href="/login" class="strava-connect-btn">
-        <img 
-          src="images/btn_strava_connect_with_orange.png" 
-          srcset="images/btn_strava_connect_with_orange.png 1x, images/btn_strava_connect_with_orange_x2.png 2x"
-          alt="Connect with Strava"
-          class="strava-connect-img"
-        >
-      </a>`;
+    // Show the auth div
+    const authDiv = document.getElementById("auth");
+    if (authDiv) {
+      authDiv.style.display = 'block';
+    }
     return null; // Return null to indicate auth required
   }
   

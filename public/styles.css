@@ -774,6 +774,30 @@ h1 .title-icon {
   text-decoration: underline;
 }
 
+/* Auth Styling */
+#auth {
+  text-align: center;
+  margin: 1.5rem 0;
+  display: none; /* Hidden by default, shown when not authenticated */
+}
+
+.strava-connect-btn {
+  display: inline-block;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.strava-connect-btn:hover {
+  transform: scale(1.02);
+  opacity: 0.95;
+}
+
+.strava-connect-img {
+  height: 44px; /* Default height for standard DPI */
+  width: auto;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 /* Error Message Styling */
 .error-message {
   position: relative;
