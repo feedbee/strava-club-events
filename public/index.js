@@ -1,3 +1,6 @@
+// -- Global variables --
+let allEvents = [];
+
 // -- API calls ---
 
 // Handle API errors consistently
@@ -47,6 +50,7 @@ function hideNavBar() {
 
 // -- Calendar UI --
 
+let calendarInstance = null; // Module-level variable for the FullCalendar instance
 async function loadEvents() {
   const calendarElement = document.getElementById("calendar");
   const errorElement = document.getElementById("error-message");
@@ -67,20 +71,14 @@ async function loadEvents() {
     
     const events = await handledResponse.json();
 
-    // Transform events for FullCalendar and store them
-    allEvents = events.map(ev => ({
-      title: ev.title,
-      start: ev.start_date,
-      url: ev.strava_event_url,
-      extendedProps: {
-        club_info: ev.club_info || { name: '', logo: '' },
-        route_info: ev.route_info || null,
-        joined: ev.joined || false
-      }
-    }));
+    // Store raw events from the server
+    allEvents = events;
     
-    // Apply filters to get the initial set of events
+    // Apply filters to get the filtered set of events
     const filteredEvents = applyFilters(allEvents);
+    
+    // Transform filtered events for FullCalendar
+    const calendarEvents = transformEventsForCalendar(filteredEvents);
 
     calendarInstance = new FullCalendar.Calendar(document.getElementById("calendar"), {
       initialView: "dayGridMonth",
@@ -90,7 +88,7 @@ async function loadEvents() {
         center: 'title',
         right: 'dayGridMonth,timeGridWeek,timeGridDay'
       },
-      events: filteredEvents,
+      events: calendarEvents,
       dayCellDidMount: function(arg) {
         // Add 'weekend-day' class to Saturday (6) and Sunday (0) cells
         if (arg.date.getDay() === 0 || arg.date.getDay() === 6) {
@@ -225,6 +223,22 @@ async function loadEvents() {
   }
 }
 
+// Transform raw events for FullCalendar
+function transformEventsForCalendar(events) {
+  if (!events) return [];
+  
+  return events.map(event => ({
+    title: event.title,
+    start: event.start_date,
+    url: event.strava_event_url,
+    extendedProps: {
+      club_info: event.club_info || { name: '', logo: '' },
+      route_info: event.route_info || null,
+      joined: event.joined || false
+    }
+  }));
+}
+
 
 // -- Filtering --
 
@@ -233,10 +247,7 @@ const DEFAULT_FILTER_STATE = {
   joinedOnly: false
 };
 
-
 // Store all events and filter state
-let allEvents = [];
-let calendarInstance = null; // Module-level variable for the FullCalendar instance
 const filterState = { ...DEFAULT_FILTER_STATE };
 
 // Load filter state from localStorage
@@ -323,13 +334,13 @@ function setupFilterEventListeners() {
   });
 }
 
-// Apply filters to events
+// Apply filters to raw events
 function applyFilters(events) {
   if (!events) return [];
   
   return events.filter(event => {
     // Apply joined filter
-    if (filterState.joinedOnly && !event.extendedProps.joined) {
+    if (filterState.joinedOnly && !event.joined) {
       return false;
     }
     return true;
@@ -340,15 +351,19 @@ function applyFilters(events) {
 function updateCalendarWithFilteredEvents() {
   if (!calendarInstance) return;
   
+  // Apply filters to raw events
   const filteredEvents = applyFilters(allEvents);
+  
+  // Transform filtered events for FullCalendar
+  const calendarEvents = transformEventsForCalendar(filteredEvents);
   
   // Remove all existing events
   const eventSources = calendarInstance.getEventSources();
   eventSources.forEach(source => source.remove());
   
-  // Add filtered events
-  if (filteredEvents.length > 0) {
-    calendarInstance.addEventSource(filteredEvents);
+  // Add filtered and transformed events
+  if (calendarEvents.length > 0) {
+    calendarInstance.addEventSource(calendarEvents);
   }
   
   // Only render if the calendar is already rendered
