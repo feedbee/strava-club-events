@@ -13,6 +13,22 @@ function login(req, res) {
 }
 
 /**
+ * Handles user logout by destroying the session
+ */
+function logout(req, res) {
+  // Destroy the session
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Error destroying session:', err);
+    }
+    // Clear the session cookie
+    res.clearCookie('connect.sid');
+    // Redirect to home page
+    res.redirect('/');
+  });
+}
+
+/**
  * Handles the OAuth callback from Strava
  */
 async function oauthCallback(req, res) {
@@ -71,4 +87,4 @@ async function oauthCallback(req, res) {
   }
 }
 
-export { login, oauthCallback };
+export { login, oauthCallback, logout };

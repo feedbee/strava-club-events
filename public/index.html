@@ -24,8 +24,8 @@
   <div class="nav-bar hidden">
     <div class="nav-left">
       <div class="nav-item">
-        <button id="toggle-filters" class="filter-button">
-          <svg class="filter-icon" viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+        <button id="toggle-filters" class="btn filter-button">
+          <svg class="btn-icon filter-icon" viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
             <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
           </svg>
           <span>Filters</span>
@@ -35,7 +35,14 @@
       <!-- Add more nav items here -->
     </div>
     <div class="nav-right">
-      <!-- Logout link will go here -->
+      <a href="/logout" class="btn logout-link">
+        <svg class="btn-icon logout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        <span>Logout</span>
+      </a>
     </div>
   </div>
   
