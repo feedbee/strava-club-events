@@ -120,12 +120,35 @@ function buildCalendar(events) {
         info.el.classList.add('fc-event-joined');
       }
       
+      // Format the date and time
+      const eventDate = new Date(event.start);
+      const options = { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      };
+      const formattedDateTime = eventDate.toLocaleString('en-US', options);
+      
       // Build tooltip content
-      let tooltipContent = `🚀 ${event.title}`;
+      let tooltipContent = `🚀 ${event.title}\n📅 ${formattedDateTime}`;
+      
+      // Add terrain and skill level if available
+      const terrainLabel = event.extendedProps.terrain_label;
+      const skillLevelLabel = event.extendedProps.skill_level_label;
+      
+      if (terrainLabel || skillLevelLabel) {
+        const terrainText = terrainLabel ? `🌄 ${terrainLabel}` : '';
+        const skillText = skillLevelLabel ? `⚡ ${skillLevelLabel}` : '';
+        const separator = terrainLabel && skillLevelLabel ? ' • ' : '';
+        tooltipContent += `\n${terrainText}${separator}${skillText}`;
+      }
       
       // Add club info if available
       if (event.extendedProps.club_info?.name) {
-        tooltipContent += `\n\n♣️ ${event.extendedProps.club_info.name}`;
+        tooltipContent += `\n♣️ ${event.extendedProps.club_info.name}`;
       }
       
       // Add route info to tooltip if available
@@ -280,7 +303,9 @@ function transformEventsForCalendar(events) {
     extendedProps: {
       club_info: event.club_info || { name: '', logo: '' },
       route_info: event.route_info || null,
-      joined: event.joined || false
+      joined: event.joined || false,
+      terrain_label: event.terrain_label,
+      skill_level_label: event.skill_level_label
     }
   }));
 }
