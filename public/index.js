@@ -2,29 +2,63 @@
 let allEvents = [];
 
 
+// -- Error handling --
+
+function handleAuthRequired() {
+  // Clear any invalid session
+  document.cookie = 'connect.sid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+  // Show the auth div
+  const authDiv = document.getElementById("auth");
+  if (authDiv) {
+    authDiv.style.display = 'block';
+  }
+}
+
+class AuthenticationError extends Error {
+  constructor(response) {
+    super('Authentication required');
+    this.name = 'AuthenticationError';
+    this.isAuthError = true;
+    this.response = response;
+  }
+}
+
+class ApiError extends Error {
+  constructor(message, response, responseData) {
+    super(`API Error (${response.status}): ${message}`);
+    this.name = 'ApiError';
+    this.response = response;
+    this.responseData = responseData;
+  }
+}
+
+function displayErrorMessage(errorMessage) {
+  const errorElement = document.getElementById("error-message") || (() => {
+    const title = document.querySelector('h1');
+    const el = document.createElement('div');
+    el.id = 'error-message';
+    el.className = 'error-message';
+    // Insert after the title and before the auth div
+    title.parentNode.insertBefore(el, title.nextSibling);
+    return el;
+  })();
+    
+  errorElement.textContent = errorMessage;
+}
+
+
 // -- API calls ---
 
 // Get current user data
 async function getCurrentUser() {
-  const resp = await fetch("/me");
-  const handledResponse = await handleApiResponse(resp);
-  
-  // If handleApiResponse returns null, it means we need to authenticate
-  if (!handledResponse) return null;
-  
-  return await handledResponse.json();
+  const response = await handleApiResponse(await fetch("/me"));
+  return await response.json();
 }
 
 // Retrieve events from the server
 async function getEvents() {
-  const resp = await fetch("/events");
-  const handledResponse = await handleApiResponse(resp);
-  
-  // If handleApiResponse returns null, it means we need to authenticate
-  if (!handledResponse) return;
-  
-  const events = await handledResponse.json();
-  return events;
+  const response = await handleApiResponse(await fetch("/events"));
+  return await response.json();
 }
 
 // Handle API errors consistently
@@ -32,20 +66,13 @@ async function handleApiResponse(resp) {
   if (resp.ok) return resp;
   
   const error = await resp.json().catch(() => ({}));
+  const errorMessage = error.message || error.error || 'An error occurred';
   
   if (resp.status === 401) {
-    // Clear any invalid session
-    document.cookie = 'connect.sid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    // Show the auth div
-    const authDiv = document.getElementById("auth");
-    if (authDiv) {
-      authDiv.style.display = 'block';
-    }
-    return null; // Return null to indicate auth required
+    throw new AuthenticationError(resp);
+  } else {
+    throw new ApiError(`API Error (${resp.status}): ${errorMessage}`, resp, error);
   }
-  
-  const errorMessage = error.message || 'An error occurred';
-  throw new Error(`API Error: ${errorMessage}`);
 }
 
 
@@ -95,17 +122,11 @@ function updateUserProfile(user) {
 
 // Load user profile
 async function loadUserProfile() {
-  try {
-    showPreloader();
-    // Get the current user data
-    const user = await getCurrentUser();
-    if (!user) return; // Return if auth is needed
+  // Get the current user data
+  const user = await getCurrentUser(); // Thorws AuthenticationError if auth is needed
 
-    // Update the user profile in the navigation bar
-    updateUserProfile(user);
-  } finally {
-    hidePreloader();
-  }
+  // Update the user profile in the navigation bar
+  updateUserProfile(user);
 }
 
 
@@ -300,44 +321,22 @@ function hideCalendar() {
 async function loadEvents() {
   const errorElement = document.getElementById("error-message");
   
-  try {
-    // Reset UI state
-    showPreloader();
-    hideNavBar();
-    hideCalendar();
-    if (errorElement) errorElement.textContent = '';
-    
-    // Make the API request
-    allEvents = await getEvents();
-    if (!allEvents) return; // Return if auth is needed
-    
-    // Apply filters to get the filtered set of events
-    const filteredEvents = applyFilters(allEvents);
+  // Reset UI state
+  showPreloader();
+  hideNavBar();
+  hideCalendar();
+  if (errorElement) errorElement.textContent = '';
+  
+  // Make the API request
+  allEvents = await getEvents(); // Thorws AuthenticationError if auth is needed
+  
+  // Apply filters to get the filtered set of events
+  const filteredEvents = applyFilters(allEvents);
 
-    buildCalendar(filteredEvents);
-    
-    // Show the navigation bar now that the calendar is loaded
-    showNavBar();
-  } catch (error) {
-    console.error("Error loading events:", error);
-    
-    // Only show error message for non-auth related errors
-    if (!error.message.includes('Session expired') && !error.message.includes('401')) {
-      const errorElement = document.getElementById("error-message") || (() => {
-        const title = document.querySelector('h1');
-        const el = document.createElement('div');
-        el.id = 'error-message';
-        el.className = 'error-message';
-        // Insert after the title and before the auth div
-        title.parentNode.insertBefore(el, title.nextSibling);
-        return el;
-      })();
-      
-      errorElement.textContent = 'Unable to load events. Please try to reload the page.';
-    }
-  } finally {
-    hidePreloader();
-  }
+  buildCalendar(filteredEvents);
+  
+  // Show the navigation bar now that the calendar is loaded
+  showNavBar();
 }
 
 // Transform raw events for FullCalendar
@@ -493,9 +492,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize the app when the page loads
 (async function () {
-  // Update the user profile in the navigation bar
-  loadUserProfile();
+  try {
+    showPreloader();
 
-  // Load the events
-  loadEvents();
+    // Update the user profile in the navigation bar
+    loadUserProfile();
+    
+    // Load the events
+    await loadEvents();
+  } catch (error) {
+    if (error.isAuthError) {
+      console.info("Authentication is required");
+      handleAuthRequired();
+      return;
+    }
+
+    console.error("Error loading events:", error);
+    displayErrorMessage('Unable to load events. Please try to reload the page.');
+    // Only show error message for non-auth related errors
+    
+  } finally {
+    hidePreloader();
+  }
 })();
