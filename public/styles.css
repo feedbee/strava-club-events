@@ -804,6 +804,145 @@ h1 .title-icon {
   background: #f9fafb;
 }
 
+/* User Profile */
+.user-profile {
+  display: flex;
+  align-items: center;
+  position: relative;
+  height: 40px;
+  min-width: 40px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border-radius: 20px;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+.user-avatar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid white;
+  z-index: 2;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.user-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #2d3748;
+  white-space: nowrap;
+  padding: 0 12px 0 8px;
+  opacity: 0;
+  position: relative;
+  z-index: 1;
+  max-width: 0;
+  overflow: hidden;
+}
+
+/* Hover states */
+.user-profile:hover {
+  min-width: 200px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e2e8f0;
+  padding: 4px 8px 4px 40px;
+  margin-right: 0;
+}
+
+.user-profile:hover .user-avatar {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.user-profile:hover .user-name {
+  opacity: 1;
+  transform: translateX(0);
+  max-width: 200px;
+}
+
+/* User name */
+.user-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #2d3748;
+  white-space: nowrap;
+  padding: 0 12px 0 8px;
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+  height: 32px;
+  line-height: 32px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+/* Logout button */
+.logout-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0;
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  font-size: 0.85rem;
+  color: #4a5568;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+/* Hover states */
+.user-profile:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e2e8f0;
+  padding: 4px 4px 4px 40px;
+}
+
+.user-profile:hover .user-avatar {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.user-profile:hover .user-name {
+  opacity: 1;
+  max-width: 200px;
+  padding: 0 8px;
+  margin-right: 4px;
+}
+
+.user-profile:hover .logout-link {
+  opacity: 1;
+  max-width: 120px;
+  padding: 0 10px;
+  margin: 0 4px;
+}
+
+.logout-link:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #1e3a8a;
+}
+
 .back-link {
   display: inline-block;
   margin-top: 24px;

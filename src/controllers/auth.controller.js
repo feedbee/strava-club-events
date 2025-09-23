@@ -76,7 +76,8 @@ async function oauthCallback(req, res) {
         athleteId: data.athlete.id,
         username: data.athlete.username || `user_${data.athlete.id}`,
         firstname: data.athlete.firstname,
-        lastname: data.athlete.lastname
+        lastname: data.athlete.lastname,
+        profile_pic: data.athlete.profile_medium || ''
       };
     }
     
@@ -87,4 +88,24 @@ async function oauthCallback(req, res) {
   }
 }
 
-export { login, oauthCallback, logout };
+/**
+ * Returns the currently authenticated user's data
+ */
+function me(req, res) {
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  
+  // Return a clean copy of the user data without sensitive information
+  const { id, athleteId, username, firstname, lastname, profile_pic } = req.session.user;
+  res.json({
+    id,
+    athleteId,
+    username,
+    firstname,
+    lastname,
+    profile_pic
+  });
+}
+
+export { login, oauthCallback, logout, me };

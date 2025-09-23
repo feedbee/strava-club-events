@@ -4,7 +4,18 @@ let allEvents = [];
 
 // -- API calls ---
 
-// Retrive events from the server
+// Get current user data
+async function getCurrentUser() {
+  const resp = await fetch("/me");
+  const handledResponse = await handleApiResponse(resp);
+  
+  // If handleApiResponse returns null, it means we need to authenticate
+  if (!handledResponse) return null;
+  
+  return await handledResponse.json();
+}
+
+// Retrieve events from the server
 async function getEvents() {
   const resp = await fetch("/events");
   const handledResponse = await handleApiResponse(resp);
@@ -58,6 +69,43 @@ function showNavBar() {
 }
 function hideNavBar() {
   navBar.classList.add('hidden');
+}
+
+// Update user profile in the navigation bar
+function updateUserProfile(user) {
+  const userNameElement = document.getElementById('user-name');
+  const userAvatarElement = document.getElementById('user-avatar');
+  
+  if (user) {
+    // Create a link to the user's Strava profile
+    const profileLink = document.createElement('a');
+    profileLink.href = `https://www.strava.com/athletes/${user.athleteId}`;
+    profileLink.target = '_blank';
+    profileLink.textContent = `${user.firstname} ${user.lastname}`.trim();
+      
+    // Clear existing content and append the link
+    userNameElement.innerHTML = '';
+    userNameElement.appendChild(profileLink);
+    
+    if (user.profile_pic) {
+      userAvatarElement.src = user.profile_pic;
+    }
+  }
+}
+
+// Load user profile
+async function loadUserProfile() {
+  try {
+    showPreloader();
+    // Get the current user data
+    const user = await getCurrentUser();
+    if (!user) return; // Return if auth is needed
+
+    // Update the user profile in the navigation bar
+    updateUserProfile(user);
+  } finally {
+    hidePreloader();
+  }
 }
 
 
@@ -444,4 +492,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 // Initialize the app when the page loads
-loadEvents();
+(async function () {
+  // Update the user profile in the navigation bar
+  loadUserProfile();
+
+  // Load the events
+  loadEvents();
+})();

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { login, logout, oauthCallback } from '../controllers/auth.controller.js';
+import { login, logout, oauthCallback, me } from '../controllers/auth.controller.js';
 
 const router = Router();
 
@@ -11,5 +11,8 @@ router.get('/logout', logout);
 
 // OAuth callback route
 router.get('/callback', oauthCallback);
+
+// Get current user data
+router.get('/me', me);
 
 export default router;
