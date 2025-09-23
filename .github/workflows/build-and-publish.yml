@@ -7,9 +7,9 @@ on:
 
 env:
   # Use docker.io for Docker Hub if empty
-  REGISTRY: ${{ github.actor }}
+  REGISTRY: ${{ github.repository_owner }}
   # GitHub repository name
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.event.repository.name }}
 
 jobs:
   build-and-push:
