@@ -1,6 +1,6 @@
 {
     "name": "strava-events-app",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "description": "Simple app to fetch Strava club events and show them in a calendar",
     "main": "src/server.js",
     "type": "module",
