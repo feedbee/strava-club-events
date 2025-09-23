@@ -876,7 +876,6 @@ h1 .title-icon {
 .user-name {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #2d3748;
   white-space: nowrap;
   padding: 0 12px 0 8px;
   opacity: 0;
@@ -889,6 +888,19 @@ h1 .title-icon {
   line-height: 32px;
   margin: 0;
   flex-shrink: 0;
+}
+
+/* Profile link styles */
+.user-name a {
+  color: #fc5200; /* Strava orange */
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.user-name a:hover {
+  color: #d14600dd; /* Darker orange on hover */
+  text-decoration: underline;
 }
 
 /* Logout button */
