@@ -1,5 +1,5 @@
 import express from "express";
-import { sessionMiddleware } from "./middleware/session.middleware.js";
+import { secureSessionMiddleware } from "./middleware/session.middleware.js";
 
 // Create Express app
 const app = express();
@@ -7,7 +7,11 @@ const app = express();
 // Configure middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(sessionMiddleware);
+
+// Use secure session middleware (includes encryption for sensitive data)
+app.use(secureSessionMiddleware);
+
+// Static files
 app.use(express.static("public"));
 
 // Export the app
