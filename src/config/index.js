@@ -18,6 +18,14 @@ function getConfig() {
     process.exit(1);
   }
 
+  // Session configuration
+  const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || null; // enrypt session data if the variable is set
+  const SESSION_DRIVER = process.env.SESSION_DRIVER || 'memory';
+  const SESSION_TRUST_PROXY = process.env.SESSION_TRUST_PROXY || 'false';
+  const SESSION_SECURE_COOKIE = process.env.SESSION_SECURE_COOKIE || 'false';
+  const SESSION_MAX_AGE = process.env.SESSION_MAX_AGE || 24 * 60 * 60 * 1000; // 24 hours
+  const SESSION_TTL = process.env.SESSION_TTL || 24 * 60 * 60; // Default 24 hours in seconds
+
   // Cache configuration
   const CACHE_DRIVER = process.env.CACHE_DRIVER || 'memory'; // 'memory' or 'mongodb'
   const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
@@ -37,13 +45,25 @@ function getConfig() {
     // Public URL configuration
     publicUrl: PUBLIC_URL,
     redirectUri: `${PUBLIC_URL}/callback`,
-    // Optional dev callback redirect target
-    devCallbackRedirect: DEV_CALLBACK_REDIRECT,
+    devCallbackRedirect: DEV_CALLBACK_REDIRECT, // Optional dev callback redirect target
     
     // App secrets
     clientId: CLIENT_ID,
     clientSecret: CLIENT_SECRET,
-    sessionSecret: SESSION_SECRET,
+    session: {
+      secret: SESSION_SECRET,
+      driver: SESSION_DRIVER,
+      trustProxy: SESSION_TRUST_PROXY === 'true',
+      secureCookie: SESSION_SECURE_COOKIE === 'true',
+      maxAge: parseInt(SESSION_MAX_AGE),
+      ttl: parseInt(SESSION_TTL),
+      mongodb: {
+        uri: MONGODB_URI,
+        dbName: MONGODB_DB,
+        collectionName: 'sessions'
+      }
+    },
+    encryptionKey: ENCRYPTION_KEY,
     stravaAuthUrl: (clientId, redirectUri) => 
       `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&approval_prompt=auto&scope=read`,
     
