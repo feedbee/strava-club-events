@@ -505,6 +505,7 @@ interface Event {
 - [ ] Export to calendar
 - [ ] Notifications
 - [ ] Dark mode
+- [ ] Periodically refresh user information in the session
 
 ## 20. Appendix
 
