@@ -1,6 +1,6 @@
 # Strava Club Events Calendar — Technical Specification
 
-*Last Updated: September 22, 2025 (v0.3.0)*
+*Last Updated: September 24, 2025 (v0.5.0)*
 
 ## 1. Overview
 
@@ -10,11 +10,15 @@ Build a modern web application that provides Strava users with a clean, interact
 ## 2. System Architecture
 
 ### 2.1 Implemented Features
-- **Authentication**
+- **Authentication & Session Management**
   - OAuth2 with Strava
   - Token refresh implementation
   - Session-based authentication with secure logout
   - Session cleanup on logout
+  - Configurable session storage (memory or MongoDB)
+  - Optional token encryption with AES-256-CBC
+  - Configurable session TTL and cookie settings
+  - Secure cookie flags (httpOnly, secure, sameSite)
 
 - **Filtering System**
   - Dynamic filter state management
@@ -473,6 +477,9 @@ interface Event {
 - [x] Secure authentication with token rotation
 - [x] Environment-based configuration
 - [x] Session management with proper expiry handling
+- [x] Configurable session storage backend
+- [x] Optional token encryption at rest
+- [x] Secure cookie configuration
 
 ## 20. Future Enhancements
 
@@ -485,14 +492,15 @@ interface Event {
 - [ ] Implement pagination for clubs and events
 - [ ] Implement too many events for a given user protection (request too many routes from Strava)
 - [ ] Better mobile experience
-- [ ] Better session management
+- [x] Better session management with configurable backends
+- [x] Token encryption at rest
 
-### 19.2 Medium Priority
+### 20.2 Medium Priority
 - [ ] Advanced filtering (by clubs)
 - [ ] Multi-language support
 - [ ] Rate limiting
 
-### 19.3 Low Priority
+### 20.3 Low Priority
 - [ ] Advanced analytics
 - [ ] Export to calendar
 - [ ] Notifications

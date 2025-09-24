@@ -3,10 +3,11 @@
 A modern web application that connects to Strava, fetches upcoming club events for the next 30 days, and displays them in an interactive calendar view with enhanced UI/UX.
 
 ### ✨ Features
-- **Seamless OAuth2 Login** - Secure authentication with Strava using OAuth2
+- **Secure Authentication** - Robust OAuth2 implementation with Strava
   - Automatic token refresh before expiration
-  - Basic session management
-  - Secure token storage
+  - Configurable session management with multiple storage backends
+  - Optional AES-256-CBC encryption for sensitive session data
+  - Secure cookie configuration with httpOnly, secure, and sameSite flags
 
 - **Event Management**
   - Fetches events from all your Strava clubs
@@ -39,6 +40,8 @@ A modern web application that connects to Strava, fetches upcoming club events f
   - Docker and Docker Compose support
   - Development container configuration included
   - Environment-based configuration
+  - Configurable session and cache settings
+  - Detailed logging for debugging
 
 - **Performance**
   - Configurable caching system with multiple backends:
@@ -78,39 +81,75 @@ docker-compose up -d
 - **Session Management**: Automatic cleanup of expired sessions
 - **Error Handling**: Graceful degradation and user-friendly error messages
 
-### ⚙️ Configuration
+### 🔧 Configuration
 
 #### Environment Variables
-Create a `.env.local` file in the project root with the following variables:
+
+Create a `.env` file in the root directory with the following variables:
 
 ```env
 # Required
 CLIENT_ID=your_strava_client_id
 CLIENT_SECRET=your_strava_client_secret
 
-# Optional (defaults shown)
+# Application Settings
+NODE_ENV=development
+HOST=0.0.0.0
 PORT=3000
+PUBLIC_URL=http://localhost:3000
+DEV_CALLBACK_REDIRECT=
+
+# Session Configuration
+SESSION_DRIVER=memory  # or 'mongodb'
+SESSION_SECRET=your_session_secret
+SESSION_TTL=86400  # 24 hours in seconds
+SESSION_SECURE_COOKIE=true  # set to false for HTTP
+SESSION_TRUST_PROXY=false  # set to true if behind a reverse proxy
+
+# MongoDB Configuration (required if using mongodb driver)
+MONGODB_URI=mongodb://localhost:27017
+MONGODB_DB=strava-club-events
+
+# Encryption (highly recommended for production)
+ENCRYPTION_KEY=your_secure_encryption_key_here
+
+# Cache Configuration
+CACHE_DRIVER=memory  # or 'mongodb'
+CACHE_TTL_DEFAULT=900000    # 15 minutes
+CACHE_TTL_CLUBS=900000     # 15 minutes
+CACHE_TTL_EVENTS=900000    # 15 minutes
+CACHE_TTL_ROUTE=3600000    # 1 hour
 ```
 
-The app supports the following configuration variables:
+#### Configuration Reference
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
+| **Required** | | | |
 | `CLIENT_ID` | Yes | - | Strava API client ID |
 | `CLIENT_SECRET` | Yes | - | Strava API client secret |
-| `SESSION_SECRET` | No | `supersecret` | Secret for session signing (HTTP-only cookies) |
-| `NODE_ENV` | No | `development` | Runtime environment |
-| `HOST` | No | `0.0.0.0` | Bind address for the HTTP server (use `0.0.0.0` in Docker) |
+| **Application** | | | |
+| `NODE_ENV` | No | `development` | Runtime environment (`development`/`production`) |
+| `HOST` | No | `0.0.0.0` | Bind address for the HTTP server |
 | `PORT` | No | `3000` | Port for the HTTP server |
-| `PUBLIC_URL` | No | `http://localhost:${PORT}` | Public base URL used to build OAuth redirect URI (`${PUBLIC_URL}/callback`) |
-| `DEV_CALLBACK_REDIRECT` | No | - | Optional base URL for dev forwarding. When set in prod, login flow appends `dev-callback-redirect=<dev-base>/callback` and `/callback` forwards to it |
+| `PUBLIC_URL` | No | `http://localhost:${PORT}` | Base URL for OAuth redirects |
+| `DEV_CALLBACK_REDIRECT` | No | - | Development callback URL for OAuth flow |
+| **Session** | | | |
+| `SESSION_DRIVER` | No | `memory` | Session storage: `memory` or `mongodb` |
+| `SESSION_SECRET` | No | `supersecret` | Secret for signing session cookies |
+| `SESSION_TTL` | No | `86400` | Session lifetime in seconds (24h) |
+| `SESSION_SECURE_COOKIE` | No | `true` | Use secure cookies (HTTPS only) |
+| `SESSION_TRUST_PROXY` | No | `false` | Trust reverse proxy headers |
+| `ENCRYPTION_KEY` | No | - | AES-256-CBC key for encrypting sensitive data |
+| **MongoDB** | | | |
+| `MONGODB_URI` | If using MongoDB | `mongodb://localhost:27017` | MongoDB connection string |
+| `MONGODB_DB` | If using MongoDB | `strava-club-events` | Database name |
+| **Cache** | | | |
 | `CACHE_DRIVER` | No | `memory` | Cache driver: `memory` or `mongodb` |
-| `MONGODB_URI` | No | `mongodb://localhost:27017` | MongoDB connection string (when `CACHE_DRIVER=mongodb`) |
-| `MONGODB_DB` | No | `strava-club-events` | MongoDB database name (when `CACHE_DRIVER=mongodb`) |
-| `CACHE_TTL_DEFAULT` | No | `900000` | Default cache TTL in ms (15 minutes) |
-| `CACHE_TTL_CLUBS` | No | `900000` | Clubs cache TTL in ms (15 minutes) |
-| `CACHE_TTL_EVENTS` | No | `900000` | Events cache TTL in ms (15 minutes) |
-| `CACHE_TTL_ROUTE` | No | `3600000` | Route cache TTL in ms (1 hour) |
+| `CACHE_TTL_DEFAULT` | No | `900000` | Default cache TTL in ms (15m) |
+| `CACHE_TTL_CLUBS` | No | `900000` | Clubs cache TTL in ms (15m) |
+| `CACHE_TTL_EVENTS` | No | `900000` | Events cache TTL in ms (15m) |
+| `CACHE_TTL_ROUTE` | No | `3600000` | Route cache TTL in ms (1h) |
 
 
 > **Important:** Never commit your `.env.local` file or share your Strava API credentials.
