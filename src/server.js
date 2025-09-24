@@ -13,6 +13,6 @@ app.use(errorHandler);
 
 // Start server
 app.listen(port, host, () => {
+  console.log(`🌐 Public URL: ${config.publicUrl}`);
   console.log("✅ Server is running on " + host + ":" + port);
-  console.log(`Public URL: ${config.publicUrl}`);
 });
