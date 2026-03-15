@@ -43,7 +43,7 @@ Source: `docs/examples/event-*-state-2-example.json` and `event-*-state-3-exampl
 | `route` | object (state 1) | ⚠️ Only `route.id` (string) and `route.name` used; see Route section |
 | `women_only` | boolean | — Passed through; not used |
 | `private` | boolean | — Passed through; not used |
-| `skill_levels` | number \| null | ✅ Used — `skill_level_label` (`1`=Casual, `2`=Tempo, `4`=Race Pace) |
+| `skill_levels` | number \| null | ✅ Used — `skill_level_label` (`1`=Casual, `2`=Tempo, `4`=Race Pace). Returns `null` when the event uses Pace Groups instead |
 | `terrain` | number \| null | ✅ Used — `terrain_label` (`0`=Flat, `1`=Rolling, `2`=Killer Climbs) |
 | `upcoming_occurrences` | string[] | ✅ Used — selects next occurrence within 30 days → `start_date` |
 | `zone` | string | — Passed through; timezone not applied when formatting `start_date` |
@@ -67,6 +67,18 @@ Source: `docs/examples/event-*-state-2-example.json` and `event-*-state-3-exampl
 > sourced from `GET /athlete/clubs` (state 2), separate from the `event.club` state-1
 > embed. `profile_medium` is absent on the state-1 embed but always present on the
 > state-2 clubs-list object, so `club_info.logo` is correctly populated.
+
+### Fields present in the edit UI but absent from the API entirely
+
+Confirmed by inspecting a real event that has all of these configured — neither state 2
+nor state 3 returns them:
+
+| Edit form field | Notes |
+|----------------|-------|
+| **Pace Groups** (A/B/C speed ranges) | A newer, richer alternative to `skill_levels`. When an event uses Pace Groups, `skill_levels` returns `null`. The group definitions are not exposed via the API. |
+| **Distance** (event-level) | Separate from the route's distance. Not returned at any state. |
+| **Surface** (Road / Gravel / etc.) | Not returned at any state. |
+| **Capacity limit** | Not returned at any state. |
 
 ### State 3 — from `GET /group_events/{id}` *(never fetched by the app)*
 
