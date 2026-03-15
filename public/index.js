@@ -249,7 +249,12 @@ function buildCalendar(events) {
       
       // Build tooltip content
       let tooltipContent = `🚀 ${event.title}\n📅 ${formattedDateTime}`;
-      
+
+      // Add address if available
+      if (event.extendedProps.address) {
+        tooltipContent += `\n📍 ${event.extendedProps.address}`;
+      }
+
       // Add terrain and skill level if available
       const terrainLabel = event.extendedProps.terrain_label;
       const skillLevelLabel = event.extendedProps.skill_level_label;
@@ -419,7 +424,8 @@ function transformEventsForCalendar(events) {
       route_info: event.route_info || null,
       joined: event.joined || false,
       terrain_label: event.terrain_label,
-      skill_level_label: event.skill_level_label
+      skill_level_label: event.skill_level_label,
+      address: event.address || null,
     }
   }));
 }

@@ -220,7 +220,8 @@ async function prepareEvent(event, club, accessToken, options = {}) {
       logo: club.profile_medium || ''
     },
     terrain_label: getTerrainLabel(event.terrain),
-    skill_level_label: getSkillLevelLabel(event.skill_levels)
+    skill_level_label: getSkillLevelLabel(event.skill_levels),
+    address: event.address || null,
   };
 
   // Get route details if route.id is available
@@ -286,15 +287,15 @@ function getRouteType(type, subType) {
  * @returns {string|undefined} Formatted terrain description or undefined if not available
  */
 function getTerrainLabel(terrain) {
-  if (terrain === undefined) return undefined;
-  
+  if (terrain == null) return undefined;
+
   const terrainMap = {
     0: 'Mostly Flat',
     1: 'Rolling Hills',
     2: 'Killer Climbs'
   };
-  
-  return terrainMap[terrain] || `Unknown: ${terrain}`;
+
+  return terrainMap[terrain] ?? `Unknown: ${terrain}`;
 }
 
 /**
@@ -303,15 +304,15 @@ function getTerrainLabel(terrain) {
  * @returns {string|undefined} Formatted skill level or undefined if not available
  */
 function getSkillLevelLabel(skillLevel) {
-  if (skillLevel === undefined) return undefined;
-  
+  if (skillLevel == null) return undefined;
+
   const skillLevelMap = {
     1: 'Casual (No Drop)',
     2: 'Tempo',
     4: 'Race Pace'
   };
-  
-  return skillLevelMap[skillLevel] || `Unknown: ${skillLevel}`;
+
+  return skillLevelMap[skillLevel] ?? `Unknown: ${skillLevel}`;
 }
 
 /**
