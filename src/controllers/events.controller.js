@@ -1,7 +1,4 @@
-import { 
-  getUserClubs, 
-  getClubEvents 
-} from '../services/strava.service.js';
+import { getAllUserClubsEvents } from '../services/strava.service.js';
 
 /**
  * Fetches and processes events for the authenticated user
@@ -11,7 +8,6 @@ import {
 async function getEvents(req, res) {
   try {
     const token = req.token; // Token attached by ensureValidToken middleware
-    const allEvents = [];
 
     // Get user ID from the authenticated user
     if (!req.user?.id) {
@@ -19,24 +15,10 @@ async function getEvents(req, res) {
     }
     const userId = req.user.id;
     
-    // Get user's clubs
-    const clubs = await getUserClubs(token, userId);
+    // Get all events across all clubs with route request limiting
+    const { events, meta } = await getAllUserClubsEvents(token, userId);
 
-    // Get events for each club
-    for (const club of clubs) {
-      try {
-        const clubEvents = await getClubEvents(token, club, userId);
-        allEvents.push(...clubEvents);
-      } catch (error) {
-        console.error(`Error getting events for club ${club.id}:`, error);
-        throw error; // Re-throw to be caught by the outer try-catch
-      }
-    }
-
-    // Sort all events by start date
-    allEvents.sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
-    
-    res.json(allEvents);
+    res.json({ events, meta });
   } catch (error) {
     console.error('Error in getEvents:', error);
     res.status(500).json({ 

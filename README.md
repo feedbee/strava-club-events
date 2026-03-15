@@ -266,9 +266,13 @@ strava-events-calendar/
 ### ⚠️ Limitations
 
 This is a development-focused application with the following considerations:
-- Limited security features (no session invalidation, no rate limiting)
-- Limited error handling in the UI
-- Mobile UI is not optimized
+- **API Limitations**
+  - Only the first 25 clubs returned by the Strava API are displayed
+  - A maximum of 100 upcoming events per club are fetched
+  - Only the first 20 routes' details are requested for each event
+- **UI/UX**
+  - Limited error handling in the UI
+  - Mobile UI is not optimized
 
 ### 📜 License
 

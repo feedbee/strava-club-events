@@ -990,6 +990,54 @@ h1 .title-icon {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Events stats in nav bar */
+.events-stats {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+  padding: 0 4px;
+}
+
+/* Limits warning strip */
+.limits-warning {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+  background: rgba(255, 251, 235, 0.97);
+  border: 1px solid #fcd34d;
+  border-left: 4px solid #f59e0b;
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #92400e;
+}
+
+.limits-warning-icon {
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+
+.limits-warning-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.limits-learn-more {
+  color: #92400e;
+  font-weight: 600;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.limits-learn-more:hover {
+  color: #78350f;
+}
+
 /* Error Message Styling */
 .error-message {
   position: relative;

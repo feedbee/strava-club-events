@@ -1,5 +1,6 @@
 // -- Global variables --
 let allEvents = [];
+let eventsMeta = null;
 
 
 // -- Error handling --
@@ -58,7 +59,10 @@ async function getCurrentUser() {
 // Retrieve events from the server
 async function getEvents() {
   const response = await handleApiResponse(await fetch("/events"));
-  return await response.json();
+  const data = await response.json();
+  // Support both legacy array response and new { events, meta } shape
+  if (Array.isArray(data)) return { events: data, meta: null };
+  return data;
 }
 
 // Handle API errors consistently
@@ -117,6 +121,48 @@ function updateUserProfile(user) {
     if (user.profile_pic) {
       userAvatarElement.src = user.profile_pic;
     }
+  }
+}
+
+// Display events metadata: stats in nav bar + optional limits warning
+function displayEventsMeta(meta, visibleEventCount) {
+  const statsEl = document.getElementById('events-stats');
+  const warningEl = document.getElementById('limits-warning');
+
+  if (!statsEl || !meta) return;
+
+  // Stats text: "47 events · 5 clubs" or "47 events · 20 of 27 clubs"
+  const clubsText = meta.clubs_limited
+    ? `${meta.clubs_processed} of ${meta.clubs_total} clubs`
+    : `${meta.clubs_total} ${meta.clubs_total === 1 ? 'club' : 'clubs'}`;
+  statsEl.textContent = `${visibleEventCount} ${visibleEventCount === 1 ? 'event' : 'events'} · ${clubsText}`;
+
+  if (!warningEl) return;
+
+  // Build warning messages only when limits are hit
+  const warnings = [];
+  if (meta.clubs_fetch_limited) {
+    warnings.push(`Only the first 200 clubs are loaded. Users with more than 200 clubs are not fully supported.`);
+  } else if (meta.clubs_limited) {
+    warnings.push(`Showing events from ${meta.clubs_processed} of ${meta.clubs_total} clubs. A per-club filter is coming — use it to focus on specific clubs.`);
+  }
+  if (meta.events_limited) {
+    const cap = meta.limits?.events_per_club ?? 100;
+    warnings.push(`Some clubs may have more than ${cap} upcoming events — only the first ${cap} per club are shown.`);
+  }
+  if (meta.routes_skipped > 0) {
+    warnings.push(`Route details unavailable for ${meta.routes_skipped} ${meta.routes_skipped === 1 ? 'event' : 'events'} (API limit reached).`);
+  }
+
+  if (warnings.length > 0) {
+    const learnMore = ` <a href="/limits.html" target="_blank" class="limits-learn-more">Learn more →</a>`;
+    const warningSpans = warnings.map((w, i) =>
+      `<span>${w}${i === warnings.length - 1 ? learnMore : ''}</span>`
+    ).join('');
+    warningEl.innerHTML = `<span class="limits-warning-icon">⚠</span><span class="limits-warning-messages">${warningSpans}</span>`;
+    warningEl.style.display = 'flex';
+  } else {
+    warningEl.style.display = 'none';
   }
 }
 
@@ -224,22 +270,37 @@ function buildCalendar(events) {
       const routeInfo = info.event.extendedProps.route_info;
       if (routeInfo) {
         tooltipContent += `\n\n🗺️ ${routeInfo.name}`;
-        tooltipContent += `\n📏 ${routeInfo.distance} • 🏔️ ${routeInfo.elevation_gain}`;
-        tooltipContent += `\n🚴 ${routeInfo.activity_type}`;
         
-        // Add additional route details if available
-        if (routeInfo.estimated_moving_time !== 'N/A') {
-          tooltipContent += `\n⏱️ ${routeInfo.estimated_moving_time}`;
+        // Always show distance and elevation if they are available
+        if (routeInfo.distance !== 'N/A' || routeInfo.elevation_gain !== 'N/A') {
+          const distanceText = routeInfo.distance !== 'N/A' ? `📏 ${routeInfo.distance}` : '';
+          const elevationText = routeInfo.elevation_gain !== 'N/A' ? `🏔️ ${routeInfo.elevation_gain}` : '';
+          const separator = routeInfo.distance !== 'N/A' && routeInfo.elevation_gain !== 'N/A' ? ' • ' : '';
+          tooltipContent += `\n${distanceText}${separator}${elevationText}`;
         }
         
-        // Add max slope if available
-        if (routeInfo.max_slope !== 'N/A') {
-          tooltipContent += `\n📐 Max Slope: ${routeInfo.max_slope}%`;
+        // Show activity type if available
+        if (routeInfo.activity_type && routeInfo.activity_type !== 'N/A') {
+          tooltipContent += `\n🚴 ${routeInfo.activity_type}`;
         }
+
+        if (routeInfo.is_full) {
+          // Add additional route details if available
+          if (routeInfo.estimated_moving_time !== 'N/A') {
+            tooltipContent += `\n⏱️ ${routeInfo.estimated_moving_time}`;
+          }
         
-        // Add elevation range if available
-        if (routeInfo.elevation_low !== 'N/A' && routeInfo.elevation_high !== 'N/A') {
-          tooltipContent += `\n📈 Elevation: ${routeInfo.elevation_low} → ${routeInfo.elevation_high}`;
+          // Add max slope if available
+          if (routeInfo.max_slope !== 'N/A') {
+            tooltipContent += `\n📐 Max Slope: ${routeInfo.max_slope}%`;
+          }
+          
+          // Add elevation range if available
+          if (routeInfo.elevation_low !== 'N/A' && routeInfo.elevation_high !== 'N/A') {
+            tooltipContent += `\n📈 Elevation: ${routeInfo.elevation_low} → ${routeInfo.elevation_high}`;
+          }
+        } else if (routeInfo.name !== 'Route is not attached') {
+          tooltipContent += `\n(Extended route info is not available)`;
         }
       }
       
@@ -282,26 +343,29 @@ function buildCalendar(events) {
 // Update calendar with filtered events
 function updateCalendarWithFilteredEvents() {
   if (!calendarInstance) return;
-  
+
   // Apply filters to raw events
   const filteredEvents = applyFilters(allEvents);
-  
+
   // Transform filtered events for FullCalendar
   const calendarEvents = transformEventsForCalendar(filteredEvents);
-  
+
   // Remove all existing events
   const eventSources = calendarInstance.getEventSources();
   eventSources.forEach(source => source.remove());
-  
+
   // Add filtered and transformed events
   if (calendarEvents.length > 0) {
     calendarInstance.addEventSource(calendarEvents);
   }
-  
+
   // Only render if the calendar is already rendered
   if (calendarInstance.view) {
     calendarInstance.render();
   }
+
+  // Update stats to reflect filtered count
+  displayEventsMeta(eventsMeta, filteredEvents.length);
 }
 
 // Show the calendar
@@ -328,15 +392,18 @@ async function loadEvents() {
   if (errorElement) errorElement.textContent = '';
   
   // Make the API request
-  allEvents = await getEvents(); // Thorws AuthenticationError if auth is needed
-  
+  const { events, meta } = await getEvents(); // Throws AuthenticationError if auth is needed
+  allEvents = events;
+  eventsMeta = meta;
+
   // Apply filters to get the filtered set of events
   const filteredEvents = applyFilters(allEvents);
 
   buildCalendar(filteredEvents);
-  
-  // Show the navigation bar now that the calendar is loaded
+
+  // Show the navigation bar and stats now that the calendar is loaded
   showNavBar();
+  displayEventsMeta(meta, filteredEvents.length);
 }
 
 // Transform raw events for FullCalendar

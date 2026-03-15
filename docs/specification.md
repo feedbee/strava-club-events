@@ -58,6 +58,15 @@ Build a modern web application that provides Strava users with a clean, interact
                     │  │  Utils    │                      │
                     │  └───────────┘                      │
                     └─────────────────────────────────────┘
+
+### 2.3 API Limitations
+Due to performance and Strava API rate limiting considerations, the following limitations are in place:
+
+- **Clubs**: Only the first 25 clubs returned by the Strava API are displayed
+- **Events**: A maximum of 100 upcoming events per club are fetched
+- **Routes**: Only the first 20 routes' details are requested for each user
+
+These limits help ensure a responsive user experience while staying within API rate limits. If you need to adjust these values, they can be modified in the `strava.service.js` configuration.
 ```
 
 ### 2.2 Technology Stack

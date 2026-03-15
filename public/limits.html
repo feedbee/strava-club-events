@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Limits — Strava Club Events</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link href="styles.css" rel="stylesheet"/>
+</head>
+<body>
+  <h1><img src="favicon.png" alt="" class="title-icon">Strava Club Events</h1>
+  <div class="container about-container">
+    <h2>Application Limits</h2>
+    <p>
+      To stay within Strava API rate limits and keep the app fast, certain limits are applied
+      when fetching your club events. Here's what they are and how they affect you.
+    </p>
+
+    <h3>Clubs</h3>
+    <p>
+      Up to <strong id="limit-clubs-fetch">…</strong> clubs are fetched from Strava to determine
+      how many clubs you belong to. Events are then processed for only the
+      <strong id="limit-clubs">…</strong> most recent clubs (in the order returned by Strava).
+      If you are a member of more than <strong id="limit-clubs-2">…</strong> clubs, events from
+      the remaining clubs will not be shown.
+    </p>
+    <p>
+      A per-club filter is planned for a future release, which will let you choose which clubs to
+      include in the calendar view.
+    </p>
+
+    <h3>Events per Club</h3>
+    <p>
+      A maximum of <strong id="limit-events">…</strong> upcoming events per club are fetched.
+      If a club has more than <strong id="limit-events-2">…</strong> upcoming events scheduled,
+      only the first <strong id="limit-events-3">…</strong> will be shown. In practice, most
+      clubs will have far fewer upcoming events than this.
+    </p>
+
+    <h3>Route Details</h3>
+    <p>
+      Detailed route information (distance, elevation gain, estimated time, etc.) requires a
+      separate API request per event. To avoid hitting Strava rate limits, route details are
+      fetched for at most <strong id="limit-routes">…</strong> events per page load. Events
+      beyond this limit will show only basic route info available in the event data itself.
+    </p>
+    <p>
+      Route details are <strong>cached</strong> after the first fetch, so events you've seen
+      before will have full route info on subsequent loads regardless of the limit.
+    </p>
+
+    <div class="notice">
+      <p><strong>Note</strong></p>
+      <p>
+        These limits are subject to change. If you are regularly hitting them and finding it
+        affects your experience, please open an issue on the project repository.
+      </p>
+    </div>
+
+    <a href="/" class="back-link">← Back to Calendar</a>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-content">
+      <p>© Valery Leontyev, 2025. <a href="/about.html">About This Service</a></p>
+      <a href="https://www.strava.com" target="_blank"><img src="images/api_logo_pwrdBy_strava_horiz_white.png" alt="Powered by Strava" class="strava-logo"></a>
+    </div>
+  </footer>
+
+  <script>
+    fetch('/limits')
+      .then(r => r.json())
+      .then(limits => {
+        const set = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = val;
+        };
+        set('limit-clubs-fetch', limits.clubs_fetch);
+        set('limit-clubs',       limits.clubs);
+        set('limit-clubs-2',     limits.clubs);
+        set('limit-events',      limits.events_per_club);
+        set('limit-events-2',    limits.events_per_club);
+        set('limit-events-3',    limits.events_per_club);
+        set('limit-routes',      limits.routes);
+      })
+      .catch(() => {
+        // Leave the "…" placeholders if the fetch fails
+      });
+  </script>
+</body>
+</html>

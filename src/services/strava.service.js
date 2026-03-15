@@ -3,6 +3,11 @@ import { parseJsonWithStringIds } from '../utils/parsing.js';
 import AbstractCache from '../cache/abstract-cache.js';
 import { Logger } from '../utils/logger.js';
 
+const LIMIT_CLUBS = 25; // Max clubs to process for events; users with more will have only their top clubs analyzed
+const LIMIT_CLUBS_FETCH = 200; // Max clubs fetched from Strava in one request; users with more are not supported
+const LIMIT_EVENTS = 100; // Max events to fetch per club; if a club has more, only the first 100 upcoming events are analyzed
+const LIMIT_ROUTES = 20; // Max route details to fetch across all events; once this limit is reached, remaining events will not have route details fetched and will use basic info instead
+
 const logger = Logger.create('strava:api');
 
 import { config } from '../config/index.js';
@@ -72,7 +77,7 @@ async function getUserClubs(accessToken, userId) {
   }
 
   // If not in cache, fetch from API
-  const response = await fetch("https://www.strava.com/api/v3/athlete/clubs", {
+  const response = await fetch(`https://www.strava.com/api/v3/athlete/clubs?page=1&per_page=${LIMIT_CLUBS_FETCH}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   
@@ -104,7 +109,7 @@ async function fetchRawClubEvents(accessToken, userId, clubId) {
   }
 
   // If not in cache, fetch from API
-  const url = `https://www.strava.com/api/v3/clubs/${clubId}/group_events?upcoming=true&per_page=200&page=1`;
+  const url = `https://www.strava.com/api/v3/clubs/${clubId}/group_events?upcoming=true&page=1&per_page=${LIMIT_EVENTS}`;
   logger.debug(`Fetching club events from: ${url}`);
   
   const response = await fetch(url, {
@@ -130,20 +135,27 @@ async function fetchRawClubEvents(accessToken, userId, clubId) {
  * Fetches detailed route information
  * @param {string} accessToken - The OAuth access token
  * @param {string|number} routeId - The route ID
- * @returns {Promise<Object|null>} - Route details or null if not found
+ * @param {Object} [options] - Additional options
+ * @param {Function} [options.shouldFetch] - Function that returns true if we should fetch from Strava when not in cache
+ * @returns {Promise<Object|null>} - Route details or null if not found or fetch skipped
  */
-async function getRouteDetails(accessToken, userId, routeId) {
+async function getRouteDetails(accessToken, routeId, options = {}) {
   if (!routeId) return null;
   
-  const cacheKey = AbstractCache.generateKey(userId, 'route', routeId);
+  const { shouldFetch = () => true } = options;
+  const cacheKey = AbstractCache.generateKey('_', 'route', routeId); // routes are user-agnostic (it's important NOT to use route.starred field since this field is user specific)
   
   // Try to get from cache first
   const cached = await cache.get(cacheKey);
-  if (cached) {
-    return cached;
+  if (cached) return cached;
+
+  // If not in cache and should not fetch, return null
+  if (!shouldFetch()) {
+    logger.debug(`Skipping fetch for route ${routeId} due to limit`);
+    return null;
   }
 
-  // If not in cache, fetch from API
+  // Fetch from API
   const url = `https://www.strava.com/api/v3/routes/${routeId}`;
   logger.debug(`Fetching route details from: ${url}`);
   
@@ -171,13 +183,17 @@ async function getRouteDetails(accessToken, userId, routeId) {
 }
 
 /**
- * Prepares and enriches event data with club and route information
- * @param {Object} event - The event object from Strava
- * @param {Object} club - The club object the event belongs to
+ * Prepares an event for display with enriched data
+ * @param {Object} event - The raw event object from Strava
+ * @param {Object} club - The club object
  * @param {string} accessToken - The OAuth access token
+ * @param {Object} [options] - Additional options
+ * @param {Function} [options.shouldFetchRoute] - Function that returns true if route details should be fetched
  * @returns {Promise<Object|null>} - Prepared event or null if not within date range
  */
-async function prepareEvent(event, club, accessToken, userId) {
+async function prepareEvent(event, club, accessToken, options = {}) {
+  const { shouldFetchRoute = () => true } = options;
+  
   // Process upcoming occurrences
   const now = new Date();
   const nextMonth = new Date();
@@ -208,23 +224,23 @@ async function prepareEvent(event, club, accessToken, userId) {
   };
 
   // Get route details if route.id is available
+  let routeDetails = null;
   if (event.route?.id) {
     try {
-      event.route = await getRouteDetails(accessToken, userId, event.route.id);
+      // Always try to get from cache first, only apply limit when fetching from Strava
+      routeDetails = await getRouteDetails(accessToken, event.route.id, {
+        shouldFetch: shouldFetchRoute
+      });
     } catch (error) {
-      console.error(`Error fetching route details for route ${event.route.id}:`, error);
-      event.route = getBasicRouteInfo(event);
+      console.error(`Error with route details for route ${event.route.id}:`, error);
     }
   }
 
-  // Add route information if available
-  if (event.route) {
-    try {
-      processedEvent.route_info = createRouteInfo(event.route);
-    } catch (error) {
-      console.error('Error fetching route details:', error);
-      processedEvent.route_info = getBasicRouteInfo(event);
-    }
+  // Add route information: use detailed route info if available, otherwise fall back to basic info from event
+  if (routeDetails) {
+    processedEvent.route_info = createRouteInfo(routeDetails);
+  } else {
+    processedEvent.route_info = getBasicRouteInfo(event);
   }
 
   return processedEvent;
@@ -305,7 +321,8 @@ function getSkillLevelLabel(skillLevel) {
  */
 function createRouteInfo(routeDetails) {
   return {
-    name: routeDetails.name || 'Unnamed Route',
+    name: routeDetails.name || 'Route is not attached',
+    is_full: routeDetails.resource_state == 3,
     distance: routeDetails.distance ? `${(routeDetails.distance / 1000).toFixed(1)} km` : 'N/A',
     elevation_gain: routeDetails.elevation_gain ? `${Math.round(routeDetails.elevation_gain)}m` : 'N/A',
     activity_type: getRouteType(routeDetails.type, routeDetails.sub_type) || 'Ride',
@@ -323,7 +340,8 @@ function createRouteInfo(routeDetails) {
  */
 function getBasicRouteInfo(event) {
   return {
-    name: event.route?.name || 'Unnamed Route',
+    name: event.route?.name || 'Route is not attached',
+    is_full: false,
     distance: event.route?.distance ? `${(event.route.distance / 1000).toFixed(1)} km` : 'N/A',
     elevation_gain: event.route?.elevation_gain ? `${Math.round(event.route.elevation_gain)}m` : 'N/A',
     activity_type: event.activity_type || 'Ride',
@@ -338,23 +356,101 @@ function getBasicRouteInfo(event) {
  * Gets all events for a specific club with enriched data
  * @param {string} accessToken - The OAuth access token
  * @param {Object} club - The club object
- * @returns {Promise<Array>} - Array of prepared events
+ * @param {string} userId - The user ID for caching
+ * @param {Object} [options] - Additional options
+ * @param {Function} [options.shouldFetchRoute] - Function that returns true if route details should be fetched
+ * @returns {Promise<{events: Array, rawCount: number}>} - Prepared events and raw event count from API
  */
-async function getClubEvents(accessToken, club, userId) {
-  const events = await fetchRawClubEvents(accessToken, userId, club.id);
-  
-  // Process events in parallel
-  const eventPromises = events.map(event => 
-    prepareEvent(event, club, accessToken, userId)
+async function getClubEvents(accessToken, club, userId, options = {}) {
+  const { shouldFetchRoute } = options;
+  const rawEvents = await fetchRawClubEvents(accessToken, userId, club.id);
+
+  // Process events in parallel with route request limiting
+  const eventPromises = rawEvents.map(event =>
+    prepareEvent(event, club, accessToken, { shouldFetchRoute })
   );
-  
+
   const preparedEvents = await Promise.all(eventPromises);
-  return preparedEvents.filter(Boolean); // Filter out null/undefined events
+  return { events: preparedEvents.filter(Boolean), rawCount: rawEvents.length };
+}
+
+/**
+ * Gets all events for all user's clubs with route request limiting
+ * @param {string} accessToken - The OAuth access token
+ * @param {string} userId - The user ID for caching
+ * @returns {Promise<{events: Array, meta: Object}>} - All prepared events and metadata about limits applied
+ */
+async function getAllUserClubsEvents(accessToken, userId) {
+  const allClubs = await getUserClubs(accessToken, userId);
+  const clubsToProcess = allClubs.slice(0, LIMIT_CLUBS);
+  const allEvents = [];
+
+  // Track route requests across all clubs
+  let routeRequestCount = 0;
+  let routesSkipped = 0;
+  const shouldFetchRoute = () => {
+    if (routeRequestCount >= LIMIT_ROUTES) {
+      routesSkipped++;
+      return false;
+    }
+    routeRequestCount++;
+    logger.debug(`Fetching route ${routeRequestCount}/${LIMIT_ROUTES}`);
+    return true;
+  };
+
+  // Process all clubs in parallel
+  const clubResults = await Promise.all(clubsToProcess.map(club => 
+    getClubEvents(accessToken, club, userId, { shouldFetchRoute })
+      .catch(error => {
+        console.error(`Error getting events for club ${club.id}:`, error);
+        return { events: [], rawCount: 0 };
+      })
+  ));
+
+  let eventsLimited = false;
+  for (const result of clubResults) {
+    if (result.rawCount >= LIMIT_EVENTS) eventsLimited = true;
+    allEvents.push(...result.events);
+  }
+
+  // Sort all events by start date
+  allEvents.sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
+
+  return {
+    events: allEvents,
+    meta: {
+      clubs_total: allClubs.length,
+      clubs_processed: clubsToProcess.length,
+      clubs_limited: allClubs.length > LIMIT_CLUBS,
+      clubs_fetch_limited: allClubs.length >= LIMIT_CLUBS_FETCH,
+      events_total: allEvents.length,
+      events_limited: eventsLimited,
+      routes_fetched: routeRequestCount,
+      routes_skipped: routesSkipped,
+      limits: {
+        clubs: LIMIT_CLUBS,
+        clubs_fetch: LIMIT_CLUBS_FETCH,
+        events_per_club: LIMIT_EVENTS,
+        routes: LIMIT_ROUTES,
+      },
+    }
+  };
+}
+
+function getLimits() {
+  return {
+    clubs: LIMIT_CLUBS,
+    clubs_fetch: LIMIT_CLUBS_FETCH,
+    events_per_club: LIMIT_EVENTS,
+    routes: LIMIT_ROUTES,
+  };
 }
 
 export {
   refreshAccessToken,
   getUserClubs,
   getClubEvents,
-  getRouteDetails
+  getRouteDetails,
+  getAllUserClubsEvents,
+  getLimits,
 };
