@@ -1,0 +1,88 @@
+{
+    "id": "3405220741554168870",
+    "resource_state": 3,
+    "title": "Recurring test ride w/o route",
+    "description": "Description-Description-Description",
+    "club_id": 1752189,
+    "club": {
+        "id": 1752189,
+        "resource_state": 2,
+        "name": "Club Events Testing Club",
+        "profile_medium": "https://dgalywyr863hv.cloudfront.net/pictures/clubs/1752189/40566062/1/medium.jpg",
+        "profile": "https://dgalywyr863hv.cloudfront.net/pictures/clubs/1752189/40566062/1/large.jpg",
+        "cover_photo": null,
+        "cover_photo_small": null,
+        "activity_types": [
+            "Handcycle",
+            "EBikeRide",
+            "VirtualRide",
+            "Velomobile",
+            "Ride"
+        ],
+        "activity_types_icon": "sports_bike_normal",
+        "dimensions": [
+            "distance",
+            "num_activities",
+            "best_activities_distance",
+            "velocity",
+            "elev_gain",
+            "moving_time"
+        ],
+        "sport_type": "cycling",
+        "localized_sport_type": "Cycling",
+        "city": "Warszawa",
+        "state": "Masovian Voivodeship",
+        "country": "Poland",
+        "private": true,
+        "member_count": 1,
+        "featured": false,
+        "verified": false,
+        "url": "club-events"
+    },
+    "organizing_athlete": {
+        "id": 9545474,
+        "username": null,
+        "resource_state": 2,
+        "firstname": "Valera",
+        "lastname": "Leontyev",
+        "bio": null,
+        "city": "Warszawa",
+        "state": "Masovian Voivodeship",
+        "country": "Poland",
+        "sex": "M",
+        "premium": true,
+        "summit": true,
+        "created_at": "2015-06-03T06:19:57Z",
+        "updated_at": "2025-09-23T08:09:39Z",
+        "badge_type_id": 1,
+        "weight": 78,
+        "profile_medium": "https://dgalywyr863hv.cloudfront.net/pictures/athletes/9545474/27017331/2/medium.jpg",
+        "profile": "https://dgalywyr863hv.cloudfront.net/pictures/athletes/9545474/27017331/2/large.jpg",
+        "friend": null,
+        "follower": null
+    },
+    "activity_type": "Ride",
+    "created_at": "",
+    "route_id": null,
+    "route": null,
+    "women_only": false,
+    "private": false,
+    "skill_levels": 4,
+    "terrain": null,
+    "upcoming_occurrences": [
+        "2026-03-20T08:00:00Z"
+    ],
+    "zone": "Europe/Warsaw",
+    "address": null,
+    "joined": false,
+    "start_latlng": null,
+    "viewer_permissions": {
+        "edit": true
+    },
+    "start_datetime": "2026-03-20T09:00",
+    "frequency": "weekly",
+    "days_of_week": [
+        "friday"
+    ],
+    "weekly_interval": 1
+}

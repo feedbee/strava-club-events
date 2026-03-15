@@ -1,0 +1,107 @@
+{
+    "id": "3468204764614160646",
+    "resource_state": 3,
+    "title": "Club Recurring Event with Route",
+    "description": "Event description",
+    "club_id": 1752189,
+    "club": {
+        "id": 1752189,
+        "resource_state": 2,
+        "name": "Club Events Testing Club",
+        "profile_medium": "https://dgalywyr863hv.cloudfront.net/pictures/clubs/1752189/40566062/1/medium.jpg",
+        "profile": "https://dgalywyr863hv.cloudfront.net/pictures/clubs/1752189/40566062/1/large.jpg",
+        "cover_photo": null,
+        "cover_photo_small": null,
+        "activity_types": [
+            "Handcycle",
+            "EBikeRide",
+            "VirtualRide",
+            "Velomobile",
+            "Ride"
+        ],
+        "activity_types_icon": "sports_bike_normal",
+        "dimensions": [
+            "distance",
+            "num_activities",
+            "best_activities_distance",
+            "velocity",
+            "elev_gain",
+            "moving_time"
+        ],
+        "sport_type": "cycling",
+        "localized_sport_type": "Cycling",
+        "city": "Warszawa",
+        "state": "Masovian Voivodeship",
+        "country": "Poland",
+        "private": true,
+        "member_count": 1,
+        "featured": false,
+        "verified": false,
+        "url": "club-events"
+    },
+    "organizing_athlete": {
+        "id": 9545474,
+        "username": null,
+        "resource_state": 2,
+        "firstname": "Valera",
+        "lastname": "Leontyev",
+        "bio": null,
+        "city": "Warszawa",
+        "state": "Masovian Voivodeship",
+        "country": "Poland",
+        "sex": "M",
+        "premium": true,
+        "summit": true,
+        "created_at": "2015-06-03T06:19:57Z",
+        "updated_at": "2025-09-23T08:09:39Z",
+        "badge_type_id": 1,
+        "weight": 78,
+        "profile_medium": "https://dgalywyr863hv.cloudfront.net/pictures/athletes/9545474/27017331/2/medium.jpg",
+        "profile": "https://dgalywyr863hv.cloudfront.net/pictures/athletes/9545474/27017331/2/large.jpg",
+        "friend": null,
+        "follower": null
+    },
+    "activity_type": "Ride",
+    "created_at": "",
+    "route_id": 3465434395661533000,
+    "route": {
+        "id": "3465434395661532938",
+        "id_str": "3465434395661532938",
+        "resource_state": 1,
+        "name": "South Road Ride 108 Public",
+        "map": {
+            "id": "r3465434395661532938",
+            "summary_polyline": "qfi}H_hv_C|LmB?qDkDSMuDfD_t@OoXwF_f@jLcKjIaX`XgFjI}GxDa@`VuRrCcNtb@uXaAwHvIq^|EqFfI_@tIaKlUou@m@aUtBsb@`KmX_E}c@f@gb@zHcYdDeFfd@}W|IyI~g@}gAf\\g^nCy@jKnFbQcC`UqVz`AcH{Fna@f@fBrHyKd@nAU|~BtUoKdCmJjeA~_@nThR~@~J|EuDbIiAbs@nMiIos@~Bwq@bgAqaAlZqt@zd@wm@xg@{N|PBbhApVxv@pU`D{G|[iRnOnEbN}Ir_@yF?yBdA[|ATEbVhWt@~m@xKhJS|B`Db@yEdl@mrAhFgUKoSeH{MgA{JtQw^pN{}@haAsc@pa@oB`D`@jCnE`a@daAP|w@nRhCzClChOk@jN`Vt@zXyMx\\mAtRD|jAmDf`BeBf@uMuGaAlKlSpVxlA`z@p~@|`@dBbR|yBx~AaTht@~NbQjQpy@vg@zr@le@dcAvAzUqBx[}En\\OdkAnsAco@jt@ua@`Fdb@`QdVyuA~kEyb@rVoe@hNsf@B_Abc@sM`h@_WbIcHpGcMnTyA|m@rAzIXz`AmVrEie@}LKhH_Ce@uBbMwB`Cuy@pBwVyWo~@oG}Aqa@iU}^gb@}^mIgDcZsZ{]fc@ad@eJwQwWuHy@{]ttAaZnh@kWhK}IbJ_`Bz~@eNnRoq@CigAmLuCrBcLvVa|@k_@gbAzf@y`AtVqI_a@~KkkAuDsd@uSk_@uG~Bk_@cs@mCsUej@_r@RaJ_I}M}OeLsn@{KsLkVwh@cIwCyx@}KkAqB_E_ISyKuEIiC_P_Tc|@gb@aGuS{PqM}G}JwHi^DiYiEa`@Ac^~Bih@}DaKaDge@aKq[z@}XcAaHok@cQqGs`@q]k`AqA}@]zIcU|s@uI`KgI^}EpFwIp^`AvHub@tXsCbNaVtRyD`@kI|GaXfFkI`XkLbKbFb_@b@j_@{Cdz@eHtAMnEiEhBlFkB",
+            "resource_state": 2
+        },
+        "map_urls": {
+            "url": "https://d3o5xota0a1fcr.cloudfront.net/v6/maps/Z32AKJAS7JGWZTEPI2DTXOV24GFFYTLYQQF7RFMIDMA2T3LQVVOSFYVVN4OUCVG56Q5PRCDBEBUSBICBLH264PV4A7C2Z6I2OE5OX5A=",
+            "retina_url": "https://d3o5xota0a1fcr.cloudfront.net/v6/maps/TDXK4BOBYBMCEZOMJEOOUSNJS5GWNTVYWXSFQQLGPX4SYJK4MIJJWMJUQ4SPZDWFOVKCNBCSM4UPBYUMGYB4S5VT5UUQERKFOTCWHKY=",
+            "light_url": "https://d3o5xota0a1fcr.cloudfront.net/v6/maps/TDXK4BOBYBMCEZOMJEOOUSNJS5GWNTVYWXSFQQLGPX4SYJK4MIJJWMJUQ4SPZDWFOVKCNBCSM4UPBYUMGYB4S5VT5UUQERKFOTCWHKY=",
+            "dark_url": "https://d3o5xota0a1fcr.cloudfront.net/v6/maps/SYJDHFPPWF34XWIJSKJPAS4EZVQJIJXYECDBF3FJJLHXTOA7VSDGSX7V6IJQVULRAGU7GTOE4GP43E7V2VN4I6S4O2KFEUYBRSHPG6Q="
+        }
+    },
+    "women_only": false,
+    "private": true,
+    "skill_levels": null,
+    "terrain": null,
+    "upcoming_occurrences": [
+        "2026-03-24T08:00:00Z"
+    ],
+    "zone": "Europe/Warsaw",
+    "address": "Warsaw, MZ, Poland",
+    "joined": true,
+    "start_latlng": [
+        52.237695,
+        21.005427
+    ],
+    "viewer_permissions": {
+        "edit": true
+    },
+    "start_datetime": "2026-03-19T09:00",
+    "frequency": "weekly",
+    "days_of_week": [
+        "tuesday"
+    ],
+    "weekly_interval": 1
+}

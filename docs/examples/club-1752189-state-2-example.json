@@ -1,0 +1,35 @@
+{
+    "id": 1752189,
+    "resource_state": 2,
+    "name": "Club Events Testing Club",
+    "profile_medium": "https://dgalywyr863hv.cloudfront.net/pictures/clubs/1752189/40566062/1/medium.jpg",
+    "profile": "https://dgalywyr863hv.cloudfront.net/pictures/clubs/1752189/40566062/1/large.jpg",
+    "cover_photo": null,
+    "cover_photo_small": null,
+    "activity_types": [
+        "Handcycle",
+        "EBikeRide",
+        "VirtualRide",
+        "Velomobile",
+        "Ride"
+    ],
+    "activity_types_icon": "sports_bike_normal",
+    "dimensions": [
+        "distance",
+        "num_activities",
+        "best_activities_distance",
+        "velocity",
+        "elev_gain",
+        "moving_time"
+    ],
+    "sport_type": "cycling",
+    "localized_sport_type": "Cycling",
+    "city": "Warszawa",
+    "state": "Masovian Voivodeship",
+    "country": "Poland",
+    "private": true,
+    "member_count": 1,
+    "featured": false,
+    "verified": false,
+    "url": "club-events"
+}

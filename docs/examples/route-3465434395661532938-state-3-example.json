@@ -1,0 +1,1230 @@
+{
+    "athlete": {
+        "id": 9545474,
+        "username": null,
+        "resource_state": 2,
+        "firstname": "Valera",
+        "lastname": "Leontyev",
+        "bio": null,
+        "city": "Warszawa",
+        "state": "Masovian Voivodeship",
+        "country": "Poland",
+        "sex": "M",
+        "premium": true,
+        "summit": true,
+        "created_at": "2015-06-03T06:19:57Z",
+        "updated_at": "2025-09-23T08:09:39Z",
+        "badge_type_id": 1,
+        "weight": 78,
+        "profile_medium": "https://dgalywyr863hv.cloudfront.net/pictures/athletes/9545474/27017331/2/medium.jpg",
+        "profile": "https://dgalywyr863hv.cloudfront.net/pictures/athletes/9545474/27017331/2/large.jpg",
+        "friend": null,
+        "follower": null
+    },
+    "description": "",
+    "distance": 107731.26542569064,
+    "elevation_gain": 232.32000000000005,
+    "id": "3465434395661532938",
+    "id_str": "3465434395661532938",
+    "map": {
+        "id": "r3465434395661532938",
+        "summary_polyline": "qfi}H_hv_C|LmB?qDkDSMuDfD_t@OoXwF_f@jLcKjIaX`XgFjI}GxDa@`VuRrCcNtb@uXaAwHvIq^|EqFfI_@tIaKlUou@m@aUtBsb@`KmX_E}c@f@gb@zHcYdDeFfd@}W|IyI~g@}gAf\\g^nCy@jKnFbQcC`UqVz`AcH{Fna@f@fBrHyKd@nAU|~BtUoKdCmJjeA~_@nThR~@~J|EuDbIiAbs@nMiIos@~Bwq@bgAqaAlZqt@zd@wm@xg@{N|PBbhApVxv@pU`D{G|[iRnOnEbN}Ir_@yF?yBdA[|ATEbVhWt@~m@xKhJS|B`Db@yEdl@mrAhFgUKoSeH{MgA{JtQw^pN{}@haAsc@pa@oB`D`@jCnE`a@daAP|w@nRhCzClChOk@jN`Vt@zXyMx\\mAtRD|jAmDf`BeBf@uMuGaAlKlSpVxlA`z@p~@|`@dBbR|yBx~AaTht@~NbQjQpy@vg@zr@le@dcAvAzUqBx[}En\\OdkAnsAco@jt@ua@`Fdb@`QdVyuA~kEyb@rVoe@hNsf@B_Abc@sM`h@_WbIcHpGcMnTyA|m@rAzIXz`AmVrEie@}LKhH_Ce@uBbMwB`Cuy@pBwVyWo~@oG}Aqa@iU}^gb@}^mIgDcZsZ{]fc@ad@eJwQwWuHy@{]ttAaZnh@kWhK}IbJ_`Bz~@eNnRoq@CigAmLuCrBcLvVa|@k_@gbAzf@y`AtVqI_a@~KkkAuDsd@uSk_@uG~Bk_@cs@mCsUej@_r@RaJ_I}M}OeLsn@{KsLkVwh@cIwCyx@}KkAqB_E_ISyKuEIiC_P_Tc|@gb@aGuS{PqM}G}JwHi^DiYiEa`@Ac^~Bih@}DaKaDge@aKq[z@}XcAaHok@cQqGs`@q]k`AqA}@]zIcU|s@uI`KgI^}EpFwIp^`AvHub@tXsCbNaVtRyD`@kI|GaXfFkI`XkLbKbFb_@b@j_@{Cdz@eHtAMnEiEhBlFkB",
+        "resource_state": 3,
+        "polyline": "qfi}H_hv_CbAYpCIXFDAPc@FEVBlAOVId@DHUIm@HcCi@IgAHQKg@GMuD?y@VyF`ByTEeFNuFDo@VoBDu@B{HA_DQsIS{EKyAw@yGs@yEo@oDk@qCKw@C{@h@Mh@U|A{@\\Y|@y@|CoEtBmGvBaIfAmDTc@PKdDq@tDm@pJeB`AUXMpGwF^WfCQp@OrBoC^a@bF}D`CeBrDoBr@o@RYdB{JXmAvVmP|JgGg@_AQk@Ii@Gy@@w@Fo@Lu@v@gCf@cCf@yDZ_Bl@gCvBmGVg@jCuCx@s@b@Gt@@vBNZC|@QZSxAsAtAaBdDkEr@eBb@yAfAwEV}@^w@hAaBdBmJnAkCd@kAz@kDhC{HHq@RiD?_CY_@Oi@SeFCgBF{DVoEXaHz@eMZsAvI{SL}@@i@Cg@y@sFKaA_@{IqAuJEcA@iAVyEBaFLyEEkJ@[BM`@a@BGhC_KfCkKVo@|@cBb@g@j@i@`DuBtKaI~CgBn@[rE_BxAs@pBmAbCoBbA_AbAiApA_BxBkDbIyQ|JsV`CsFhCmFvEaIhDeFhCgDdBoBfGmGdG{EpA_ANCl@HhJfF`@FRAnPaCXMXS~CsDvEcFr@cA`E_F^SVGvE_@xM}@v\\yBdAAxBYxFg@?xBMdAuEtVUxAA~@Ln@Xv@rHyKd@nAF~@]||BXEzTiKJQ~@}HLWPIXBtDfAr\\lLxVlJrHzCr@^PRjAnBz@dAxEpDnClBvChBRTHPJf@VnFPtAhBmAJKPCPOl@w@TOf@MnAAt@MbBe@p@E~@FxB\\vGpApAZxE|A|VfEfCTI_@iC{TuDs\\DmKdB}a@RkBf@Yf@Qj@YvMyLjBiBzLqN|CiCrCuBnE_DrBqAjA}@|HaIfCcCn@}@|@eB^eA`EyNRk@lIyPzDgJzBeD|QqWpLoNn@o@d@[r@]~JcC~X}HdGQtB@`ERtBTxCh@bIbCbCl@h`@~H`P~DjAl@hARvDvA~Af@pOlDzA`@nOnF|DlAN@PCXY`@{@Nm@N{@Pi@`@m@xCsBhCyAjImF~BaAlDkBXIb@?fAJdC^\\NZXZj@\\b@r@h@b@Lv@Ch@UzDyC|FmDXGfDYvCKxCQHo@BIJGnG_AfBiABR?\\hC_@DIEoB`@Ub@E|ATDtHKlLjBJ~DAbABxKf@|@LbCh@NLn@Nj@ZLKJ?b@NfGdArMlCl@HrAH`D?z@HPJP\\RFRIJULIbAA|ALxCH^LLJb@~@@j@FLJJJBJCA@PSBQ@YAKM[@]XsAzVej@rFaMhH_QjCeGl@qBl@iDz@cEpAgFLaAJsB@qAAiBWsEMiAS}@m@iA_C_C]w@eA{C_AkDIy@AeABoARoAZ{@hHwKxEmK`@eAjAwHnHmh@~@eGV{@\\s@^e@f@c@bAi@va@yQvWaLlAc@|M?d@ClQkBZLNBxA@ZLd@p@dB|CvCjGtBbFtEtMd@jBLXT\\vFvOz@rB~@bBfCzDVn@Db@@tABns@DRHFxBUf@BfEhAzFhAZLhBnBTNhDu@~AMhBErBR`@HRPf@fAfDfGxChFbB|BHVFxABzACdBp@fOCVu@vAuD`JmF~NK|@BjJGbAMd@g@|@Gb@?tPFbAAbw@wD|wA?|@HjEGf@EFIDQB]E]KkCwCk@]}G_BKFu@dKlSpVxGpE~cAns@bEbC?FxCbBhDdB~J`Ehb@dPLP@XG`CHdBr@nG^~@rBfB~@l@hCdAnBhBdEzCtBdBlDhCbhAvw@pI~FnInGuAtCw@bC}EfQuHfYjF`GnFtFb@jAvDrRxD|QzD`Q\\|@j@`AbNtSTTpAnBjHhJrJrLnMnY~GxNtF~KdDrFj@jATzAt@dO`@tECbAo@rG}@`Q}En\\Q|v@@fSlM_Gxm@cZvNmHnFqBhLoG`g@eYz@bKtCpTNn@Tb@|O`TJN@NAPeIzVkTrq@iTjo@S|@_@fCUjAi@jBgAvCgClHcCnHoP`i@[|@g@|@o@v@_Ax@oLnGwD|BsEfCmEjBoe@hN]FqF`@cCJkMCwFImAImAY_Ada@?|@_@LILiLdg@Wh@e@^}QfEcBp@cHpGmHvLuCvFAnBuAld@A~DVrAl@jCLzBHre@HxWDlAsHnAkLzBMFg@IkD}@qZwIcC]KhHcBc@[AMdAyAvIMd@Qb@e@t@OLo@X{@DeNMug@|B]C]QWWyE{FmBwByJ{J}VgBaKi@qLw@}LeAQc@[QHwB_@eGI}BFs@^{A@k@e@yDSiDcGmJ{FqJiE}GkC}C_UkQqEuEiA}@WQy@[sA[qCmAUO{FiGoC_DmD_DaFeFgAcAsZ`^Yb@mA`CqO_DyA]mNoCgAWe@e@sBeCyAyBaAkB{AcCeEaG[Y[Qi@O_@CiCFi@AyKjc@aQhp@qXnf@o@~@i@l@YT[P_@LkCf@_O|FwAz@mEnFw@v@ea@jUmQfKob@bV{GbEgE~FwDzFeBrB_@Jq@FoKc@kBAgA@[DQAYBIII?IHYEWBo@EqVJs@GuIaB}Em@mP}Ai[}CwBQqBGa@De@P[XY\\Wb@cJrUSXYHQ?e@Og\\kOa[cNa@I_@CO@_FfAgAZa@PkJrF}BxAgL`GkEdC_R|J_Bp@wd@jM}ExAoRbEICi@N_@gAqBmM_@gBiC{HKw@ImA?qADK?WH]lAgKfCuZrCc[FMBa@F_@HIF[E[EIK}FMcDSiC{BaRQm@kKsR_BeCwCcFKIIAYHmE|CEAQY{FyKwJoRc@o@[o@W{@k@qAmA_CeA}AcB}B[o@UgAe@mE{@kKGYMWaYw^u@}@qAqAiD_FkA{AwBsBm@g@IY?U`@eG?WCSIUGIqB_B[]Yc@c@oAgAoBQkAGOKK_LuH_A_Aq@c@{IkBeA[oGkAkDkAqA_@iAQyC[uCS{DSME[[O_@}@oD[}@wEyI{@uAYQeRuCwPeCw@O]CGG]@IGI?IEKMKg@sAkp@IAIsCG]OW?KuFi@gDa@SIMQo@}BU]IG_@MiF@u@Gq@QwEwBqBeAIBSIKQ@wBSEoBiAOMeFwKYc@s@y@sAy@CQUCyTsJuMcIcNaGyGiDc@k@Oa@wAeIg@cCSk@y@qAaAcAuAeAcJmG_Ay@iFcHs@yA[{@qAcF_B}HaB_JGk@E{A\\{GBcFUmF}@oLu@}I]oBk@kBKw@Aa@@uCMeEAaCFaJDaCHsB|Beb@GoAGi@Ww@W_@o@sAOa@S[i@qAG[S}H_BkQSuEYgBSw@kEuKu@gCeBaHEYSeBCuAj@uFZqFFkCBMCOECAUw@wFEKMK@KAKECIDOII@SRIBEAAV[@WIs@c@o@[{Ag@AHmTuFeG_CyAs@g@k@MUWaA]{BaD}Uk@aCiEaMwTmn@g@kAg@o@@@sA_A?~BShDIp@iCzH{@jDe@jAoAjCeBlJiA`B_@v@W|@gAvEc@xAs@dBeDjEuA`ByArA[R}@P[BwBOu@Ac@Fy@r@kCtCWf@wBlGm@fC[~Ag@xDg@bCw@fCMt@Gn@Av@Fx@Hh@Pj@f@~@}JfGwVlPYlAeBzJSXs@n@sDnBaCdBcF|D_@`@sBnCq@NgCP_@VqGvFYLaATqJdBuDl@eDp@QJUb@gAlDwB`IuBlG}CnE}@x@]X}Az@i@Ti@LBz@Jv@j@pCn@nDr@xEv@xGJxARzEPrI@~CCzHEt@WnBEn@OtFDdFaBxTWxF?x@LtDANIL}Aj@GQuDl@MJCRHdDEHS?gDnAKJALBJnAq@t@[v@Sj@U"
+    },
+    "map_urls": {
+        "url": "https://d3o5xota0a1fcr.cloudfront.net/v6/maps/ZKBQP3STOVTWJWGJIPS4DZFCEIHH6WCLWQJAZ5AE3VO22Y4WQIGPKPSVNIMCWNLRQJAUB3B4FO435CGUSC5YHPW6MCNHIBMMQXCVXXQ=",
+        "retina_url": "https://d3o5xota0a1fcr.cloudfront.net/v6/maps/BUNDKIHHYJNPU2Q4UCQ6KAXRIVUVI4LQEG75T7WIRAFEGBYDXIWEZLKTVXURV5GFPADQ5IGYC5GUCZQ4KZIG6UKMWHZW3FIG2TTHRRI=",
+        "light_url": "https://d3o5xota0a1fcr.cloudfront.net/v6/maps/BUNDKIHHYJNPU2Q4UCQ6KAXRIVUVI4LQEG75T7WIRAFEGBYDXIWEZLKTVXURV5GFPADQ5IGYC5GUCZQ4KZIG6UKMWHZW3FIG2TTHRRI=",
+        "dark_url": "https://d3o5xota0a1fcr.cloudfront.net/v6/maps/MNLJA7B6TFCWMK5BE6AGXYYT3AINHRPZ6DZSBK425TYIJVHEC54U63MGWON7RAHOEHDZ7WP3H4QVRUQSETRB4ZOPNBXBES5FBRARYEY="
+    },
+    "name": "South Road Ride 108 Public",
+    "private": false,
+    "resource_state": 3,
+    "starred": true,
+    "sub_type": 1,
+    "created_at": "2026-03-07T19:27:12Z",
+    "updated_at": "2026-03-07T19:27:12Z",
+    "timestamp": 1772911632,
+    "type": 1,
+    "estimated_moving_time": 12639,
+    "waypoints": [],
+    "segments": [
+        {
+            "id": 1499492,
+            "resource_state": 2,
+            "name": "Góra Kalwaria - Lipkowska",
+            "activity_type": "Ride",
+            "distance": 425.458,
+            "average_grade": 5.5,
+            "maximum_grade": 17.6,
+            "elevation_high": 133.6,
+            "elevation_low": 110,
+            "start_latlng": [
+                51.99341936968267,
+                21.21658142656088
+            ],
+            "end_latlng": [
+                51.98979620821774,
+                21.21619979850948
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Góra Kalwaria",
+            "state": "Mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 5573088,
+            "resource_state": 2,
+            "name": "Podgóra podjazd",
+            "activity_type": "Ride",
+            "distance": 876.1,
+            "average_grade": 2.3,
+            "maximum_grade": 7.5,
+            "elevation_high": 104.7,
+            "elevation_low": 84.4,
+            "start_latlng": [
+                51.923465,
+                21.233075
+            ],
+            "end_latlng": [
+                51.926028,
+                21.222102
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Podgóra",
+            "state": "Masovian Voivodeship",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 5617174,
+            "resource_state": 2,
+            "name": "Czersk zjazd",
+            "activity_type": "Ride",
+            "distance": 589.1,
+            "average_grade": -3.8,
+            "maximum_grade": 0.7,
+            "elevation_high": 117.6,
+            "elevation_low": 93.8,
+            "start_latlng": [
+                51.959121,
+                21.232131
+            ],
+            "end_latlng": [
+                51.960903,
+                21.239011
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Czersk",
+            "state": "Masovian Voivodeship",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 7837034,
+            "resource_state": 2,
+            "name": "Pieczyska - Chosna sprint",
+            "activity_type": "Ride",
+            "distance": 1031.8,
+            "average_grade": 0.4,
+            "maximum_grade": 2.3,
+            "elevation_high": 117.8,
+            "elevation_low": 110.5,
+            "start_latlng": [
+                51.923577,
+                21.027052
+            ],
+            "end_latlng": [
+                51.931323,
+                21.035247
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Adamów Drwalewski",
+            "state": "Masovian Voivodeship",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 9105728,
+            "resource_state": 2,
+            "name": "GK-zapiek na dokładkę",
+            "activity_type": "Ride",
+            "distance": 447.2,
+            "average_grade": 0.8,
+            "maximum_grade": 4.5,
+            "elevation_high": 114.2,
+            "elevation_low": 110.8,
+            "start_latlng": [
+                51.990553,
+                21.215991
+            ],
+            "end_latlng": [
+                51.986757,
+                21.217908
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Góra Kalwaria",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 9641345,
+            "resource_state": 2,
+            "name": "Od ronda do Bielawy na złamanie karku!",
+            "activity_type": "Ride",
+            "distance": 1127.1,
+            "average_grade": -0.2,
+            "maximum_grade": 0.7,
+            "elevation_high": 53.4,
+            "elevation_low": 51.4,
+            "start_latlng": [
+                52.105565,
+                21.114178
+            ],
+            "end_latlng": [
+                52.108592,
+                21.129093
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Bielawa",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 9926797,
+            "resource_state": 2,
+            "name": "Gassy Zorro :D",
+            "activity_type": "Ride",
+            "distance": 813.4,
+            "average_grade": 0.1,
+            "maximum_grade": 6.3,
+            "elevation_high": 53.6,
+            "elevation_low": 49,
+            "start_latlng": [
+                52.081671,
+                21.20629
+            ],
+            "end_latlng": [
+                52.079758,
+                21.202439
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Gassy",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 10464552,
+            "resource_state": 2,
+            "name": "Ogień do Drzewa",
+            "activity_type": "Ride",
+            "distance": 922,
+            "average_grade": 0.1,
+            "maximum_grade": 0.5,
+            "elevation_high": 20.8,
+            "elevation_low": 19.2,
+            "start_latlng": [
+                52.09084,
+                21.205043
+            ],
+            "end_latlng": [
+                52.082546,
+                21.206212
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Czernidła",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 10794929,
+            "resource_state": 2,
+            "name": "Borki - Podgóra ",
+            "activity_type": "Ride",
+            "distance": 2497.1,
+            "average_grade": 0,
+            "maximum_grade": 2.2,
+            "elevation_high": 91.7,
+            "elevation_low": 89.6,
+            "start_latlng": [
+                51.938663,
+                21.25975
+            ],
+            "end_latlng": [
+                51.925416,
+                21.237054
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Brzumin",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 12046024,
+            "resource_state": 2,
+            "name": "Sielska do Chylic",
+            "activity_type": "Ride",
+            "distance": 2252.2,
+            "average_grade": -0.1,
+            "maximum_grade": 2.5,
+            "elevation_high": 99.9,
+            "elevation_low": 95.3,
+            "start_latlng": [
+                52.058747,
+                21.048586
+            ],
+            "end_latlng": [
+                52.077495,
+                21.058025
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Żabieniec",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 12320217,
+            "resource_state": 2,
+            "name": "Lipkowska",
+            "activity_type": "Ride",
+            "distance": 294.1,
+            "average_grade": 7.5,
+            "maximum_grade": 13.8,
+            "elevation_high": 117.6,
+            "elevation_low": 95.6,
+            "start_latlng": [
+                51.993037,
+                21.216868
+            ],
+            "end_latlng": [
+                51.990553,
+                21.216003
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Góra Kalwaria",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 12354236,
+            "resource_state": 2,
+            "name": "Dupery Na Szosie - Dębówka",
+            "activity_type": "Ride",
+            "distance": 1156.9,
+            "average_grade": -0.4,
+            "maximum_grade": 8.2,
+            "elevation_high": 92.6,
+            "elevation_low": 85,
+            "start_latlng": [
+                52.04959,
+                21.174229
+            ],
+            "end_latlng": [
+                52.050374,
+                21.189962
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Dębówka",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 12803543,
+            "resource_state": 2,
+            "name": "GK-Podjazd",
+            "activity_type": "Ride",
+            "distance": 1718.4,
+            "average_grade": 1.7,
+            "maximum_grade": 5.9,
+            "elevation_high": 118.9,
+            "elevation_low": 89.7,
+            "start_latlng": [
+                51.997265,
+                21.214085
+            ],
+            "end_latlng": [
+                51.983356,
+                21.219051
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Góra Kalwaria",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 12952769,
+            "resource_state": 2,
+            "name": "finisz pod Sagana",
+            "activity_type": "Ride",
+            "distance": 483.7,
+            "average_grade": 1.5,
+            "maximum_grade": 7.9,
+            "elevation_high": 110.8,
+            "elevation_low": 97.2,
+            "start_latlng": [
+                52.048325,
+                21.030863
+            ],
+            "end_latlng": [
+                52.050388,
+                21.036638
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Piaseczno",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 12965093,
+            "resource_state": 2,
+            "name": "Prawdziwka/Borowa w dół",
+            "activity_type": "Ride",
+            "distance": 1484.3,
+            "average_grade": -0.8,
+            "maximum_grade": 1.7,
+            "elevation_high": 101.3,
+            "elevation_low": 88,
+            "start_latlng": [
+                52.104802,
+                21.092027
+            ],
+            "end_latlng": [
+                52.10515,
+                21.113113
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Warszawa",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 13135838,
+            "resource_state": 2,
+            "name": "Cieciszew-Kawęczyn 1km ",
+            "activity_type": "Ride",
+            "distance": 1124.2,
+            "average_grade": -0.2,
+            "maximum_grade": 6.9,
+            "elevation_high": 87,
+            "elevation_low": 80.2,
+            "start_latlng": [
+                52.059708,
+                21.175711
+            ],
+            "end_latlng": [
+                52.049831,
+                21.174305
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Cieciszew",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 15029948,
+            "resource_state": 2,
+            "name": "Wiechy to Bridge",
+            "activity_type": "Ride",
+            "distance": 3486,
+            "average_grade": 0.1,
+            "maximum_grade": 3.9,
+            "elevation_high": 89.8,
+            "elevation_low": 87.8,
+            "start_latlng": [
+                52.132545,
+                21.131609
+            ],
+            "end_latlng": [
+                52.121191,
+                21.17334
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Warszawa",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 15747992,
+            "resource_state": 2,
+            "name": "Szykana lądowiska w Gassach",
+            "activity_type": "Ride",
+            "distance": 1090.5,
+            "average_grade": -0.1,
+            "maximum_grade": 1,
+            "elevation_high": 86,
+            "elevation_low": 83,
+            "start_latlng": [
+                52.079366,
+                21.181778
+            ],
+            "end_latlng": [
+                52.0707,
+                21.183473
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Obory",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 17455114,
+            "resource_state": 2,
+            "name": "Prosta przy lądowisku",
+            "activity_type": "Ride",
+            "distance": 505.7,
+            "average_grade": 0.1,
+            "maximum_grade": 0.4,
+            "elevation_high": 86,
+            "elevation_low": 85.1,
+            "start_latlng": [
+                52.079413,
+                21.181742
+            ],
+            "end_latlng": [
+                52.075697,
+                21.185091
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Obory",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 19227338,
+            "resource_state": 2,
+            "name": "Podgóra (Short) ",
+            "activity_type": "Ride",
+            "distance": 322.8,
+            "average_grade": 4.9,
+            "maximum_grade": 10.9,
+            "elevation_high": 108.8,
+            "elevation_low": 93.1,
+            "start_latlng": [
+                51.92378,
+                21.234524
+            ],
+            "end_latlng": [
+                51.923304,
+                21.230029
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Coniew",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 20216571,
+            "resource_state": 2,
+            "name": "Dzida od zakrętu!",
+            "activity_type": "Ride",
+            "distance": 1068.8,
+            "average_grade": 2.3,
+            "maximum_grade": 13.3,
+            "elevation_high": 117.8,
+            "elevation_low": 89.6,
+            "start_latlng": [
+                51.998268,
+                21.212554
+            ],
+            "end_latlng": [
+                51.989713,
+                21.216341
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Góra Kalwaria",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 20779615,
+            "resource_state": 2,
+            "name": "Na wyjściu ogień do torów",
+            "activity_type": "Ride",
+            "distance": 532.2,
+            "average_grade": -0.4,
+            "maximum_grade": 0.6,
+            "elevation_high": 112.4,
+            "elevation_low": 110.2,
+            "start_latlng": [
+                52.044482,
+                21.024531
+            ],
+            "end_latlng": [
+                52.047865,
+                21.030001
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Jesówka",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 22066957,
+            "resource_state": 2,
+            "name": "Ogień w dół_ PGR",
+            "activity_type": "Ride",
+            "distance": 312.6,
+            "average_grade": -5.8,
+            "maximum_grade": 0,
+            "elevation_high": 111,
+            "elevation_low": 93,
+            "start_latlng": [
+                51.959168,
+                21.232692
+            ],
+            "end_latlng": [
+                51.960664,
+                21.236317
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Czersk",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 22654456,
+            "resource_state": 2,
+            "name": "Rezerwat Wyspy",
+            "activity_type": "Ride",
+            "distance": 1083.2,
+            "average_grade": -0.1,
+            "maximum_grade": 4.5,
+            "elevation_high": 82.4,
+            "elevation_low": 79,
+            "start_latlng": [
+                52.110565,
+                21.185631
+            ],
+            "end_latlng": [
+                52.104023,
+                21.1973
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Ciszyca",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 23091911,
+            "resource_state": 2,
+            "name": "Ruczaj - Gassy",
+            "activity_type": "Ride",
+            "distance": 8938,
+            "average_grade": 0,
+            "maximum_grade": 2.4,
+            "elevation_high": 78.2,
+            "elevation_low": 71.8,
+            "start_latlng": [
+                52.132366,
+                21.130707
+            ],
+            "end_latlng": [
+                52.080391,
+                21.206507
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Warszawa",
+            "state": "mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 25335914,
+            "resource_state": 2,
+            "name": "Nowy Ruczaj -> Przyczolkowa",
+            "activity_type": "Ride",
+            "distance": 1298.5,
+            "average_grade": -0.4,
+            "maximum_grade": 0.9,
+            "elevation_high": 72.6,
+            "elevation_low": 67,
+            "start_latlng": [
+                52.152664,
+                21.111458
+            ],
+            "end_latlng": [
+                52.152256,
+                21.092896
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Warszawa",
+            "state": "Mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 25357153,
+            "resource_state": 2,
+            "name": "Przyczółkowa->Nowy Ruczaj",
+            "activity_type": "Ride",
+            "distance": 1312,
+            "average_grade": -0.2,
+            "maximum_grade": 1,
+            "elevation_high": 82,
+            "elevation_low": 77,
+            "start_latlng": [
+                52.15226,
+                21.092842
+            ],
+            "end_latlng": [
+                52.152698,
+                21.111537
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Warszawa",
+            "state": "Mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 27297599,
+            "resource_state": 2,
+            "name": "Lipkowska ()",
+            "activity_type": "Ride",
+            "distance": 913.7,
+            "average_grade": 2.8,
+            "maximum_grade": 9.4,
+            "elevation_high": 118.2,
+            "elevation_low": 92.6,
+            "start_latlng": [
+                51.994205,
+                21.216204
+            ],
+            "end_latlng": [
+                51.986473,
+                21.218011
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Góra Kalwaria",
+            "state": "Mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 28503487,
+            "resource_state": 2,
+            "name": "Kładka górska",
+            "activity_type": "Ride",
+            "distance": 330.1,
+            "average_grade": 1,
+            "maximum_grade": 10.1,
+            "elevation_high": 101.6,
+            "elevation_low": 94.4,
+            "start_latlng": [
+                52.152435,
+                21.09201
+            ],
+            "end_latlng": [
+                52.15472,
+                21.090255
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Warszawa",
+            "state": "Mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 29954942,
+            "resource_state": 2,
+            "name": "Wiechy do skrętu",
+            "activity_type": "Ride",
+            "distance": 1190.5,
+            "average_grade": 0,
+            "maximum_grade": 0.5,
+            "elevation_high": 84.2,
+            "elevation_low": 83.1,
+            "start_latlng": [
+                52.132167,
+                21.130434
+            ],
+            "end_latlng": [
+                52.125769,
+                21.14157
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Warszawa",
+            "state": "Mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 31507123,
+            "resource_state": 2,
+            "name": "Bicyklowy last 1km! :-)",
+            "activity_type": "Ride",
+            "distance": 985,
+            "average_grade": -0.1,
+            "maximum_grade": 1.5,
+            "elevation_high": 115.6,
+            "elevation_low": 113.4,
+            "start_latlng": [
+                51.995825,
+                21.003791
+            ],
+            "end_latlng": [
+                52.004623,
+                21.005384
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Piskórka",
+            "state": "Masovian Voivodeship",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 31753680,
+            "resource_state": 2,
+            "name": "Źródlana SPRINT",
+            "activity_type": "Ride",
+            "distance": 773.4,
+            "average_grade": 0.4,
+            "maximum_grade": 3.6,
+            "elevation_high": 106.8,
+            "elevation_low": 103,
+            "start_latlng": [
+                52.040908,
+                21.00243
+            ],
+            "end_latlng": [
+                52.039078,
+                21.013297
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": null,
+            "state": "Mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 32193641,
+            "resource_state": 2,
+            "name": "Żabieniec Główna UP",
+            "activity_type": "Ride",
+            "distance": 507,
+            "average_grade": 0.2,
+            "maximum_grade": 3.5,
+            "elevation_high": 101.8,
+            "elevation_low": 97.6,
+            "start_latlng": [
+                52.055633,
+                21.042552
+            ],
+            "end_latlng": [
+                52.058377,
+                21.047583
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Żabieniec",
+            "state": "Mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 32501410,
+            "resource_state": 2,
+            "name": "Królewskie wiraże",
+            "activity_type": "Ride",
+            "distance": 732.3,
+            "average_grade": 0.2,
+            "maximum_grade": 1.2,
+            "elevation_high": 91.7,
+            "elevation_low": 90.1,
+            "start_latlng": [
+                51.930725,
+                21.238825
+            ],
+            "end_latlng": [
+                51.924758,
+                21.23604
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Królewski Las",
+            "state": "Mazowieckie",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 34066069,
+            "resource_state": 2,
+            "name": "Imielin do Cieciszew",
+            "activity_type": "Ride",
+            "distance": 1727.4,
+            "average_grade": 0.1,
+            "maximum_grade": 2.8,
+            "elevation_high": 100.2,
+            "elevation_low": 96.8,
+            "start_latlng": [
+                52.07517,
+                21.185548
+            ],
+            "end_latlng": [
+                52.060635,
+                21.17714
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Obory",
+            "state": "Masovian Voivodeship",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 34450432,
+            "resource_state": 2,
+            "name": "Sprint z mostka (JR)",
+            "activity_type": "Ride",
+            "distance": 831.4,
+            "average_grade": -0.3,
+            "maximum_grade": 1.5,
+            "elevation_high": 89.8,
+            "elevation_low": 86,
+            "start_latlng": [
+                52.120844,
+                21.174656
+            ],
+            "end_latlng": [
+                52.115212,
+                21.181841
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Obórki",
+            "state": "Masovian Voivodeship",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 35086709,
+            "resource_state": 2,
+            "name": "Powsin - Bielawa",
+            "activity_type": "Ride",
+            "distance": 2698.2,
+            "average_grade": -0.6,
+            "maximum_grade": 1.1,
+            "elevation_high": 101.9,
+            "elevation_low": 86.6,
+            "start_latlng": [
+                52.104777,
+                21.092334
+            ],
+            "end_latlng": [
+                52.108556,
+                21.129483
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Warsaw",
+            "state": "Masovian Voivodeship",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 35208164,
+            "resource_state": 2,
+            "name": "Okrzeszyn – Mostek",
+            "activity_type": "Ride",
+            "distance": 1742.6,
+            "average_grade": 0.2,
+            "maximum_grade": 4.3,
+            "elevation_high": 86,
+            "elevation_low": 82,
+            "start_latlng": [
+                52.122851,
+                21.150884
+            ],
+            "end_latlng": [
+                52.12082,
+                21.174619
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Bielawa",
+            "state": "Masovian Voivodeship",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 37260834,
+            "resource_state": 2,
+            "name": "do przejazdu",
+            "activity_type": "Ride",
+            "distance": 3227,
+            "average_grade": 0.2,
+            "maximum_grade": 3.6,
+            "elevation_high": 131.4,
+            "elevation_low": 119.4,
+            "start_latlng": [
+                51.887033,
+                21.147705
+            ],
+            "end_latlng": [
+                51.868773,
+                21.11298
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Barcice Rososkie",
+            "state": "Masovian Voivodeship",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 37601363,
+            "resource_state": 2,
+            "name": "しんぷうとくべつこうげきたい kamikaze",
+            "activity_type": "Ride",
+            "distance": 565.9,
+            "average_grade": 1.1,
+            "maximum_grade": 7,
+            "elevation_high": 91.2,
+            "elevation_low": 84,
+            "start_latlng": [
+                52.151781,
+                21.097183
+            ],
+            "end_latlng": [
+                52.153713,
+                21.090847
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Warsaw",
+            "state": "Masovian Voivodeship",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 40196769,
+            "resource_state": 2,
+            "name": "a Ty ile razy byłeś na Gassach?",
+            "activity_type": "Ride",
+            "distance": 662.3,
+            "average_grade": 0.2,
+            "maximum_grade": 0.8,
+            "elevation_high": 86.2,
+            "elevation_low": 84.8,
+            "start_latlng": [
+                52.119251,
+                21.178675
+            ],
+            "end_latlng": [
+                52.11385,
+                21.182553
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Obórki",
+            "state": "Masovian Voivodeship",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 40263254,
+            "resource_state": 2,
+            "name": "Polish roubaix",
+            "activity_type": "Ride",
+            "distance": 819.4,
+            "average_grade": -0.4,
+            "maximum_grade": 3.3,
+            "elevation_high": 85.8,
+            "elevation_low": 82,
+            "start_latlng": [
+                52.127846,
+                21.138533
+            ],
+            "end_latlng": [
+                52.132507,
+                21.131025
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "gmina Konstancin-Jeziorna",
+            "state": "Masovian Voivodeship",
+            "country": "Poland",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        }
+    ]
+}
