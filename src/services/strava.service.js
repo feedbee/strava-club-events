@@ -340,11 +340,13 @@ function createRouteInfo(routeDetails) {
  * @returns {Object} Basic route information
  */
 function getBasicRouteInfo(event) {
+  // The route embedded in an event is always state 1 (id, name, map, map_urls only).
+  // distance, elevation_gain and other metrics are absent at state 1, so they are N/A.
   return {
     name: event.route?.name || 'Route is not attached',
     is_full: false,
-    distance: event.route?.distance ? `${(event.route.distance / 1000).toFixed(1)} km` : 'N/A',
-    elevation_gain: event.route?.elevation_gain ? `${Math.round(event.route.elevation_gain)}m` : 'N/A',
+    distance: 'N/A',
+    elevation_gain: 'N/A',
     activity_type: event.activity_type || 'Ride',
     estimated_moving_time: 'N/A',
     max_slope: 'N/A',
