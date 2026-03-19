@@ -57,17 +57,42 @@
   <div id="limits-warning" class="limits-warning" style="display: none;"></div>
 
   <!-- Filter Box (initially hidden) -->
-  <div id="event-filters" class="event-filters" style="display: none;">
+  <div id="event-filters" class="event-filters">
     <div class="filter-group">
       <label class="filter-toggle">
         <input type="checkbox" id="filter-joined" class="filter-checkbox">
         <span class="filter-slider"></span>
         <span class="filter-label">Show only joined events</span>
       </label>
-      <button id="clear-filters" class="clear-filters-btn" title="Clear all filters" style="display: none;">
-        <span class="clear-icon">×</span> Clear filters
-      </button>
     </div>
+    <div class="filter-group filter-group-clubs">
+      <span class="filter-group-label">Clubs</span>
+      <div class="club-filter-trigger" id="clubFilterTrigger"
+           role="button" tabindex="0"
+           aria-haspopup="listbox" aria-expanded="false"
+           aria-label="Filter by club">
+        <div class="club-filter-avatars" id="clubFilterAvatars"></div>
+        <span class="club-filter-placeholder" id="clubFilterPlaceholder">All clubs</span>
+        <button class="club-filter-clear" id="clubFilterClear" style="display:none" aria-label="Clear club selection" title="Clear club selection">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="10" height="10">
+            <line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/>
+          </svg>
+        </button>
+        <svg class="club-filter-chevron" viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+      <div class="club-filter-dropdown" id="clubFilterDropdown" style="display:none">
+        <div class="club-filter-search-wrap">
+          <input type="text" class="club-filter-search" id="clubFilterSearch" placeholder="Search clubs…" autocomplete="off">
+        </div>
+        <div class="club-filter-list" id="clubFilterList"></div>
+        <div class="club-filter-footer" id="clubFilterFooter">Select up to 10 clubs</div>
+      </div>
+    </div>
+    <button id="clear-filters" class="clear-filters-btn" title="Clear all filters" style="display: none;">
+      <span class="clear-icon">×</span> Clear filters
+    </button>
   </div>
   <div id="preloader">
     <div class="spinner"></div>

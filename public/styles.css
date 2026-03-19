@@ -107,6 +107,12 @@ h1 .title-icon {
   box-shadow: 0 20px 40px rgba(0,0,0,0.1);
   overflow: hidden;
   backdrop-filter: blur(10px);
+  transition: opacity 0.2s ease;
+}
+
+#calendar.calendar-loading {
+  opacity: 0.45;
+  pointer-events: none;
 }
 
 /* Weekend day styling */
@@ -661,12 +667,16 @@ h1 .title-icon {
   padding: 16px;
   margin: 0 0 16px 0;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  display: flex;
+  transition: box-shadow 0.2s ease; /* avoid height animations — they shift the calendar */
+  display: none;
   flex-wrap: wrap;
   gap: 16px;
   align-items: center;
   border: 1px solid #e2e8f0;
+}
+
+.event-filters.is-open {
+  display: flex;
 }
 
 .filter-group {
@@ -741,12 +751,12 @@ h1 .title-icon {
   color: #4a5568;
   border-radius: 4px;
   font-size: 0.85rem;
+  padding: 5px 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 4px;
   transition: all 0.2s ease;
-  margin-left: auto;
 }
 
 .clear-filters-btn:hover {
@@ -765,20 +775,262 @@ h1 .title-icon {
     padding: 10px 12px;
     margin: 0 0 12px 0;
   }
-  
+
   .filter-group {
     width: 100%;
     justify-content: space-between;
   }
-  
+
+  /* Clubs group: label + trigger must stay together on the left */
+  .filter-group-clubs {
+    justify-content: flex-start;
+  }
+
   .filter-label {
     font-size: 0.9rem;
   }
-  
+
   .clear-filters-btn {
     padding: 4px 8px;
     font-size: 0.8rem;
   }
+}
+
+/* Club filter */
+.filter-group-clubs {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.filter-group-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4a5568;
+  white-space: nowrap;
+}
+
+.club-filter-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 5px 10px;
+  background: white;
+  min-width: 110px;
+  min-height: 34px; /* stays the same height whether showing text or club avatars */
+  transition: border-color 0.2s ease, background 0.2s ease;
+  user-select: none;
+}
+
+.club-filter-trigger:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.club-filter-avatars {
+  display: flex;
+  align-items: center;
+}
+
+.club-avatar-img {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  margin-left: -5px;
+  flex-shrink: 0;
+}
+
+.club-avatar-img:first-child {
+  margin-left: 0;
+}
+
+.club-avatar-initial {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #667eea;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  margin-left: -5px;
+  flex-shrink: 0;
+}
+
+.club-avatar-initial:first-child {
+  margin-left: 0;
+}
+
+.club-avatar-overflow {
+  font-size: 0.72rem;
+  color: #4a5568;
+  font-weight: 500;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+.club-filter-placeholder {
+  font-size: 0.85rem;
+  color: #718096;
+  white-space: nowrap;
+}
+
+.club-filter-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #718096;
+  transition: color 0.15s, background 0.15s;
+  margin-left: auto;
+}
+
+.club-filter-clear:hover {
+  color: #2d3748;
+  background: #e2e8f0;
+}
+
+.club-filter-chevron {
+  color: #718096;
+  flex-shrink: 0;
+}
+
+.club-filter-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 1000;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  min-width: 280px;
+  max-width: 360px;
+  overflow: hidden;
+}
+
+.club-filter-search-wrap {
+  padding: 10px 10px 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.club-filter-search {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.club-filter-search:focus {
+  border-color: #667eea;
+}
+
+.club-filter-list {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.club-filter-list-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: background 0.12s;
+  font-size: 0.875rem;
+  color: #2d3748;
+  user-select: none;
+}
+
+.club-filter-list-item:hover:not(.disabled) {
+  background: #f7fafc;
+}
+
+.club-filter-list-item.selected {
+  background: #f0f4ff;
+}
+
+.club-filter-list-item.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.club-filter-list-item input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.club-filter-list-item.disabled input[type="checkbox"] {
+  cursor: not-allowed;
+}
+
+.club-list-logo {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.club-list-initial {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #667eea;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.club-list-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.club-filter-empty {
+  padding: 16px 12px;
+  text-align: center;
+  color: #718096;
+  font-size: 0.85rem;
+}
+
+.club-filter-footer {
+  padding: 7px 12px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.75rem;
+  color: #718096;
+  text-align: center;
 }
 
 /* About Page Styles */

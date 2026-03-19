@@ -1,6 +1,9 @@
 // -- Global variables --
 let allEvents = [];
+let allClubs = [];
 let eventsMeta = null;
+
+const CLUB_FILTER_LIMIT = 10; // max clubs selectable in the per-club filter
 
 
 // -- Error handling --
@@ -58,11 +61,13 @@ async function getCurrentUser() {
 
 // Retrieve events from the server
 async function getEvents() {
-  const response = await handleApiResponse(await fetch("/events"));
+  const clubs = filterState.selectedClubs;
+  const url = clubs.length > 0 ? `/events?clubs=${clubs.join(',')}` : '/events';
+  const response = await handleApiResponse(await fetch(url));
   const data = await response.json();
-  // Support both legacy array response and new { events, meta } shape
-  if (Array.isArray(data)) return { events: data, meta: null };
-  return data;
+  // Support both legacy array response and new { events, clubs, meta } shape
+  if (Array.isArray(data)) return { events: data, clubs: [], meta: null };
+  return { events: data.events, clubs: data.clubs || [], meta: data.meta };
 }
 
 // Handle API errors consistently
@@ -131,10 +136,16 @@ function displayEventsMeta(meta, visibleEventCount) {
 
   if (!statsEl || !meta) return;
 
-  // Stats text: "47 events · 5 clubs" or "47 events · 20 of 27 clubs"
-  const clubsText = meta.clubs_limited
-    ? `${meta.clubs_processed} of ${meta.clubs_total} clubs`
-    : `${meta.clubs_total} ${meta.clubs_total === 1 ? 'club' : 'clubs'}`;
+  // Stats text: "47 events · 5 clubs" / "47 events · 20 of 27 clubs" / "47 events · 3 selected clubs"
+  let clubsText;
+  if (filterState.selectedClubs.length > 0) {
+    const n = filterState.selectedClubs.length;
+    clubsText = `${n} selected ${n === 1 ? 'club' : 'clubs'}`;
+  } else if (meta.clubs_limited) {
+    clubsText = `${meta.clubs_processed} of ${meta.clubs_total} clubs`;
+  } else {
+    clubsText = `${meta.clubs_total} ${meta.clubs_total === 1 ? 'club' : 'clubs'}`;
+  }
   statsEl.textContent = `${visibleEventCount} ${visibleEventCount === 1 ? 'event' : 'events'} · ${clubsText}`;
 
   if (!warningEl) return;
@@ -143,8 +154,9 @@ function displayEventsMeta(meta, visibleEventCount) {
   const warnings = [];
   if (meta.clubs_fetch_limited) {
     warnings.push(`Only the first 200 clubs are loaded. Users with more than 200 clubs are not fully supported.`);
-  } else if (meta.clubs_limited) {
-    warnings.push(`Showing events from ${meta.clubs_processed} of ${meta.clubs_total} clubs. A per-club filter is coming — use it to focus on specific clubs.`);
+  } else if (meta.clubs_limited && filterState.selectedClubs.length === 0) {
+    // Only show the clubs-limit nudge when the club filter is not already in use
+    warnings.push(`Showing events from ${meta.clubs_processed} of ${meta.clubs_total} clubs. Use the club filter to focus on specific clubs.`);
   }
   if (meta.events_limited) {
     const cap = meta.limits?.events_per_club ?? 100;
@@ -355,19 +367,13 @@ function updateCalendarWithFilteredEvents() {
   // Transform filtered events for FullCalendar
   const calendarEvents = transformEventsForCalendar(filteredEvents);
 
-  // Remove all existing events
-  const eventSources = calendarInstance.getEventSources();
-  eventSources.forEach(source => source.remove());
-
-  // Add filtered and transformed events
-  if (calendarEvents.length > 0) {
-    calendarInstance.addEventSource(calendarEvents);
-  }
-
-  // Only render if the calendar is already rendered
-  if (calendarInstance.view) {
-    calendarInstance.render();
-  }
+  // Batch all mutations into a single render cycle to prevent intermediate empty-state flash
+  calendarInstance.batchRendering(() => {
+    calendarInstance.getEventSources().forEach(source => source.remove());
+    if (calendarEvents.length > 0) {
+      calendarInstance.addEventSource(calendarEvents);
+    }
+  });
 
   // Update stats to reflect filtered count
   displayEventsMeta(eventsMeta, filteredEvents.length);
@@ -388,27 +394,38 @@ function hideCalendar() {
 
 // Load events and build the calendar
 async function loadEvents() {
+  const isFirstLoad = calendarInstance === null;
   const errorElement = document.getElementById("error-message");
-  
-  // Reset UI state
-  showPreloader();
-  hideNavBar();
-  hideCalendar();
   if (errorElement) errorElement.textContent = '';
-  
+
+  if (isFirstLoad) {
+    // First load: full preloader (already shown by DOMContentLoaded handler)
+    hideNavBar();
+    hideCalendar();
+  } else {
+    // Subsequent loads (filter changes): keep layout stable, dim the calendar
+    calendarElement.classList.add('calendar-loading');
+  }
+
   // Make the API request
-  const { events, meta } = await getEvents(); // Throws AuthenticationError if auth is needed
+  const { events, clubs, meta } = await getEvents(); // Throws AuthenticationError if auth is needed
   allEvents = events;
+  allClubs = clubs;
   eventsMeta = meta;
 
-  // Apply filters to get the filtered set of events
-  const filteredEvents = applyFilters(allEvents);
+  if (isFirstLoad) {
+    const filteredEvents = applyFilters(allEvents);
+    buildCalendar(filteredEvents);
+    showNavBar();
+    hidePreloader();
+    displayEventsMeta(meta, filteredEvents.length);
+  } else {
+    calendarElement.classList.remove('calendar-loading');
+    updateCalendarWithFilteredEvents(); // reads updated allEvents / eventsMeta
+  }
 
-  buildCalendar(filteredEvents);
-
-  // Show the navigation bar and stats now that the calendar is loaded
-  showNavBar();
-  displayEventsMeta(meta, filteredEvents.length);
+  // Refresh club picker avatars now that club data is available
+  renderClubFilterAvatars();
 }
 
 // Transform raw events for FullCalendar
@@ -435,7 +452,8 @@ function transformEventsForCalendar(events) {
 
 // Default filter state values
 const DEFAULT_FILTER_STATE = {
-  joinedOnly: false
+  joinedOnly: false,
+  selectedClubs: []
 };
 
 // Store all events and filter state
@@ -455,18 +473,38 @@ function loadFilterState() {
 }
 
 function applyFilterState(newState) {
-  // Apply saved state with defaults for any missing properties
-  Object.assign(filterState, DEFAULT_FILTER_STATE, newState);
-      
+  // Ensure all default keys exist (handles new keys added in future versions)
+  for (const key of Object.keys(DEFAULT_FILTER_STATE)) {
+    if (!(key in filterState)) {
+      filterState[key] = Array.isArray(DEFAULT_FILTER_STATE[key])
+        ? [...DEFAULT_FILTER_STATE[key]]
+        : DEFAULT_FILTER_STATE[key];
+    }
+  }
+
+  // Shallow-copy arrays to avoid sharing references with DEFAULT_FILTER_STATE.
+  // Safe because all state values are primitives (strings, booleans).
+  for (const [key, value] of Object.entries(newState)) {
+    filterState[key] = Array.isArray(value) ? [...value] : value;
+  }
+
+  // Validate selectedClubs in case of corrupted localStorage data
+  if (!Array.isArray(filterState.selectedClubs)) {
+    filterState.selectedClubs = [];
+  }
+
   // Update UI to reflect saved state
   const filterCheckbox = document.getElementById('filter-joined');
   filterCheckbox.checked = filterState.joinedOnly;
-  
+
   // Show/hide clear filters button
   updateClearFiltersButton();
 
   // Update filter count
   updateFilterCount();
+
+  // Update club picker trigger
+  renderClubFilterAvatars();
 }
 
 // Save filter state to localStorage
@@ -489,21 +527,18 @@ function setFilterState(newState) {
 // Update the visibility of the clear filters button
 function updateClearFiltersButton() {
   const clearFiltersBtn = document.getElementById('clear-filters');
-  clearFiltersBtn.style.display = filterState.joinedOnly ? 'flex' : 'none';
+  const hasFilters = filterState.joinedOnly || filterState.selectedClubs.length > 0;
+  clearFiltersBtn.style.display = hasFilters ? 'flex' : 'none';
 }
 
 // Update active filter count
 function updateFilterCount() {
   const activeFilterCount = document.getElementById('active-filter-count');
-  
-  // Count how many filters differ from their default values
+
   let activeFilters = 0;
-  for (const key in filterState) {
-    if (filterState[key] !== DEFAULT_FILTER_STATE[key]) {
-      activeFilters++;
-    }
-  }
-  
+  if (filterState.joinedOnly !== DEFAULT_FILTER_STATE.joinedOnly) activeFilters++;
+  if (filterState.selectedClubs.length > 0) activeFilters++;
+
   activeFilterCount.textContent = activeFilters > 0 ? activeFilters : '';
   activeFilterCount.style.display = activeFilters > 0 ? 'inline-block' : 'none';
 }
@@ -516,19 +551,108 @@ function setupFilterEventListeners() {
     setFilterState({ joinedOnly: e.target.checked });
     updateCalendarWithFilteredEvents();
   });
-  
+
   // Clear filters button
   const clearFiltersBtn = document.getElementById('clear-filters');
   clearFiltersBtn.addEventListener('click', () => {
-    setFilterState(DEFAULT_FILTER_STATE);
-    updateCalendarWithFilteredEvents();
+    const hadClubFilter = filterState.selectedClubs.length > 0;
+    filterState.joinedOnly = false;
+    filterState.selectedClubs = [];
+    saveFilterState();
+    document.getElementById('filter-joined').checked = false;
+    updateClearFiltersButton();
+    updateFilterCount();
+    renderClubFilterAvatars();
+    if (hadClubFilter) {
+      loadEvents().catch(err => displayErrorMessage('Unable to load events. Please try to reload the page.'));
+    } else {
+      updateCalendarWithFilteredEvents();
+    }
+  });
+
+  // Club filter trigger clear button — clears selection and closes the filter panel in one click
+  const clubFilterClearBtn = document.getElementById('clubFilterClear');
+  if (clubFilterClearBtn) {
+    clubFilterClearBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // prevent the trigger from opening the dropdown
+      filterState.selectedClubs = [];
+      saveFilterState();
+      updateClearFiltersButton();
+      updateFilterCount();
+      renderClubFilterAvatars();
+      // Close the entire filter panel
+      const eventFiltersEl = document.getElementById('event-filters');
+      const toggleFiltersBtnEl = document.getElementById('toggle-filters');
+      if (eventFiltersEl) {
+        eventFiltersEl.classList.remove('is-open');
+        if (toggleFiltersBtnEl) toggleFiltersBtnEl.setAttribute('aria-expanded', false);
+      }
+      loadEvents().catch(() => displayErrorMessage('Unable to load events. Please try to reload the page.'));
+    });
+  }
+
+  // Club filter trigger — open/close dropdown
+  const trigger = document.getElementById('clubFilterTrigger');
+  if (trigger) {
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dropdown = document.getElementById('clubFilterDropdown');
+      if (dropdown?.style.display === 'block') {
+        closeClubDropdown();
+      } else {
+        openClubDropdown();
+      }
+    });
+
+    // Keyboard support: Enter/Space open or close the dropdown
+    trigger.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        e.stopPropagation();
+        const dropdown = document.getElementById('clubFilterDropdown');
+        if (dropdown?.style.display === 'block') {
+          closeClubDropdown();
+        } else {
+          openClubDropdown();
+        }
+      }
+    });
+  }
+
+  // Club filter dropdown — checkbox changes (event delegation)
+  const listEl = document.getElementById('clubFilterList');
+  if (listEl) {
+    listEl.addEventListener('change', (e) => {
+      if (e.target.classList.contains('club-filter-checkbox')) {
+        toggleClubFilter(e.target.value);
+      }
+    });
+  }
+
+  // Club filter search
+  const searchEl = document.getElementById('clubFilterSearch');
+  if (searchEl) {
+    searchEl.addEventListener('input', () => renderClubFilterDropdown());
+  }
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    const group = document.getElementById('clubFilterTrigger')?.closest('.filter-group-clubs');
+    if (group && !group.contains(e.target)) {
+      closeClubDropdown();
+    }
+  });
+
+  // Close dropdown on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeClubDropdown();
   });
 }
 
 // Apply filters to raw events
 function applyFilters(events) {
   if (!events) return [];
-  
+
   return events.filter(event => {
     // Apply joined filter
     if (filterState.joinedOnly && !event.joined) {
@@ -538,53 +662,198 @@ function applyFilters(events) {
   });
 }
 
-// Initialize filter state and event listeners when the script loads
-document.addEventListener('DOMContentLoaded', () => {
+
+// -- Club filter --
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// Shared helper — returns an <img> or initial <span> for a club.
+// Pass the CSS class names appropriate for the call site (trigger avatars vs dropdown items).
+function clubMarkupHtml(club, imgClass, initialClass) {
+  if (club?.logo) {
+    return `<img src="${club.logo}" class="${imgClass}" alt="${escapeHtml(club.name)}" title="${escapeHtml(club.name)}">`;
+  }
+  const letter = club ? escapeHtml(club.name.charAt(0).toUpperCase()) : '?';
+  const title = club ? ` title="${escapeHtml(club.name)}"` : '';
+  return `<span class="${initialClass}"${title}>${letter}</span>`;
+}
+
+// Render the selected club avatars in the filter trigger
+function renderClubFilterAvatars() {
+  const avatarsEl = document.getElementById('clubFilterAvatars');
+  const placeholderEl = document.getElementById('clubFilterPlaceholder');
+  const clearEl = document.getElementById('clubFilterClear');
+  if (!avatarsEl || !placeholderEl) return;
+
+  const selected = filterState.selectedClubs;
+
+  if (selected.length === 0) {
+    avatarsEl.innerHTML = '';
+    placeholderEl.textContent = 'All clubs';
+    placeholderEl.style.display = '';
+    if (clearEl) clearEl.style.display = 'none';
+    return;
+  }
+
+  // Show the clear button whenever clubs are selected
+  if (clearEl) clearEl.style.display = '';
+
+  // allClubs not populated yet (initial load with saved filter) — show a count label
+  // instead of attempting to resolve logos; real avatars arrive once loadEvents() completes.
+  if (allClubs.length === 0) {
+    avatarsEl.innerHTML = '';
+    placeholderEl.textContent = `${selected.length} ${selected.length === 1 ? 'club' : 'clubs'} selected`;
+    placeholderEl.style.display = '';
+    return;
+  }
+
+  placeholderEl.style.display = 'none';
+
+  const maxShow = 5;
+  const shown = selected.slice(0, maxShow);
+  const overflow = selected.length - maxShow;
+
+  avatarsEl.innerHTML = shown.map(id => {
+    const club = allClubs.find(c => String(c.id) === String(id));
+    return clubMarkupHtml(club, 'club-avatar-img', 'club-avatar-initial');
+  }).join('') + (overflow > 0 ? `<span class="club-avatar-overflow">+${overflow}</span>` : '');
+}
+
+// Render the club dropdown list
+function renderClubFilterDropdown() {
+  const listEl = document.getElementById('clubFilterList');
+  const footerEl = document.getElementById('clubFilterFooter');
+  const searchEl = document.getElementById('clubFilterSearch');
+  if (!listEl) return;
+
+  const query = searchEl ? searchEl.value.toLowerCase() : '';
+  const selected = filterState.selectedClubs;
+  const atLimit = selected.length >= CLUB_FILTER_LIMIT;
+
+  // Alphabetical order — items stay in place when selected for a stable UX
+  const sorted = [...allClubs].sort((a, b) => a.name.localeCompare(b.name));
+
+  const filtered = query ? sorted.filter(c => c.name.toLowerCase().includes(query)) : sorted;
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = `<div class="club-filter-empty">No clubs found</div>`;
+  } else {
+    listEl.innerHTML = filtered.map(club => {
+      const clubId = String(club.id);
+      const isSelected = selected.includes(clubId);
+      const isDisabled = atLimit && !isSelected;
+      return `
+        <label class="club-filter-list-item${isDisabled ? ' disabled' : ''}${isSelected ? ' selected' : ''}">
+          <input type="checkbox" class="club-filter-checkbox" value="${clubId}"
+            ${isSelected ? 'checked' : ''}
+            ${isDisabled ? 'disabled' : ''}>
+          ${clubMarkupHtml(club, 'club-list-logo', 'club-list-initial')}
+          <span class="club-list-name">${escapeHtml(club.name)}</span>
+        </label>`;
+    }).join('');
+  }
+
+  if (footerEl) {
+    footerEl.textContent = selected.length > 0
+      ? `${selected.length} of ${CLUB_FILTER_LIMIT} selected`
+      : `Select up to ${CLUB_FILTER_LIMIT} clubs`;
+  }
+}
+
+function openClubDropdown() {
+  const dropdown = document.getElementById('clubFilterDropdown');
+  const searchEl = document.getElementById('clubFilterSearch');
+  if (!dropdown) return;
+  dropdown.style.display = 'block';
+  document.getElementById('clubFilterTrigger')?.setAttribute('aria-expanded', 'true');
+  renderClubFilterDropdown();
+  if (searchEl) { searchEl.value = ''; searchEl.focus(); }
+}
+
+function closeClubDropdown() {
+  const dropdown = document.getElementById('clubFilterDropdown');
+  if (dropdown) dropdown.style.display = 'none';
+  document.getElementById('clubFilterTrigger')?.setAttribute('aria-expanded', 'false');
+}
+
+// Debounce timer for club filter changes — batches rapid toggles into one request
+let clubFilterDebounceTimer = null;
+
+function scheduleEventsReload() {
+  if (clubFilterDebounceTimer) clearTimeout(clubFilterDebounceTimer);
+  clubFilterDebounceTimer = setTimeout(() => {
+    clubFilterDebounceTimer = null;
+    loadEvents().catch(() => displayErrorMessage('Unable to load events. Please try to reload the page.'));
+  }, 400);
+}
+
+function toggleClubFilter(clubId) {
+  const id = String(clubId);
+  const idx = filterState.selectedClubs.indexOf(id); // id is always a string; no .map(String) needed
+  if (idx >= 0) {
+    filterState.selectedClubs.splice(idx, 1);
+  } else if (filterState.selectedClubs.length < CLUB_FILTER_LIMIT) {
+    filterState.selectedClubs.push(id);
+  }
+  saveFilterState();
+  updateClearFiltersButton();
+  updateFilterCount();
+  renderClubFilterAvatars();
+  renderClubFilterDropdown();
+  scheduleEventsReload();
+}
+
+// Single DOMContentLoaded handler for all initialization.
+// Using DOMContentLoaded (rather than an IIFE) guarantees DOM availability
+// regardless of where the <script> tag lives (bottom of body, head with defer, etc.).
+document.addEventListener('DOMContentLoaded', async function () {
+  // -- Sync setup: filter state must be restored before loadEvents() builds the URL --
   loadFilterState();
   updateFilterCount();
   setupFilterEventListeners();
-});
 
-// Toggle filters when clicking the filter link or count
-document.addEventListener('DOMContentLoaded', function() {
+  // Toggle filters panel
   const toggleFiltersBtn = document.getElementById('toggle-filters');
   const eventFilters = document.getElementById('event-filters');
-  
-  // Toggle filters when clicking the filter link or count
-  toggleFiltersBtn.addEventListener('click', function(e) {
+  toggleFiltersBtn.addEventListener('click', function (e) {
     e.preventDefault();
-    const isVisible = eventFilters.style.display === 'block';
-    eventFilters.style.display = isVisible ? 'none' : 'block';
-    
-    // Update ARIA attributes for accessibility
-    const toggleButton = document.getElementById('toggle-filters');
-    toggleButton.setAttribute('aria-expanded', !isVisible);
+    const isVisible = eventFilters.classList.contains('is-open');
+    eventFilters.classList.toggle('is-open', !isVisible);
+    toggleFiltersBtn.setAttribute('aria-expanded', !isVisible);
   });
-});
 
+  // Close filter panel when clicking outside it (but not on the toggle button itself)
+  document.addEventListener('click', (e) => {
+    if (
+      eventFilters.classList.contains('is-open') &&
+      !eventFilters.contains(e.target) &&
+      !toggleFiltersBtn.contains(e.target)
+    ) {
+      eventFilters.classList.remove('is-open');
+      toggleFiltersBtn.setAttribute('aria-expanded', false);
+    }
+  });
 
-// Initialize the app when the page loads
-(async function () {
+  // -- Async init --
   try {
     showPreloader();
-
-    // Update the user profile in the navigation bar
     loadUserProfile();
-    
-    // Load the events
     await loadEvents();
   } catch (error) {
     if (error.isAuthError) {
-      console.info("Authentication is required");
+      console.info('Authentication is required');
       handleAuthRequired();
       return;
     }
-
-    console.error("Error loading events:", error);
+    console.error('Error loading events:', error);
     displayErrorMessage('Unable to load events. Please try to reload the page.');
-    // Only show error message for non-auth related errors
-    
   } finally {
     hidePreloader();
   }
-})();
+});

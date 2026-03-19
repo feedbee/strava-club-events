@@ -216,6 +216,7 @@ async function prepareEvent(event, club, accessToken, options = {}) {
     start_date: match.toISOString(),
     strava_event_url: `https://www.strava.com/clubs/${club.id}/group_events/${event.id}`,
     club_info: {
+      id: club.id,
       name: club.name || '',
       logo: club.profile_medium || ''
     },
@@ -381,11 +382,21 @@ async function getClubEvents(accessToken, club, userId, options = {}) {
  * Gets all events for all user's clubs with route request limiting
  * @param {string} accessToken - The OAuth access token
  * @param {string} userId - The user ID for caching
- * @returns {Promise<{events: Array, meta: Object}>} - All prepared events and metadata about limits applied
+ * @param {Object} [options] - Additional options
+ * @param {string[]} [options.filterClubIds] - When provided, only fetch events for these club IDs
+ * @returns {Promise<{events: Array, clubs: Array, meta: Object}>} - All prepared events, full clubs list, and metadata
  */
-async function getAllUserClubsEvents(accessToken, userId) {
+async function getAllUserClubsEvents(accessToken, userId, { filterClubIds } = {}) {
   const allClubs = await getUserClubs(accessToken, userId);
-  const clubsToProcess = allClubs.slice(0, LIMIT_CLUBS);
+
+  let clubsToProcess;
+  if (filterClubIds && filterClubIds.length > 0) {
+    const idSet = new Set(filterClubIds.map(String));
+    clubsToProcess = allClubs.filter(c => idSet.has(String(c.id)));
+  } else {
+    clubsToProcess = allClubs.slice(0, LIMIT_CLUBS);
+  }
+
   const allEvents = [];
 
   // Track route requests across all clubs
@@ -421,10 +432,11 @@ async function getAllUserClubsEvents(accessToken, userId) {
 
   return {
     events: allEvents,
+    clubs: allClubs.map(c => ({ id: c.id, name: c.name, logo: c.profile_medium || '' })),
     meta: {
       clubs_total: allClubs.length,
       clubs_processed: clubsToProcess.length,
-      clubs_limited: allClubs.length > LIMIT_CLUBS,
+      clubs_limited: filterClubIds?.length > 0 ? false : allClubs.length > LIMIT_CLUBS,
       clubs_fetch_limited: allClubs.length >= LIMIT_CLUBS_FETCH,
       events_total: allEvents.length,
       events_limited: eventsLimited,
