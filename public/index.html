@@ -65,6 +65,31 @@
         <span class="filter-label">Show only joined events</span>
       </label>
     </div>
+    <div class="filter-group filter-group-sport-type" style="display: none;">
+      <span class="filter-group-label">Sport</span>
+      <div class="club-filter-trigger" id="sportTypeFilterTrigger"
+           role="button" tabindex="0"
+           aria-haspopup="listbox" aria-expanded="false"
+           aria-label="Filter by sport type">
+        <div class="club-filter-avatars" id="sportTypeFilterAvatars"></div>
+        <span class="club-filter-placeholder" id="sportTypeFilterPlaceholder">All sports</span>
+        <button class="club-filter-clear" id="sportTypeFilterClear" style="display:none" aria-label="Clear sport type selection" title="Clear sport type selection">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="10" height="10">
+            <line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/>
+          </svg>
+        </button>
+        <svg class="club-filter-chevron" viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+      <div class="club-filter-dropdown" id="sportTypeFilterDropdown" style="display:none">
+        <div class="club-filter-search-wrap">
+          <input type="text" class="club-filter-search" id="sportTypeFilterSearch" placeholder="Search sports…" autocomplete="off">
+        </div>
+        <div class="club-filter-list" id="sportTypeFilterList"></div>
+        <div class="club-filter-footer" id="sportTypeFilterFooter">Select up to 10 sports</div>
+      </div>
+    </div>
     <div class="filter-group filter-group-clubs">
       <span class="filter-group-label">Clubs</span>
       <div class="club-filter-trigger" id="clubFilterTrigger"

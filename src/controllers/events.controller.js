@@ -30,8 +30,15 @@ async function getEvents(req, res) {
       filterClubIds = parts;
     }
 
+    // Parse optional ?sportTypes=cycling,running filter
+    let filterSportTypes;
+    if (req.query.sportTypes) {
+      const parts = req.query.sportTypes.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+      if (parts.length > 0) filterSportTypes = parts;
+    }
+
     // Get all events across all clubs with route request limiting
-    const { events, clubs, meta } = await getAllUserClubsEvents(token, userId, { filterClubIds });
+    const { events, clubs, meta } = await getAllUserClubsEvents(token, userId, { filterClubIds, filterSportTypes });
 
     res.json({ events, clubs, meta });
   } catch (error) {

@@ -1,6 +1,7 @@
 // -- Global variables --
 let allEvents = [];
 let allClubs = [];
+let allClubsById = new Map(); // id (string) → club object — rebuilt whenever allClubs changes
 let eventsMeta = null;
 
 const CLUB_FILTER_LIMIT = 10; // max clubs selectable in the per-club filter
@@ -61,8 +62,10 @@ async function getCurrentUser() {
 
 // Retrieve events from the server
 async function getEvents() {
-  const clubs = filterState.selectedClubs;
-  const url = clubs.length > 0 ? `/events?clubs=${clubs.join(',')}` : '/events';
+  const params = new URLSearchParams();
+  if (filterState.selectedClubs.length > 0)      params.set('clubs', filterState.selectedClubs.join(','));
+  if (filterState.selectedSportTypes.length > 0) params.set('sportTypes', filterState.selectedSportTypes.join(','));
+  const url = params.size > 0 ? `/events?${params}` : '/events';
   const response = await handleApiResponse(await fetch(url));
   const data = await response.json();
   // Support both legacy array response and new { events, clubs, meta } shape
@@ -411,6 +414,7 @@ async function loadEvents() {
   const { events, clubs, meta } = await getEvents(); // Throws AuthenticationError if auth is needed
   allEvents = events;
   allClubs = clubs;
+  allClubsById = new Map(allClubs.map(c => [String(c.id), c]));
   eventsMeta = meta;
 
   if (isFirstLoad) {
@@ -424,8 +428,9 @@ async function loadEvents() {
     updateCalendarWithFilteredEvents(); // reads updated allEvents / eventsMeta
   }
 
-  // Refresh club picker avatars now that club data is available
-  renderClubFilterAvatars();
+  // Refresh club picker avatars and sport type pills now that club data is available
+  clubFilter.renderTrigger();
+  sportTypeFilter.renderTrigger(); sportTypeFilter.updateGroupVisibility();
 }
 
 // Transform raw events for FullCalendar
@@ -453,7 +458,8 @@ function transformEventsForCalendar(events) {
 // Default filter state values
 const DEFAULT_FILTER_STATE = {
   joinedOnly: false,
-  selectedClubs: []
+  selectedClubs: [],
+  selectedSportTypes: []
 };
 
 // Store all events and filter state
@@ -493,6 +499,11 @@ function applyFilterState(newState) {
     filterState.selectedClubs = [];
   }
 
+  // Validate selectedSportTypes in case of corrupted localStorage data
+  if (!Array.isArray(filterState.selectedSportTypes)) {
+    filterState.selectedSportTypes = [];
+  }
+
   // Update UI to reflect saved state
   const filterCheckbox = document.getElementById('filter-joined');
   filterCheckbox.checked = filterState.joinedOnly;
@@ -504,7 +515,7 @@ function applyFilterState(newState) {
   updateFilterCount();
 
   // Update club picker trigger
-  renderClubFilterAvatars();
+  clubFilter.renderTrigger();
 }
 
 // Save filter state to localStorage
@@ -527,7 +538,7 @@ function setFilterState(newState) {
 // Update the visibility of the clear filters button
 function updateClearFiltersButton() {
   const clearFiltersBtn = document.getElementById('clear-filters');
-  const hasFilters = filterState.joinedOnly || filterState.selectedClubs.length > 0;
+  const hasFilters = filterState.joinedOnly || filterState.selectedClubs.length > 0 || filterState.selectedSportTypes.length > 0;
   clearFiltersBtn.style.display = hasFilters ? 'flex' : 'none';
 }
 
@@ -538,6 +549,7 @@ function updateFilterCount() {
   let activeFilters = 0;
   if (filterState.joinedOnly !== DEFAULT_FILTER_STATE.joinedOnly) activeFilters++;
   if (filterState.selectedClubs.length > 0) activeFilters++;
+  if (filterState.selectedSportTypes.length > 0) activeFilters++;
 
   activeFilterCount.textContent = activeFilters > 0 ? activeFilters : '';
   activeFilterCount.style.display = activeFilters > 0 ? 'inline-block' : 'none';
@@ -552,101 +564,27 @@ function setupFilterEventListeners() {
     updateCalendarWithFilteredEvents();
   });
 
-  // Clear filters button
+  // Global "clear all filters" button
   const clearFiltersBtn = document.getElementById('clear-filters');
   clearFiltersBtn.addEventListener('click', () => {
-    const hadClubFilter = filterState.selectedClubs.length > 0;
+    const hadBackendFilter = filterState.selectedClubs.length > 0 || filterState.selectedSportTypes.length > 0;
     filterState.joinedOnly = false;
-    filterState.selectedClubs = [];
-    saveFilterState();
     document.getElementById('filter-joined').checked = false;
+    clubFilter.clearAll({ silent: true });
+    sportTypeFilter.clearAll({ silent: true });
+    saveFilterState();
     updateClearFiltersButton();
     updateFilterCount();
-    renderClubFilterAvatars();
-    if (hadClubFilter) {
-      loadEvents().catch(err => displayErrorMessage('Unable to load events. Please try to reload the page.'));
+    if (hadBackendFilter) {
+      loadEvents().catch(() => displayErrorMessage('Unable to load events. Please try to reload the page.'));
     } else {
       updateCalendarWithFilteredEvents();
     }
   });
 
-  // Club filter trigger clear button — clears selection and closes the filter panel in one click
-  const clubFilterClearBtn = document.getElementById('clubFilterClear');
-  if (clubFilterClearBtn) {
-    clubFilterClearBtn.addEventListener('click', (e) => {
-      e.stopPropagation(); // prevent the trigger from opening the dropdown
-      filterState.selectedClubs = [];
-      saveFilterState();
-      updateClearFiltersButton();
-      updateFilterCount();
-      renderClubFilterAvatars();
-      // Close the entire filter panel
-      const eventFiltersEl = document.getElementById('event-filters');
-      const toggleFiltersBtnEl = document.getElementById('toggle-filters');
-      if (eventFiltersEl) {
-        eventFiltersEl.classList.remove('is-open');
-        if (toggleFiltersBtnEl) toggleFiltersBtnEl.setAttribute('aria-expanded', false);
-      }
-      loadEvents().catch(() => displayErrorMessage('Unable to load events. Please try to reload the page.'));
-    });
-  }
-
-  // Club filter trigger — open/close dropdown
-  const trigger = document.getElementById('clubFilterTrigger');
-  if (trigger) {
-    trigger.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const dropdown = document.getElementById('clubFilterDropdown');
-      if (dropdown?.style.display === 'block') {
-        closeClubDropdown();
-      } else {
-        openClubDropdown();
-      }
-    });
-
-    // Keyboard support: Enter/Space open or close the dropdown
-    trigger.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        e.stopPropagation();
-        const dropdown = document.getElementById('clubFilterDropdown');
-        if (dropdown?.style.display === 'block') {
-          closeClubDropdown();
-        } else {
-          openClubDropdown();
-        }
-      }
-    });
-  }
-
-  // Club filter dropdown — checkbox changes (event delegation)
-  const listEl = document.getElementById('clubFilterList');
-  if (listEl) {
-    listEl.addEventListener('change', (e) => {
-      if (e.target.classList.contains('club-filter-checkbox')) {
-        toggleClubFilter(e.target.value);
-      }
-    });
-  }
-
-  // Club filter search
-  const searchEl = document.getElementById('clubFilterSearch');
-  if (searchEl) {
-    searchEl.addEventListener('input', () => renderClubFilterDropdown());
-  }
-
-  // Close dropdown when clicking outside
-  document.addEventListener('click', (e) => {
-    const group = document.getElementById('clubFilterTrigger')?.closest('.filter-group-clubs');
-    if (group && !group.contains(e.target)) {
-      closeClubDropdown();
-    }
-  });
-
-  // Close dropdown on Escape
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeClubDropdown();
-  });
+  // Wire up both multi-select dropdown filters
+  clubFilter.setupListeners();
+  sportTypeFilter.setupListeners();
 }
 
 // Apply filters to raw events
@@ -663,7 +601,7 @@ function applyFilters(events) {
 }
 
 
-// -- Club filter --
+// -- Shared filter utilities & multi-select dropdown component --
 
 function escapeHtml(str) {
   return String(str)
@@ -673,8 +611,7 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
-// Shared helper — returns an <img> or initial <span> for a club.
-// Pass the CSS class names appropriate for the call site (trigger avatars vs dropdown items).
+// Shared helper — returns an <img> or initial <span> for a club logo.
 function clubMarkupHtml(club, imgClass, initialClass) {
   if (club?.logo) {
     return `<img src="${club.logo}" class="${imgClass}" alt="${escapeHtml(club.name)}" title="${escapeHtml(club.name)}">`;
@@ -684,129 +621,403 @@ function clubMarkupHtml(club, imgClass, initialClass) {
   return `<span class="${initialClass}"${title}>${letter}</span>`;
 }
 
-// Render the selected club avatars in the filter trigger
-function renderClubFilterAvatars() {
-  const avatarsEl = document.getElementById('clubFilterAvatars');
-  const placeholderEl = document.getElementById('clubFilterPlaceholder');
-  const clearEl = document.getElementById('clubFilterClear');
-  if (!avatarsEl || !placeholderEl) return;
+// Strava sport type values → display labels (from Strava club edit UI)
+const SPORT_TYPE_LABELS = {
+  cycling:           'Cycling',
+  running:           'Running',
+  triathlon:         'Triathlon',
+  alpine_skiing:     'Alpine Skiing',
+  backcountry_skiing:'Backcountry Skiing',
+  canoeing:          'Canoeing',
+  crossfit:          'Crossfit',
+  ebiking:           'E-Biking',
+  elliptical:        'Elliptical',
+  soccer:            'Football (Soccer)',
+  golf:              'Golf',
+  handcycling:       'Handcycling',
+  hiking:            'Hiking',
+  ice_skating:       'Ice Skating',
+  inline_skating:    'Inline Skating',
+  kayaking:          'Kayaking',
+  kitesurfing:       'Kitesurfing',
+  nordic_skiing:     'Nordic Skiing',
+  rock_climbing:     'Rock Climbing',
+  roller_skiing:     'Roller Skiing',
+  rowing:            'Rowing',
+  footsports:        'Run/Walk/Hike',
+  sailing:           'Sailing',
+  skateboarding:     'Skateboarding',
+  ski_snowboard:     'Ski/Snowboard',
+  snowboarding:      'Snowboarding',
+  snowshoeing:       'Snowshoeing',
+  stair_stepper:     'Stair Stepper',
+  stand_up_paddling: 'Stand-up Paddling',
+  surfing:           'Surfing',
+  swimming:          'Swimming',
+  velomobile:        'Velomobile',
+  virtual_ride:      'Virtual Riding',
+  virtual_run:       'Virtual Running',
+  walking:           'Walking',
+  weight_training:   'Weight Training',
+  wheelchair:        'Wheelchair',
+  windsurfing:       'Windsurfing',
+  winter_sports:     'Winter Sports',
+  workout:           'Workout',
+  yoga:              'Yoga',
+  other:             'Multisport',
+};
 
-  const selected = filterState.selectedClubs;
+// Registry — each instance's open() closes all others first
+const _allMultiSelectFilters = [];
+// Set to true by close() when an open dropdown is actually dismissed;
+// checked by the panel-level outside-click handler so it doesn't also close the whole panel.
+let _dropdownClosedOnThisClick = false;
 
-  if (selected.length === 0) {
-    avatarsEl.innerHTML = '';
-    placeholderEl.textContent = 'All clubs';
-    placeholderEl.style.display = '';
-    if (clearEl) clearEl.style.display = 'none';
-    return;
+/**
+ * Creates a reusable multi-select dropdown filter.
+ * Both the club filter and the sport type filter are instances of this.
+ *
+ * Config:
+ *   triggerId / dropdownId / listId / searchId / footerId / clearBtnId / avatarsId / placeholderId
+ *   limit          {number}   max selections
+ *   placeholder    {string}   trigger text when nothing is selected
+ *   noun           {string}   "club" / "sport" — used in footer & empty-state text
+ *   showAvatars    {boolean}  true → logo circles (clubs); false → text chips (sport types)
+ *   hideWhenEmpty  {boolean}  hide the whole filter group when getItems() returns []
+ *   getItems()     () => [{id, label, logo?}]
+ *   getSelected()  () => string[]
+ *   setSelected(ids)
+ *   onAfterToggle()  called after checkbox toggles (save state, update counters, schedule reload)
+ *   onClear()        called when the inline ✕ button is clicked (save, close panel, reload)
+ */
+function createMultiSelectFilter(cfg) {
+  const {
+    triggerId, dropdownId, listId, searchId, footerId, clearBtnId, avatarsId, placeholderId,
+    limit = CLUB_FILTER_LIMIT, placeholder, noun = 'item',
+    showAvatars = true, hideWhenEmpty = false,
+    getItems, getSelected, setSelected, onAfterToggle, onClear,
+    isItemCompatible = () => true,
+  } = cfg;
+
+  // Cached element references — looked up once at init time instead of on every call
+  const $trigger     = document.getElementById(triggerId);
+  const $dropdown    = document.getElementById(dropdownId);
+  const $list        = document.getElementById(listId);
+  const $search      = document.getElementById(searchId);
+  const $footer      = document.getElementById(footerId);
+  const $clearBtn    = document.getElementById(clearBtnId);
+  const $avatars     = document.getElementById(avatarsId);
+  const $placeholder = document.getElementById(placeholderId);
+
+  // -- Open / close --
+
+  function open() {
+    _allMultiSelectFilters.forEach(f => { if (f !== instance) f.close(); });
+    if (!$dropdown) return;
+    $dropdown.style.display = 'block';
+    $trigger?.setAttribute('aria-expanded', 'true');
+    renderDropdown();
+    if ($search) { $search.value = ''; $search.focus(); }
   }
 
-  // Show the clear button whenever clubs are selected
-  if (clearEl) clearEl.style.display = '';
-
-  // allClubs not populated yet (initial load with saved filter) — show a count label
-  // instead of attempting to resolve logos; real avatars arrive once loadEvents() completes.
-  if (allClubs.length === 0) {
-    avatarsEl.innerHTML = '';
-    placeholderEl.textContent = `${selected.length} ${selected.length === 1 ? 'club' : 'clubs'} selected`;
-    placeholderEl.style.display = '';
-    return;
+  function close() {
+    if ($dropdown && $dropdown.style.display !== 'none') {
+      _dropdownClosedOnThisClick = true; // tell panel handler: don't also close the panel
+    }
+    if ($dropdown) $dropdown.style.display = 'none';
+    $trigger?.setAttribute('aria-expanded', 'false');
   }
 
-  placeholderEl.style.display = 'none';
+  function toggleOpen() {
+    if ($dropdown?.style.display === 'block') close(); else open();
+  }
 
-  const maxShow = 5;
-  const shown = selected.slice(0, maxShow);
-  const overflow = selected.length - maxShow;
+  // -- Render dropdown list --
 
-  avatarsEl.innerHTML = shown.map(id => {
-    const club = allClubs.find(c => String(c.id) === String(id));
-    return clubMarkupHtml(club, 'club-avatar-img', 'club-avatar-initial');
-  }).join('') + (overflow > 0 ? `<span class="club-avatar-overflow">+${overflow}</span>` : '');
-}
+  function renderDropdown() {
+    if (!$list) return;
 
-// Render the club dropdown list
-function renderClubFilterDropdown() {
-  const listEl = document.getElementById('clubFilterList');
-  const footerEl = document.getElementById('clubFilterFooter');
-  const searchEl = document.getElementById('clubFilterSearch');
-  if (!listEl) return;
+    const query = ($search?.value || '').toLowerCase().trim();
+    const items = getItems();
+    const selected = getSelected();
+    const atLimit = selected.length >= limit;
 
-  const query = searchEl ? searchEl.value.toLowerCase() : '';
-  const selected = filterState.selectedClubs;
-  const atLimit = selected.length >= CLUB_FILTER_LIMIT;
+    const compatible   = items.filter(i =>  isItemCompatible(i)).sort((a, b) => a.label.localeCompare(b.label));
+    const incompatible = items.filter(i => !isItemCompatible(i)).sort((a, b) => a.label.localeCompare(b.label));
+    const sorted = [...compatible, ...incompatible];
+    const filtered = query ? sorted.filter(item => item.label.toLowerCase().includes(query)) : sorted;
 
-  // Alphabetical order — items stay in place when selected for a stable UX
-  const sorted = [...allClubs].sort((a, b) => a.name.localeCompare(b.name));
-
-  const filtered = query ? sorted.filter(c => c.name.toLowerCase().includes(query)) : sorted;
-
-  if (filtered.length === 0) {
-    listEl.innerHTML = `<div class="club-filter-empty">No clubs found</div>`;
-  } else {
-    listEl.innerHTML = filtered.map(club => {
-      const clubId = String(club.id);
-      const isSelected = selected.includes(clubId);
-      const isDisabled = atLimit && !isSelected;
-      return `
-        <label class="club-filter-list-item${isDisabled ? ' disabled' : ''}${isSelected ? ' selected' : ''}">
-          <input type="checkbox" class="club-filter-checkbox" value="${clubId}"
-            ${isSelected ? 'checked' : ''}
-            ${isDisabled ? 'disabled' : ''}>
-          ${clubMarkupHtml(club, 'club-list-logo', 'club-list-initial')}
-          <span class="club-list-name">${escapeHtml(club.name)}</span>
+    if (filtered.length === 0) {
+      $list.innerHTML = `<div class="club-filter-empty">No ${noun}s found</div>`;
+    } else {
+      $list.innerHTML = filtered.map(item => {
+        const isSelected     = selected.includes(item.id);
+        const isIncompatible = !isItemCompatible(item);
+        const isDisabled     = (atLimit && !isSelected) || isIncompatible;
+        const visual = showAvatars
+          ? clubMarkupHtml({ name: item.label, logo: item.logo }, 'club-list-logo', 'club-list-initial')
+          : '';
+        const tooltip = isIncompatible ? ' title="Not available for the selected sport type"' : '';
+        return `<label class="club-filter-list-item${isDisabled ? ' disabled' : ''}${isIncompatible ? ' incompatible' : ''}${isSelected ? ' selected' : ''}"${tooltip}>
+          <input type="checkbox" class="club-filter-checkbox" value="${escapeHtml(item.id)}"${isSelected ? ' checked' : ''}${isDisabled ? ' disabled' : ''}>
+          ${visual}<span class="club-list-name">${escapeHtml(item.label)}</span>
         </label>`;
-    }).join('');
+      }).join('');
+    }
+
+    if ($footer) {
+      $footer.textContent = selected.length > 0
+        ? `${selected.length} of ${limit} selected`
+        : `Select up to ${limit}`;
+    }
   }
 
-  if (footerEl) {
-    footerEl.textContent = selected.length > 0
-      ? `${selected.length} of ${CLUB_FILTER_LIMIT} selected`
-      : `Select up to ${CLUB_FILTER_LIMIT} clubs`;
+  // -- Render trigger --
+
+  function renderTrigger() {
+    if (!$avatars || !$placeholder) return;
+
+    const selected = getSelected();
+
+    if (selected.length === 0) {
+      $avatars.innerHTML = '';
+      $placeholder.textContent = placeholder;
+      $placeholder.style.display = '';
+      if ($clearBtn) $clearBtn.style.display = 'none';
+      return;
+    }
+
+    if ($clearBtn) $clearBtn.style.display = '';
+    $placeholder.style.display = 'none';
+
+    const maxShow = 5;
+    const items = getItems();
+    const selectedItems = selected.map(id => items.find(item => item.id === id)).filter(Boolean);
+
+    if (selectedItems.length === 0) {
+      // Items not loaded yet (initial page load with a saved filter state)
+      $avatars.innerHTML = '';
+      $placeholder.textContent = `${selected.length} ${selected.length === 1 ? noun : noun + 's'} selected`;
+      $placeholder.style.display = '';
+      return;
+    }
+
+    const shown = selectedItems.slice(0, maxShow);
+    const overflow = selectedItems.length - maxShow;
+
+    if (showAvatars) {
+      $avatars.innerHTML = shown.map(item =>
+        clubMarkupHtml({ name: item.label, logo: item.logo }, 'club-avatar-img', 'club-avatar-initial')
+      ).join('') + (overflow > 0 ? `<span class="club-avatar-overflow">+${overflow}</span>` : '');
+    } else {
+      $avatars.innerHTML = shown.map(item =>
+        `<span class="club-filter-chip">${escapeHtml(item.label)}</span>`
+      ).join('') + (overflow > 0 ? `<span class="club-filter-chip club-filter-chip-more">+${overflow}</span>` : '');
+    }
   }
+
+  // -- Group visibility (sport type filter hides itself when no items available) --
+
+  function updateGroupVisibility() {
+    if (!hideWhenEmpty) return;
+    if (!$trigger) return;
+    const groupEl = $trigger.closest('.filter-group-sport-type');
+    if (!groupEl) return;
+    groupEl.style.display = getItems().length > 0 ? '' : 'none';
+  }
+
+  // -- Toggle a single item --
+
+  function toggleItem(id) {
+    const selected = getSelected();
+    const idx = selected.indexOf(id);
+    let newSelected;
+    if (idx >= 0) {
+      newSelected = selected.filter(s => s !== id);
+    } else if (selected.length < limit) {
+      newSelected = [...selected, id];
+    } else {
+      return; // at limit — ignore
+    }
+    setSelected(newSelected);
+    onAfterToggle();
+    renderTrigger();
+    renderDropdown();
+  }
+
+  // -- Clear all selections --
+  // silent: true skips callbacks (used by the global "clear all filters" button)
+
+  function clearAll({ silent = false } = {}) {
+    setSelected([]);
+    close();
+    renderTrigger();
+    updateGroupVisibility();
+    if (!silent) {
+      if (onClear) onClear(); else onAfterToggle();
+    }
+  }
+
+  // -- Wire up DOM event listeners --
+
+  function setupListeners() {
+    if ($trigger) {
+      $trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleOpen();
+      });
+      $trigger.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleOpen();
+        }
+      });
+    }
+
+    if ($clearBtn) {
+      $clearBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        clearAll(); // fires onClear (or onAfterToggle as fallback)
+      });
+    }
+
+    if ($list) {
+      $list.addEventListener('change', (e) => {
+        if (e.target.classList.contains('club-filter-checkbox')) {
+          toggleItem(e.target.value);
+        }
+      });
+    }
+
+    if ($search) {
+      $search.addEventListener('input', () => renderDropdown());
+    }
+
+    // Close when clicking outside this filter's trigger + dropdown
+    // (includes clicks on the filter label, other groups, or anywhere outside the panel)
+    document.addEventListener('click', (e) => {
+      if (!$trigger?.contains(e.target) && !$dropdown?.contains(e.target)) close();
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') close();
+    });
+  }
+
+  const instance = { open, close, renderTrigger, renderDropdown, updateGroupVisibility, toggleItem, clearAll, setupListeners };
+  _allMultiSelectFilters.push(instance);
+  return instance;
 }
 
-function openClubDropdown() {
-  const dropdown = document.getElementById('clubFilterDropdown');
-  const searchEl = document.getElementById('clubFilterSearch');
-  if (!dropdown) return;
-  dropdown.style.display = 'block';
-  document.getElementById('clubFilterTrigger')?.setAttribute('aria-expanded', 'true');
-  renderClubFilterDropdown();
-  if (searchEl) { searchEl.value = ''; searchEl.focus(); }
-}
-
-function closeClubDropdown() {
-  const dropdown = document.getElementById('clubFilterDropdown');
-  if (dropdown) dropdown.style.display = 'none';
-  document.getElementById('clubFilterTrigger')?.setAttribute('aria-expanded', 'false');
-}
-
-// Debounce timer for club filter changes — batches rapid toggles into one request
-let clubFilterDebounceTimer = null;
+// Debounce timer for filter changes — batches rapid toggles into one request
+let _filterDebounceTimer = null;
 
 function scheduleEventsReload() {
-  if (clubFilterDebounceTimer) clearTimeout(clubFilterDebounceTimer);
-  clubFilterDebounceTimer = setTimeout(() => {
-    clubFilterDebounceTimer = null;
+  if (_filterDebounceTimer) clearTimeout(_filterDebounceTimer);
+  _filterDebounceTimer = setTimeout(() => {
+    _filterDebounceTimer = null;
     loadEvents().catch(() => displayErrorMessage('Unable to load events. Please try to reload the page.'));
   }, 400);
 }
 
-function toggleClubFilter(clubId) {
-  const id = String(clubId);
-  const idx = filterState.selectedClubs.indexOf(id); // id is always a string; no .map(String) needed
-  if (idx >= 0) {
-    filterState.selectedClubs.splice(idx, 1);
-  } else if (filterState.selectedClubs.length < CLUB_FILTER_LIMIT) {
-    filterState.selectedClubs.push(id);
+// Helper — closes the filter panel and triggers a full events reload
+function closePanelAndReload() {
+  const eventFiltersEl = document.getElementById('event-filters');
+  const toggleFiltersBtnEl = document.getElementById('toggle-filters');
+  if (eventFiltersEl) {
+    eventFiltersEl.classList.remove('is-open');
+    if (toggleFiltersBtnEl) toggleFiltersBtnEl.setAttribute('aria-expanded', false);
   }
+  loadEvents().catch(() => displayErrorMessage('Unable to load events. Please try to reload the page.'));
+}
+
+// Shared onAfterToggle for both filters
+const _onAfterFilterToggle = () => {
   saveFilterState();
   updateClearFiltersButton();
   updateFilterCount();
-  renderClubFilterAvatars();
-  renderClubFilterDropdown();
   scheduleEventsReload();
+};
+
+// --- Club filter instance ---
+const clubFilter = createMultiSelectFilter({
+  triggerId:     'clubFilterTrigger',
+  dropdownId:    'clubFilterDropdown',
+  listId:        'clubFilterList',
+  searchId:      'clubFilterSearch',
+  footerId:      'clubFilterFooter',
+  clearBtnId:    'clubFilterClear',
+  avatarsId:     'clubFilterAvatars',
+  placeholderId: 'clubFilterPlaceholder',
+  limit:         CLUB_FILTER_LIMIT,
+  placeholder:   'All clubs',
+  noun:          'club',
+  showAvatars:   true,
+  hideWhenEmpty: false,
+  getItems:    () => allClubs.map(c => ({ id: String(c.id), label: c.name, logo: c.logo || null })),
+  getSelected: () => filterState.selectedClubs,
+  setSelected: (ids) => { filterState.selectedClubs = ids; },
+  isItemCompatible: (item) => {
+    if (filterState.selectedSportTypes.length === 0) return true;
+    const club = allClubsById.get(item.id);
+    return !!club && filterState.selectedSportTypes.includes((club.sport_type || '').toLowerCase());
+  },
+  onAfterToggle: _onAfterFilterToggle,
+  // Intentionally leaves the filter panel open so the user can immediately
+  // make a new selection (old inline code closed the panel on clear).
+  onClear: () => {
+    saveFilterState();
+    updateClearFiltersButton();
+    updateFilterCount();
+    scheduleEventsReload();
+  },
+});
+
+// --- Sport type filter instance ---
+const sportTypeFilter = createMultiSelectFilter({
+  triggerId:     'sportTypeFilterTrigger',
+  dropdownId:    'sportTypeFilterDropdown',
+  listId:        'sportTypeFilterList',
+  searchId:      'sportTypeFilterSearch',
+  footerId:      'sportTypeFilterFooter',
+  clearBtnId:    'sportTypeFilterClear',
+  avatarsId:     'sportTypeFilterAvatars',
+  placeholderId: 'sportTypeFilterPlaceholder',
+  limit:         CLUB_FILTER_LIMIT,
+  placeholder:   'All sports',
+  noun:          'sport',
+  showAvatars:   false,
+  hideWhenEmpty: true,
+  // Return only sport types present in the user's actual clubs.
+  // hideWhenEmpty:true keeps the group hidden until clubs load (seen.size === 0).
+  getItems: () => {
+    const seen = new Map();
+    for (const c of allClubs) {
+      if (c.sport_type && !seen.has(c.sport_type))
+        seen.set(c.sport_type, c.localized_sport_type || SPORT_TYPE_LABELS[c.sport_type] || c.sport_type);
+    }
+    return [...seen.entries()].map(([id, label]) => ({ id, label }));
+  },
+  getSelected: () => filterState.selectedSportTypes,
+  setSelected: (ids) => { filterState.selectedSportTypes = ids; },
+  onAfterToggle: () => { _onAfterFilterToggle(); refreshClubsDropdownIfOpen(); },
+  // Intentionally leaves the filter panel open so the user can immediately
+  // make a new selection (old inline code closed the panel on clear).
+  onClear: () => {
+    saveFilterState();
+    updateClearFiltersButton();
+    updateFilterCount();
+    refreshClubsDropdownIfOpen();
+    scheduleEventsReload();
+  },
+});
+
+// Refresh the clubs dropdown in-place when sport type selection changes (so grey-out updates immediately)
+function refreshClubsDropdownIfOpen() {
+  const dd = document.getElementById('clubFilterDropdown');
+  if (dd && dd.style.display !== 'none') clubFilter.renderDropdown();
 }
 
 // Single DOMContentLoaded handler for all initialization.
@@ -828,8 +1039,14 @@ document.addEventListener('DOMContentLoaded', async function () {
     toggleFiltersBtn.setAttribute('aria-expanded', !isVisible);
   });
 
-  // Close filter panel when clicking outside it (but not on the toggle button itself)
+  // Close filter panel when clicking outside it (but not on the toggle button itself).
+  // If a dropdown was just dismissed on this same click, keep the panel open so the
+  // user doesn't have to reopen it just to make another selection.
   document.addEventListener('click', (e) => {
+    if (_dropdownClosedOnThisClick) {
+      _dropdownClosedOnThisClick = false;
+      return;
+    }
     if (
       eventFilters.classList.contains('is-open') &&
       !eventFilters.contains(e.target) &&

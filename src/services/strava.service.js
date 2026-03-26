@@ -384,15 +384,22 @@ async function getClubEvents(accessToken, club, userId, options = {}) {
  * @param {string} userId - The user ID for caching
  * @param {Object} [options] - Additional options
  * @param {string[]} [options.filterClubIds] - When provided, only fetch events for these club IDs
+ * @param {string[]} [options.filterSportTypes] - When provided, only fetch events for clubs matching these sport types (lowercase)
  * @returns {Promise<{events: Array, clubs: Array, meta: Object}>} - All prepared events, full clubs list, and metadata
  */
-async function getAllUserClubsEvents(accessToken, userId, { filterClubIds } = {}) {
+async function getAllUserClubsEvents(accessToken, userId, { filterClubIds, filterSportTypes } = {}) {
   const allClubs = await getUserClubs(accessToken, userId);
 
+  const hasClubFilter  = filterClubIds   && filterClubIds.length > 0;
+  const hasSportFilter = filterSportTypes && filterSportTypes.length > 0;
+
   let clubsToProcess;
-  if (filterClubIds && filterClubIds.length > 0) {
-    const idSet = new Set(filterClubIds.map(String));
-    clubsToProcess = allClubs.filter(c => idSet.has(String(c.id)));
+  if (hasClubFilter || hasSportFilter) {
+    clubsToProcess = allClubs.filter(c => {
+      const clubIdMatch = !hasClubFilter  || filterClubIds.includes(String(c.id));
+      const sportMatch  = !hasSportFilter || filterSportTypes.includes((c.sport_type || '').toLowerCase());
+      return clubIdMatch && sportMatch;
+    });
   } else {
     clubsToProcess = allClubs.slice(0, LIMIT_CLUBS);
   }
@@ -432,11 +439,17 @@ async function getAllUserClubsEvents(accessToken, userId, { filterClubIds } = {}
 
   return {
     events: allEvents,
-    clubs: allClubs.map(c => ({ id: c.id, name: c.name, logo: c.profile_medium || '' })),
+    clubs: allClubs.map(c => ({
+      id: c.id,
+      name: c.name,
+      logo: c.profile_medium || '',
+      sport_type: c.sport_type || '',
+      localized_sport_type: c.localized_sport_type || ''
+    })),
     meta: {
       clubs_total: allClubs.length,
       clubs_processed: clubsToProcess.length,
-      clubs_limited: filterClubIds?.length > 0 ? false : allClubs.length > LIMIT_CLUBS,
+      clubs_limited: (hasClubFilter || hasSportFilter) ? false : allClubs.length > LIMIT_CLUBS,
       clubs_fetch_limited: allClubs.length >= LIMIT_CLUBS_FETCH,
       events_total: allEvents.length,
       events_limited: eventsLimited,
