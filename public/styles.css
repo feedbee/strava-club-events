@@ -134,43 +134,50 @@ h1 .title-icon {
   font-family: 'Inter', sans-serif;
 }
 
-/* Tooltip styling for calendar events (uses data-tooltip to avoid native browser tooltip) */
-.fc-event[data-tooltip] {
-  position: relative;
-  cursor: help;
-}
-
-.fc-event[data-tooltip]:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  left: 50%;
-  bottom: 100%;
-  transform: translateX(-50%);
+/* Shared JS-driven tooltip (position: fixed escapes all overflow:hidden ancestors) */
+#fc-tooltip {
+  display: none;
+  position: fixed;
   background: rgba(0, 0, 0, 0.85);
   color: white;
   padding: 8px 12px;
   border-radius: 6px;
-  font-size: 0.9em;
+  font-size: 0.75em;
   white-space: pre-line;
-  z-index: 1000;
+  z-index: 9999;
   min-width: 200px;
   max-width: 300px;
   pointer-events: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   line-height: 1.5;
-  margin-bottom: 8px;
 }
 
-.fc-event[data-tooltip]:hover::before {
+#fc-tooltip.visible {
+  display: block;
+}
+
+/* Arrow pointing down (tooltip is above the event) — default */
+#fc-tooltip::after {
   content: '';
   position: absolute;
   left: 50%;
-  bottom: calc(100% - 1px);
+  top: 100%;
   transform: translateX(-50%);
   border-width: 6px 6px 0;
   border-style: solid;
   border-color: rgba(0, 0, 0, 0.85) transparent transparent;
-  z-index: 1001;
+}
+
+/* Arrow pointing up (tooltip is below the event, flipped) */
+#fc-tooltip.flipped::after {
+  top: auto;
+  bottom: 100%;
+  border-width: 0 6px 6px;
+  border-color: transparent transparent rgba(0, 0, 0, 0.85);
+}
+
+.fc-event[data-tooltip] {
+  cursor: help;
 }
 
 /* Club logo styling */

@@ -199,6 +199,14 @@ function buildCalendar(events) {
   // Transform filtered events for FullCalendar
   const calendarEvents = transformEventsForCalendar(events);
 
+  // Create shared tooltip element once — reused by all events
+  let tooltipEl = document.getElementById('fc-tooltip');
+  if (!tooltipEl) {
+    tooltipEl = document.createElement('div');
+    tooltipEl.id = 'fc-tooltip';
+    document.body.appendChild(tooltipEl);
+  }
+
   calendarInstance = new FullCalendar.Calendar(calendarElement, {
     initialView: "dayGridMonth",
     firstDay: 1, // Monday
@@ -331,7 +339,38 @@ function buildCalendar(events) {
       
       // Set tooltip via data-tooltip (not title, to avoid native browser tooltip)
       info.el.setAttribute('data-tooltip', tooltipContent);
-      
+
+      // Wire up JS tooltip using position:fixed so it escapes overflow:hidden ancestors
+      info.el.addEventListener('mouseenter', function() {
+        const rect = info.el.getBoundingClientRect();
+        tooltipEl.textContent = info.el.getAttribute('data-tooltip');
+        tooltipEl.classList.add('visible');
+
+        const tooltipWidth = tooltipEl.offsetWidth;
+        const tooltipHeight = tooltipEl.offsetHeight;
+        const ARROW_HEIGHT = 8;
+
+        let left = rect.left + rect.width / 2 - tooltipWidth / 2;
+        let top = rect.top - tooltipHeight - ARROW_HEIGHT;
+
+        // Clamp horizontally within viewport
+        left = Math.max(8, Math.min(left, window.innerWidth - tooltipWidth - 8));
+        // Flip below if not enough space above; arrow flips too
+        if (top < 8) {
+          top = rect.bottom + ARROW_HEIGHT;
+          tooltipEl.classList.add('flipped');
+        } else {
+          tooltipEl.classList.remove('flipped');
+        }
+
+        tooltipEl.style.left = left + 'px';
+        tooltipEl.style.top = top + 'px';
+      });
+
+      info.el.addEventListener('mouseleave', function() {
+        tooltipEl.classList.remove('visible', 'flipped');
+      });
+
       // Create custom event content with club logo
       const titleEl = info.el.querySelector('.fc-event-title');
       if (titleEl) {
