@@ -329,8 +329,7 @@ function buildCalendar(events) {
         tooltipContent += '\n\n✅ You decided to join the event! 🎉';
       }
       
-      // Set the tooltip content
-      info.el.title = tooltipContent;
+      // Set tooltip via data-tooltip (not title, to avoid native browser tooltip)
       info.el.setAttribute('data-tooltip', tooltipContent);
       
       // Create custom event content with club logo
