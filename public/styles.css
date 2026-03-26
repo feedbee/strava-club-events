@@ -515,6 +515,13 @@ h1 .title-icon {
   border: none !important;
 }
 
+/* Equalize month-view row heights so they don't jump when events change.
+   FullCalendar sets the table to a fixed height (via inline style), so percentage
+   heights on tr resolve correctly. fixedWeekCount:true (default) = always 6 rows. */
+.fc-daygrid-body tr {
+  height: 16.6667%;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   body {
