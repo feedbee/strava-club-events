@@ -1,6 +1,6 @@
 # Strava Club Events Calendar
 
-A modern web application that connects to Strava, fetches upcoming club events for the next 30 days, and displays them in an interactive calendar view with enhanced UI/UX.
+A modern web application that connects to Strava, fetches upcoming club events for the next 30 days, and displays them in an interactive calendar or list view with enhanced UI/UX.
 
 ### ✨ Features
 - **Secure Authentication** - Robust OAuth2 implementation with Strava
@@ -15,14 +15,19 @@ A modern web application that connects to Strava, fetches upcoming club events f
   - Displays detailed event information
   - **Smart Filtering System**
     - Filter events by join status (show only joined events)
+    - Filter by club (multi-select picker with search and logos, up to 10 clubs)
+    - Filter by sport type (Cycling, Running, Triathlon, etc.)
     - Active filter counter shows number of applied filters
     - One-click filter reset
     - Persistent filter preferences across sessions
 
-- **Beautiful Calendar UI** - Built with FullCalendar featuring:
+- **Two View Modes**
+  - **Calendar view** — Built with FullCalendar, with Month, Week, and Day options
+  - **List view** — Chronological feed grouped by date with sticky headers; click any row to expand Club / Event / Route details
+
+- **Beautiful UI** featuring:
   - Clean, modern interface with smooth loading states
-  - Navigation bar that appears after calendar loads for a cleaner initial experience
-  - Multiple view options: Month, Week, and Day views
+  - Navigation bar that appears after events load for a cleaner initial experience
   - Club logos displayed next to each event
   - Responsive design that works on all devices
   - Rich event tooltips with:
@@ -33,8 +38,12 @@ A modern web application that connects to Strava, fetches upcoming club events f
     - Elevation range
   - Click to open events in Strava (new tab)
   - Right-click to copy event URL to clipboard
-  - Clean, modern interface with Inter font and custom styling
   - Support for various activity types with appropriate icons
+
+- **API Limits Transparency**
+  - Stats summary in the navigation bar (total clubs / events)
+  - Contextual warning strip when limits are hit, linking to `/limits`
+  - Dedicated `/limits` page with plain-language explanations
 
 - **Developer Friendly**
   - Docker and Docker Compose support
@@ -205,7 +214,14 @@ The server expects `http://localhost:PORT/callback` (default: `http://localhost:
 #### Events
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/events` | GET | Returns JSON of upcoming club events (next 30 days) |
+| `/events` | GET | Returns `{ events, clubs, meta }` for upcoming club events (next 30 days) |
+| `/events?clubs=id1,id2` | GET | Filter to up to 10 specific clubs |
+| `/events?sportTypes=cycling` | GET | Filter by sport type (case-insensitive) |
+
+#### Limits
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/limits` | GET | Returns application limit constants (no authentication required) |
 
 ### Code Organization
 - **Routes** are defined in `src/routes/`
@@ -214,30 +230,41 @@ The server expects `http://localhost:PORT/callback` (default: `http://localhost:
 - **Configuration** in `src/config/`
 - **Static files** served from `public/`
 
-#### Example Event Response
+#### Example `/events` Response
 ```json
-[
-  {
-    "id": 456,
-    "title": "Morning Ride",
-    "start_date": "2025-10-15T09:00:00Z",
-    "strava_event_url": "https://www.strava.com/clubs/123/group_events/456",
-    "club_info": {
-      "name": "Cycling Club",
-      "logo": "https://dgalywyr863hv.cloudfront.net/pictures/clubs/123/medium.jpg"
-    },
-    "route_info": {
-      "name": "City Loop",
-      "distance": "42.5 km",
-      "elevation_gain": "520m",
-      "activity_type": "Ride / Road",
-      "estimated_moving_time": "2h 10m",
-      "max_slope": "8%",
-      "elevation_high": "320m",
-      "elevation_low": "40m"
+{
+  "events": [
+    {
+      "id": "456",
+      "title": "Morning Ride",
+      "start": "2026-04-01T09:00:00Z",
+      "end": "2026-04-01T11:00:00Z",
+      "url": "https://www.strava.com/clubs/123/group_events/456",
+      "club": { "id": 123, "name": "Cycling Club" },
+      "recurring": false
     }
+  ],
+  "clubs": [
+    {
+      "id": 123,
+      "name": "Cycling Club",
+      "logo": "https://...",
+      "sport_type": "cycling",
+      "localized_sport_type": "Cycling"
+    }
+  ],
+  "meta": {
+    "clubs_total": 50,
+    "clubs_processed": 25,
+    "clubs_limited": true,
+    "clubs_fetch_limited": false,
+    "events_total": 142,
+    "events_limited": false,
+    "routes_fetched": 18,
+    "routes_skipped": 3,
+    "limits": { "clubs": 25, "clubs_fetch": 200, "events_per_club": 100, "routes": 20 }
   }
-]
+}
 ```
 
 ### 📁 Project Structure
@@ -248,6 +275,7 @@ strava-events-calendar/
 ├── public/            # Static frontend assets
 │   ├── index.html     # Main application UI
 │   ├── index.js       # Frontend JavaScript
+│   ├── limits.html    # API limits explanation page
 │   └── styles.css     # Global styles
 ├── src/               # Backend source code
 │   ├── config/        # Application configuration
@@ -258,6 +286,7 @@ strava-events-calendar/
 │   └── utils/         # Helper functions
 │   ├── app.js         # Express app configuration
 │   ├── server.js      # HTTP server bootstrap
+├── scripts/           # Utility scripts
 ├── .env.local         # Local environment variables
 ├── Dockerfile         # Production container setup
 └── docker-compose.yml # Local development stack
@@ -265,14 +294,11 @@ strava-events-calendar/
 
 ### ⚠️ Limitations
 
-This is a development-focused application with the following considerations:
-- **API Limitations**
-  - Only the first 25 clubs returned by the Strava API are displayed
-  - A maximum of 100 upcoming events per club are fetched
-  - Only the first 20 routes' details are requested for each event
-- **UI/UX**
-  - Limited error handling in the UI
-  - Mobile UI is not optimized
+- **API Limits** (visible in-app at `/limits`)
+  - Up to 25 clubs are processed for events by default — use the club filter to access specific clubs beyond this cap
+  - Up to 200 clubs are fetched from Strava for the filter picker
+  - Up to 100 upcoming events are fetched per club
+  - Up to 20 route detail requests are made per page load; remaining events show basic info
 
 ### 📜 License
 

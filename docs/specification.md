@@ -1,6 +1,6 @@
 # Strava Club Events Calendar — Technical Specification
 
-*Last Updated: September 24, 2025 (v0.5.0)*
+*Last Updated: March 28, 2026 (v0.7.0)*
 
 ## 1. Overview
 
@@ -23,9 +23,23 @@ Build a modern web application that provides Strava users with a clean, interact
 - **Filtering System**
   - Dynamic filter state management
   - Filter by event join status
+  - Filter by club (multi-select picker with logos and search, up to 10 clubs per request)
+  - Filter by sport type (Cycling, Running, Triathlon, etc.); combined with club filter via AND logic
+  - Query parameters: `?clubs=id1,id2` and `?sportTypes=cycling,running`
   - Active filter counter
   - Persistent filter preferences using localStorage
   - One-click filter reset
+
+- **Views**
+  - Calendar view (FullCalendar month/week/day)
+  - Events list view: vertical chronological feed grouped by date with sticky headers, expandable accordion per event (Club / Event / Route sections with Strava links)
+  - View mode toggled from navigation bar; preference persisted in localStorage
+
+- **API Limits and Transparency**
+  - Public `GET /limits` endpoint (no authentication required) exposing limit constants
+  - `GET /events` response restructured from plain array to `{ events, clubs, meta }` object
+  - Stats summary in navigation bar; contextual warning strip links to `/limits`
+  - Dedicated `/limits.html` page with plain-language explanations
 
 - **Caching**
   - In-memory and MongoDB cache drivers
@@ -59,15 +73,20 @@ Build a modern web application that provides Strava users with a clean, interact
                     │  └───────────┘                      │
                     └─────────────────────────────────────┘
 
-### 2.3 API Limitations
-Due to performance and Strava API rate limiting considerations, the following limitations are in place:
-
-- **Clubs**: Only the first 25 clubs returned by the Strava API are displayed
-- **Events**: A maximum of 100 upcoming events per club are fetched
-- **Routes**: Only the first 20 routes' details are requested for each user
-
-These limits help ensure a responsive user experience while staying within API rate limits. If you need to adjust these values, they can be modified in the `strava.service.js` configuration.
 ```
+
+### 2.3 API Limits
+
+Due to performance and Strava API rate limiting considerations, the following limits are enforced:
+
+| Constant | Value | Description |
+|---|---|---|
+| `LIMIT_CLUBS` | 25 | Clubs processed for events per default request |
+| `LIMIT_CLUBS_FETCH` | 200 | Max clubs fetched from Strava (all stored for filter picker) |
+| `LIMIT_EVENTS` | 100 | Upcoming events fetched per club |
+| `LIMIT_ROUTES` | 20 | Route detail API requests per page load (cache hits not counted) |
+
+The `LIMIT_CLUBS` cap is bypassed when using the club filter (`?clubs=`) or sport type filter (`?sportTypes=`). The club filter accepts up to 10 IDs per request. These values can be modified in `src/services/strava.service.js`.
 
 ### 2.2 Technology Stack
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
@@ -109,14 +128,15 @@ These limits help ensure a responsive user experience while staying within API r
    - Token is stored in server-side session
    - User is redirected to the main calendar view
 
-### 4.2 Calendar Interaction
+### 4.2 Main View Interaction
 1. **Initial Load**
    - Frontend fetches events via `GET /events`
    - Shows loading state while fetching
    - Navigation bar is hidden during initial load for cleaner UI
    - Applies any saved filter preferences from localStorage
-   - Renders events in FullCalendar month view
-   - Shows navigation bar once calendar is fully loaded
+   - Applies saved view mode preference (calendar vs. list) from localStorage
+   - Renders events in the selected view (calendar month view or list view)
+   - Shows navigation bar once events are fully loaded
 
 2. **Event Interaction**
    - **Left Click**: Opens event in Strava (new tab)
@@ -126,8 +146,15 @@ These limits help ensure a responsive user experience while staying within API r
    - **Filter Application**: Filters update the view in real-time
    - **Filter Reset**: One-click button to reset all filters to defaults
 
-3. **Navigation**
-   - Month/Week/Day view toggles
+3. **List View**
+   - Events displayed as a chronological feed grouped by date with sticky date headers
+   - Each row shows: time, club name, joined badge, emoji, event title, route stats
+   - Click row to expand accordion with Club / Event / Route sections (each with a Strava link)
+   - Empty state message shown when no events match active filters
+   - No additional API requests — reuses the same 30-day `GET /events` response
+
+4. **Navigation**
+   - Month/Week/Day view toggles (calendar mode)
    - Previous/Next navigation
    - "Today" button to return to current date
 
@@ -145,6 +172,11 @@ These limits help ensure a responsive user experience while staying within API r
     - `GET /callback`: Handle OAuth callback and token exchange
   - **Events**
     - `GET /events`: Fetch filtered club events (next 30 days)
+    - `GET /events?clubs=id1,id2`: Filter events to up to 10 specific clubs
+    - `GET /events?sportTypes=cycling,running`: Filter events by club sport category
+  - **Limits**
+    - `GET /limits`: Return application limit constants (no authentication required)
+    - `GET /limits.html`: Static page with plain-language limit explanations
   - **Static Files**
     - `GET /`: Serve static frontend
     - `GET /index.html`: Serve frontend HTML
@@ -163,6 +195,7 @@ These limits help ensure a responsive user experience while staying within API r
 - **User Interface**
   - Responsive calendar view (FullCalendar 6.1.8)
   - Multiple view options: Month, Week, and Day
+  - Events list view as an alternative to the calendar, toggled via nav bar
   - Club logos displayed next to each event in the calendar titles
   - Rich event tooltips with:
     - Event title and club information
@@ -170,6 +203,9 @@ These limits help ensure a responsive user experience while staying within API r
     - Estimated moving time
     - Max slope percentage
     - Elevation range
+  - Club multi-select filter picker with search, logos, and up to 10 selections
+  - Sport type filter
+  - API limits warning strip in navigation bar with link to `/limits`
   - Interactive event actions (open in Strava, copy URL)
   - Loading and error states
   - Intuitive view switching controls
@@ -183,7 +219,6 @@ These limits help ensure a responsive user experience while staying within API r
 ### 5.2 Out of Scope (Future Enhancements)
 - User management and admin interface
 - Event creation/editing
-- Advanced filtering and search
 - Offline support
 - Push notifications
 - Mobile app version
@@ -233,30 +268,75 @@ These limits help ensure a responsive user experience while staying within API r
   - 302 Redirect to `/` after successful token exchange, or 302 redirect to the provided dev callback URL when forwarding is used
 
 #### GET /events
-- **Description**: Returns filtered club events
+- **Description**: Returns filtered club events for the next 30 days
 - **Authentication**: Requires valid session
+- **Query Parameters**:
+  - `clubs` (optional): Comma-separated numeric club IDs (max 10). Example: `?clubs=123,456`
+  - `sportTypes` (optional): Comma-separated sport type slugs, case-insensitive. Example: `?sportTypes=cycling,running`
 - **Response**:
-  - 200: JSON array of events
+  - 200: JSON object (see structure below)
+  - 400: Bad request (e.g., non-numeric club IDs, more than 10 clubs)
   - 401: Unauthorized (missing/invalid session)
   - 500: Server error
 
 **Example Response:**
 ```json
-[
-  {
-    "id": "123",
-    "title": "Morning Ride",
-    "start": "2023-10-15T09:00:00Z",
-    "end": "2023-10-15T11:00:00Z",
-    "url": "https://www.strava.com/clubs/123/group_events/456",
-    "club": {
+{
+  "events": [
+    {
+      "id": "456",
+      "title": "Morning Ride",
+      "start": "2026-04-01T09:00:00Z",
+      "end": "2026-04-01T11:00:00Z",
+      "url": "https://www.strava.com/clubs/123/group_events/456",
+      "club": { "id": 123, "name": "Cycling Club" },
+      "description": "Join us for a morning ride through the hills.",
+      "location": "Central Park, NY",
+      "recurring": false
+    }
+  ],
+  "clubs": [
+    {
       "id": 123,
-      "name": "Cycling Club"
-    },
-    "description": "Join us for a morning ride through the hills.",
-    "location": "Central Park, NY"
+      "name": "Cycling Club",
+      "logo": "https://...",
+      "sport_type": "cycling",
+      "localized_sport_type": "Cycling"
+    }
+  ],
+  "meta": {
+    "clubs_total": 50,
+    "clubs_processed": 25,
+    "clubs_limited": true,
+    "clubs_fetch_limited": false,
+    "events_total": 142,
+    "events_limited": false,
+    "routes_fetched": 18,
+    "routes_skipped": 3,
+    "limits": {
+      "clubs": 25,
+      "clubs_fetch": 200,
+      "events_per_club": 100,
+      "routes": 20
+    }
   }
-]
+}
+```
+
+#### GET /limits
+- **Description**: Returns the application's current limit constants
+- **Authentication**: None required (public endpoint)
+- **Response**:
+  - 200: JSON object
+
+**Example Response:**
+```json
+{
+  "clubs": 25,
+  "clubs_fetch": 200,
+  "events_per_club": 100,
+  "routes": 20
+}
 ```
 
 ## 7. Data Models
@@ -288,24 +368,68 @@ interface Event {
 }
 ```
 
+### 7.3 Club
+```typescript
+interface Club {
+  id: number;
+  name: string;
+  logo: string;                    // URL to club profile image
+  sport_type: string;              // e.g. "cycling", "running"
+  localized_sport_type: string;    // e.g. "Cycling", "Running"
+}
+```
+
+### 7.4 EventsResponse
+```typescript
+interface EventsResponse {
+  events: Event[];
+  clubs: Club[];
+  meta: {
+    clubs_total: number;
+    clubs_processed: number;
+    clubs_limited: boolean;
+    clubs_fetch_limited: boolean;
+    events_total: number;
+    events_limited: boolean;
+    routes_fetched: number;
+    routes_skipped: number;
+    limits: {
+      clubs: number;
+      clubs_fetch: number;
+      events_per_club: number;
+      routes: number;
+    };
+  };
+}
+```
+
 ## 8. User Interface
 
-### 8.1 Layout
+### 8.1 Layout and Views
 1. **Header**
    - Application title
    - Login/Logout button
    - Current date indicator
 
 2. **Main Content**
-   - Calendar view (default: month)
+   - Calendar view (default: month) or list view, toggled via navigation bar
+   - List view: chronological event feed with sticky date headers, expandable accordion rows (Club / Event / Route sections)
    - Loading indicator during data fetch
-   - Empty state when no events
+   - Empty state when no events match filters
 
 3. **Event Display**
    - Event title
    - Time (formatted in user's locale)
    - Club name
    - Visual indicators for event type
+
+4. **Navigation Bar Controls**
+   - View mode switcher (Calendar / List), persisted in localStorage
+   - Filter panel toggle with active-filter counter badge
+   - Club multi-select picker with search
+   - Sport type filter
+   - Stats summary (total clubs / events counts)
+   - Contextual warning strip when limits are exceeded (links to `/limits`)
 
 ## 9. Configuration
 
@@ -478,6 +602,10 @@ interface Event {
 - [x] Events are displayed in correct timezone
 - [x] Clicking events opens them in Strava
 - [x] Right-click copies event URL
+- [x] User can filter events by specific clubs (multi-select picker, up to 10)
+- [x] User can filter events by sport type
+- [x] User can toggle between calendar and list view
+- [x] Application limits are visible in nav bar and explained at `/limits`
 
 ### 19.2 Non-Functional Requirements
 - [x] Responsive design
@@ -498,14 +626,15 @@ interface Event {
 - [x] Improved error handling
 - [x] Advanced filtation (by joined)
 - [x] Show recurring events correct way
-- [ ] Implement pagination for clubs and events
-- [ ] Implement too many events for a given user protection (request too many routes from Strava)
-- [ ] Better mobile experience
+- [X] Introduce limits of processed clubs
+- [X] Implement too many events for a given user protection (request too many routes from Strava)
+- [X] Better mobile experience
 - [x] Better session management with configurable backends
 - [x] Token encryption at rest
 
 ### 20.2 Medium Priority
-- [ ] Advanced filtering (by clubs)
+- [X] Advanced filtering (by clubs)
+- [X] Advanced filtering (by sport type)
 - [ ] Multi-language support
 - [ ] Rate limiting
 
@@ -516,22 +645,37 @@ interface Event {
 - [ ] Dark mode
 - [ ] Periodically refresh user information in the session
 
-## 20. Appendix
+## 21. Appendix
 
-### 20.1 Dependencies
+### 21.1 Dependencies
 - Node.js 18+
 - Express.js
 - FullCalendar
 - Docker
 
-### 20.2 Resources
+### 21.2 Resources
 - [Strava API Documentation](https://developers.strava.com/)
 - [FullCalendar Documentation](https://fullcalendar.io/docs)
 - [Express.js Guide](https://expressjs.com/)
 
-### 20.3 Changelog
+### 21.3 Changelog
 
-#### v1.0.0 (2025-09-13)
+#### v0.7.0 (2026-03-28)
+- Events list view: chronological feed with sticky date headers, expandable accordion details
+- Sport type filter (AND logic with club filter)
+- Club multi-select filter (up to 10 clubs per request, with search picker)
+- `GET /events` response restructured from array to `{ events, clubs, meta }` object
+- Bug fixes: week view rendering, calendar cell heights, tooltip positioning, filter badge alignment
+
+#### v0.6.0 (2026-03-10)
+- API limits transparency: `GET /limits` public endpoint, stats in nav bar, `/limits.html` page
+- `meta` object added to `GET /events` response (`clubs_total`, `events_limited`, `routes_skipped`, etc.)
+
+#### v0.5.0 (2025-09-24)
+- Sessions in MongoDB and optional token encryption at rest (AES-256-CBC)
+- Configurable session TTL and cookie settings
+
+#### v0.1.0 (2025-09-13)
 - Initial release
 - Basic calendar functionality
 - OAuth2 authentication
