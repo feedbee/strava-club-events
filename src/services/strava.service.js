@@ -323,6 +323,7 @@ function getSkillLevelLabel(skillLevel) {
  */
 function createRouteInfo(routeDetails) {
   return {
+    id: routeDetails.id || null,
     name: routeDetails.name || 'Route is not attached',
     is_full: routeDetails.resource_state == 3,
     distance: routeDetails.distance ? `${(routeDetails.distance / 1000).toFixed(1)} km` : 'N/A',
@@ -344,6 +345,7 @@ function getBasicRouteInfo(event) {
   // The route embedded in an event is always state 1 (id, name, map, map_urls only).
   // distance, elevation_gain and other metrics are absent at state 1, so they are N/A.
   return {
+    id: event.route?.id || null,
     name: event.route?.name || 'Route is not attached',
     is_full: false,
     distance: 'N/A',

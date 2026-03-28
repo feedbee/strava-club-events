@@ -3,6 +3,8 @@ let allEvents = [];
 let allClubs = [];
 let allClubsById = new Map(); // id (string) → club object — rebuilt whenever allClubs changes
 let eventsMeta = null;
+let listViewEvents = [];    // raw events in sorted order for accordion index lookup
+let lvExpandedIndex = null; // index of currently expanded card (null = none)
 
 const CLUB_FILTER_LIMIT = 10; // max clubs selectable in the per-club filter
 
@@ -408,16 +410,25 @@ function updateCalendarWithFilteredEvents() {
   // Transform filtered events for FullCalendar
   const calendarEvents = transformEventsForCalendar(filteredEvents);
 
-  // Batch all mutations into a single render cycle to prevent intermediate empty-state flash
-  calendarInstance.batchRendering(() => {
-    calendarInstance.getEventSources().forEach(source => source.remove());
-    if (calendarEvents.length > 0) {
-      calendarInstance.addEventSource(calendarEvents);
-    }
-  });
+  // Only update FullCalendar when it's visible — rendering on a hidden element
+  // corrupts its internal layout. The calendar will be synced in setViewMode
+  // when the user switches back.
+  if (filterState.viewMode !== 'list') {
+    calendarInstance.batchRendering(() => {
+      calendarInstance.getEventSources().forEach(source => source.remove());
+      if (calendarEvents.length > 0) {
+        calendarInstance.addEventSource(calendarEvents);
+      }
+    });
+  }
 
   // Update stats to reflect filtered count
   displayEventsMeta(eventsMeta, filteredEvents.length);
+
+  // Keep list view in sync when filters change
+  if (filterState.viewMode === 'list') {
+    renderListView(filteredEvents);
+  }
 }
 
 // Show the calendar
@@ -428,6 +439,242 @@ function showCalendar() {
 // Hide the calendar
 function hideCalendar() {
   calendarElement.style.display = "none";
+}
+
+
+// -- List View --
+
+function formatListViewTime(isoString) {
+  return new Date(isoString).toLocaleTimeString('en-US', {
+    hour: 'numeric', minute: '2-digit', hour12: true,
+  });
+}
+
+function formatListViewDateHeader(dateKey) {
+  // Append T00:00:00 to parse as local time and avoid UTC offset issues
+  return new Date(dateKey + 'T00:00:00').toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric',
+  });
+}
+
+function getTodayDateKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function getActivityEmoji(routeInfo) {
+  if (!routeInfo) return '🎯';
+  const t = (routeInfo.activity_type || '').toLowerCase();
+  if (t.includes('run'))                           return '🏃';
+  if (t.includes('ride') || t.includes('cycling')) return '🚴';
+  if (t.includes('walk'))                          return '🚶';
+  if (t.includes('hike'))                          return '🥾';
+  if (t.includes('swim'))                          return '🏊';
+  return '🎯';
+}
+
+function buildListCardHtml(event, index) {
+  const time     = formatListViewTime(event.start_date);
+  const clubName = escapeHtml(event.club_info?.name || '');
+  const clubLogo = event.club_info?.logo
+    ? `<img src="${escapeHtml(event.club_info.logo)}" class="lv-club-logo-sm" alt="">`
+    : '';
+  const joined = event.joined
+    ? `<span class="lv-joined-badge">✓ Joined</span>` : '';
+  const emoji  = getActivityEmoji(event.route_info);
+  const title  = escapeHtml(event.title);
+
+  let statsHtml = '';
+  const r = event.route_info;
+  if (r && (r.distance !== 'N/A' || r.elevation_gain !== 'N/A' || r.estimated_moving_time !== 'N/A')) {
+    const parts = [];
+    if (r.distance !== 'N/A')              parts.push(`<span class="lv-stat">📏 ${escapeHtml(r.distance)}</span>`);
+    if (r.elevation_gain !== 'N/A')        parts.push(`<span class="lv-stat">🏔️ ${escapeHtml(r.elevation_gain)}</span>`);
+    if (r.estimated_moving_time !== 'N/A') parts.push(`<span class="lv-stat">⏱️ ${escapeHtml(r.estimated_moving_time)}</span>`);
+    statsHtml = `<div class="lv-stats-row">${parts.join('')}</div>`;
+  }
+
+  return `
+    <div class="lv-event-card" data-lv-index="${index}" role="button" tabindex="0" aria-expanded="false">
+      <div class="lv-time">${time}</div>
+      <div class="lv-club-name">${clubLogo}${clubName}${joined}</div>
+      <div class="lv-event-title">${emoji} ${title}</div>
+      ${statsHtml}
+    </div>`;
+}
+
+function buildListDetailPanelHtml(event) {
+  // --- Club section ---
+  const clubId  = event.club_info?.id;
+  const clubUrl = clubId ? `https://www.strava.com/clubs/${clubId}` : null;
+  const logo    = event.club_info?.logo;
+  const logoHtml = logo
+    ? `<div class="lv-club-logo-md"><img src="${escapeHtml(logo)}" alt=""></div>`
+    : `<div class="lv-club-logo-md">${escapeHtml((event.club_info?.name || '').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase())}</div>`;
+  const clubNameHtml = clubUrl
+    ? `<a href="${escapeHtml(clubUrl)}" target="_blank" rel="noopener" class="lv-detail-link">${escapeHtml(event.club_info?.name || '')}</a>`
+    : `<span>${escapeHtml(event.club_info?.name || '')}</span>`;
+  const clubSection = `
+    <div class="lv-detail-section">
+      <div class="lv-section-title">Club</div>
+      <div class="lv-club-row">${logoHtml}${clubNameHtml}</div>
+    </div>`;
+
+  // --- Event section ---
+  const when = new Date(event.start_date).toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric',
+    hour: 'numeric', minute: '2-digit', hour12: true,
+  });
+  let eventRows = `<div class="lv-detail-row"><span class="lv-detail-row-label">When</span>${escapeHtml(when)}</div>`;
+  if (event.address)           eventRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Where</span>${escapeHtml(event.address)}</div>`;
+  if (event.terrain_label)     eventRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Terrain</span>${escapeHtml(event.terrain_label)}</div>`;
+  if (event.skill_level_label) eventRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Skill</span>${escapeHtml(event.skill_level_label)}</div>`;
+  if (event.joined)            eventRows += `<div class="lv-detail-joined">✅ You joined this event</div>`;
+  const eventSection = `
+    <div class="lv-detail-section">
+      <div class="lv-section-title">Event</div>
+      <div><a href="${escapeHtml(event.strava_event_url)}" target="_blank" rel="noopener" class="lv-detail-link">${escapeHtml(event.title)}</a></div>
+      ${eventRows}
+    </div>`;
+
+  // --- Route section (only if is_full) ---
+  let routeSection = '';
+  const r = event.route_info;
+  if (r?.is_full) {
+    const routeUrl  = r.id ? `https://www.strava.com/routes/${r.id}` : null;
+    const routeNameHtml = routeUrl
+      ? `<div class="lv-club-row"><span>🗺</span><a href="${escapeHtml(routeUrl)}" target="_blank" rel="noopener" class="lv-detail-link">${escapeHtml(r.name)}</a></div>`
+      : `<div class="lv-club-row"><span>🗺</span><span>${escapeHtml(r.name)}</span></div>`;
+    let routeRows = '';
+    if (r.distance !== 'N/A')              routeRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Distance</span>${escapeHtml(r.distance)}</div>`;
+    if (r.elevation_gain !== 'N/A')        routeRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Elevation</span>${escapeHtml(r.elevation_gain)}↑</div>`;
+    if (r.activity_type)                   routeRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Type</span>${escapeHtml(r.activity_type)}</div>`;
+    if (r.estimated_moving_time !== 'N/A') routeRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Est. time</span>${escapeHtml(r.estimated_moving_time)}</div>`;
+    if (r.max_slope !== 'N/A')             routeRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Max slope</span>${escapeHtml(r.max_slope)}</div>`;
+    if (r.elevation_low !== 'N/A' && r.elevation_high !== 'N/A')
+      routeRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Elevation</span>${escapeHtml(r.elevation_low)} → ${escapeHtml(r.elevation_high)}</div>`;
+    routeSection = `
+      <div class="lv-detail-divider"></div>
+      <div class="lv-detail-section">
+        <div class="lv-section-title">Route</div>
+        ${routeNameHtml}
+        ${routeRows}
+      </div>`;
+  }
+
+  return `<div class="lv-detail-panel">
+    ${clubSection}
+    <div class="lv-detail-divider"></div>
+    ${eventSection}
+    ${routeSection}
+  </div>`;
+}
+
+function collapseListCard() {
+  if (lvExpandedIndex === null) return;
+  const card = document.querySelector(`.lv-event-card[data-lv-index="${lvExpandedIndex}"]`);
+  if (card) {
+    card.classList.remove('lv-expanded');
+    card.setAttribute('aria-expanded', 'false');
+    const panel = card.nextElementSibling;
+    if (panel?.classList.contains('lv-detail-panel')) panel.remove();
+  }
+  lvExpandedIndex = null;
+}
+
+function handleListCardClick(index) {
+  if (index === lvExpandedIndex) { collapseListCard(); return; }
+  collapseListCard();
+  const card  = document.querySelector(`.lv-event-card[data-lv-index="${index}"]`);
+  const event = listViewEvents[index];
+  if (!card || !event) return;
+  card.classList.add('lv-expanded');
+  card.setAttribute('aria-expanded', 'true');
+  card.insertAdjacentHTML('afterend', buildListDetailPanelHtml(event));
+  lvExpandedIndex = index;
+}
+
+function renderListView(events) {
+  const container = document.getElementById('list-view');
+  if (!container) return;
+
+  listViewEvents = [...events].sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
+  lvExpandedIndex = null;
+
+  if (listViewEvents.length === 0) {
+    container.innerHTML = `<div class="lv-empty"><div class="lv-empty-icon">📭</div><div>No upcoming events match your filters.</div></div>`;
+    return;
+  }
+
+  const todayKey = getTodayDateKey();
+  const groups   = new Map();
+  listViewEvents.forEach(ev => {
+    const key = ev.start_date.slice(0, 10);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(ev);
+  });
+
+  let html = '';
+  let idx  = 0;
+  for (const [dateKey, dayEvents] of groups) {
+    const isToday = dateKey === todayKey;
+    html += `<div class="lv-date-header${isToday ? ' lv-today' : ''}">
+      ${isToday ? '<span class="lv-today-pill">Today</span>' : ''}
+      ${escapeHtml(formatListViewDateHeader(dateKey))}
+    </div>
+    <div class="lv-group">`;
+    for (const ev of dayEvents) html += buildListCardHtml(ev, idx++);
+    html += `</div>`;
+  }
+  container.innerHTML = html;
+}
+
+function setupListViewClickHandler() {
+  const container = document.getElementById('list-view');
+  if (!container) return;
+  container.addEventListener('click', (e) => {
+    if (e.target.closest('.lv-detail-panel')) return;
+    const card = e.target.closest('.lv-event-card');
+    if (!card) return;
+    const idx = parseInt(card.dataset.lvIndex, 10);
+    if (!isNaN(idx)) handleListCardClick(idx);
+  });
+  container.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const card = e.target.closest('.lv-event-card');
+    if (!card) return;
+    e.preventDefault();
+    const idx = parseInt(card.dataset.lvIndex, 10);
+    if (!isNaN(idx)) handleListCardClick(idx);
+  });
+}
+
+function setViewMode(mode) {
+  filterState.viewMode = mode;
+  saveFilterState();
+
+  const btnCal  = document.getElementById('btn-calendar-view');
+  const btnList = document.getElementById('btn-list-view');
+  const listEl  = document.getElementById('list-view');
+  const isCal   = mode === 'calendar';
+
+  btnCal.classList.toggle('view-mode-btn--active', isCal);
+  btnCal.setAttribute('aria-pressed', String(isCal));
+  btnList.classList.toggle('view-mode-btn--active', !isCal);
+  btnList.setAttribute('aria-pressed', String(!isCal));
+
+  if (isCal) {
+    showCalendar();
+    listEl.classList.add('hidden');
+    // Force FullCalendar to recalculate dimensions after being shown
+    if (calendarInstance) calendarInstance.updateSize();
+    // Sync calendar with any filter changes made while in list mode
+    if (calendarInstance) updateCalendarWithFilteredEvents();
+  } else {
+    hideCalendar();
+    listEl.classList.remove('hidden');
+    renderListView(applyFilters(allEvents));
+  }
 }
 
 
@@ -461,6 +708,10 @@ async function loadEvents() {
     showNavBar();
     hidePreloader();
     displayEventsMeta(meta, filteredEvents.length);
+    // Restore saved view mode (filterState.viewMode was loaded from localStorage)
+    if (filterState.viewMode === 'list') {
+      setViewMode('list');
+    }
   } else {
     calendarElement.classList.remove('calendar-loading');
     updateCalendarWithFilteredEvents(); // reads updated allEvents / eventsMeta
@@ -497,7 +748,8 @@ function transformEventsForCalendar(events) {
 const DEFAULT_FILTER_STATE = {
   joinedOnly: false,
   selectedClubs: [],
-  selectedSportTypes: []
+  selectedSportTypes: [],
+  viewMode: 'calendar'
 };
 
 // Store all events and filter state
@@ -1066,6 +1318,15 @@ document.addEventListener('DOMContentLoaded', async function () {
   loadFilterState();
   updateFilterCount();
   setupFilterEventListeners();
+
+  // View mode switcher buttons
+  document.getElementById('btn-calendar-view').addEventListener('click', () => {
+    if (filterState.viewMode !== 'calendar') setViewMode('calendar');
+  });
+  document.getElementById('btn-list-view').addEventListener('click', () => {
+    if (filterState.viewMode !== 'list') setViewMode('list');
+  });
+  setupListViewClickHandler();
 
   // Toggle filters panel
   const toggleFiltersBtn = document.getElementById('toggle-filters');

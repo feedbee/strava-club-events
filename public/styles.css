@@ -1367,3 +1367,340 @@ h1 .title-icon {
     transform: translateY(0);
   }
 }
+
+/* ===================================================
+   View Mode Switcher
+   =================================================== */
+.view-mode-switcher {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.view-mode-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.view-mode-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.view-mode-btn--active {
+  background: rgba(255, 255, 255, 0.9);
+  color: #4a5568;
+}
+
+.view-mode-btn--active:hover {
+  background: white;
+  color: #2d3748;
+}
+
+/* ===================================================
+   List View — Container
+   =================================================== */
+#list-view {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  max-height: 80vh;
+  padding-bottom: 20px;
+}
+
+/* ===================================================
+   List View — Date Group Headers
+   =================================================== */
+.lv-date-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 24px 8px;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.lv-date-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #f1f5f9;
+}
+
+.lv-date-header.lv-today {
+  color: #fc5200;
+}
+
+.lv-today-pill {
+  background: #fc5200;
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+/* ===================================================
+   List View — Event Cards (collapsed)
+   =================================================== */
+.lv-group {
+  padding: 0 12px 8px;
+}
+
+.lv-event-card {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  grid-template-rows: auto auto auto;
+  column-gap: 12px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.12s, border-color 0.12s;
+  margin-bottom: 2px;
+}
+
+.lv-event-card:hover {
+  background: #f8faff;
+  border-color: #e0e7ff;
+}
+
+.lv-event-card.lv-expanded {
+  background: #f8faff;
+  border-color: #c7d2fe;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.lv-time {
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: #475569;
+  padding-top: 2px;
+  white-space: nowrap;
+}
+
+.lv-club-name {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lv-club-logo-sm {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.lv-joined-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #15803d;
+  background: #dcfce7;
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-left: 2px;
+  white-space: nowrap;
+}
+
+.lv-event-title {
+  grid-column: 2;
+  grid-row: 2;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.35;
+  margin: 2px 0;
+}
+
+.lv-stats-row {
+  grid-column: 2;
+  grid-row: 3;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 5px;
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.lv-stat {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+/* ===================================================
+   List View — Expanded Detail Panel
+   =================================================== */
+.lv-detail-panel {
+  margin: 0 12px 2px;
+  border: 1px solid #c7d2fe;
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  background: #f8faff;
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: lv-expand 0.15s ease;
+}
+
+@keyframes lv-expand {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.lv-section-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.lv-detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.lv-club-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lv-club-logo-md {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #e2e8f0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  color: #94a3b8;
+  overflow: hidden;
+}
+
+.lv-club-logo-md img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lv-detail-link {
+  color: #1e40af;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.lv-detail-link:hover {
+  text-decoration: underline;
+}
+
+.lv-detail-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.lv-detail-row-label {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  min-width: 56px;
+  flex-shrink: 0;
+}
+
+.lv-detail-joined {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: #15803d;
+  font-weight: 500;
+}
+
+.lv-detail-divider {
+  height: 1px;
+  background: #e0e7ff;
+  margin: 0 -16px;
+}
+
+/* ===================================================
+   List View — Empty State
+   =================================================== */
+.lv-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  color: #94a3b8;
+  font-size: 0.95rem;
+  gap: 12px;
+  text-align: center;
+}
+
+.lv-empty-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+/* ===================================================
+   List View — Responsive
+   =================================================== */
+@media (max-width: 768px) {
+  .lv-event-card {
+    grid-template-columns: 58px 1fr;
+    column-gap: 8px;
+    padding: 8px;
+  }
+}
