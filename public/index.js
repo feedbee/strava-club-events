@@ -590,7 +590,7 @@ function updateFilterCount() {
   if (filterState.selectedSportTypes.length > 0) activeFilters++;
 
   activeFilterCount.textContent = activeFilters > 0 ? activeFilters : '';
-  activeFilterCount.style.display = activeFilters > 0 ? 'inline-block' : 'none';
+  activeFilterCount.style.display = activeFilters > 0 ? 'inline-flex' : 'none';
 }
 
 // Set up event listeners for filter controls
