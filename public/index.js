@@ -762,6 +762,13 @@ function loadFilterState() {
     if (savedState) {
       const state = JSON.parse(savedState);
       applyFilterState(state);
+      // If no viewMode was ever explicitly saved, default to list on mobile
+      if (!state.viewMode && window.innerWidth <= 768) {
+        filterState.viewMode = 'list';
+      }
+    } else if (window.innerWidth <= 768) {
+      // First visit on mobile — start in list view
+      filterState.viewMode = 'list';
     }
   } catch (e) {
     console.error('Error loading filter state:', e);

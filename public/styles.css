@@ -10,6 +10,7 @@ body {
   margin: 0;
   padding: 20px;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 h1 {
@@ -1417,8 +1418,7 @@ h1 .title-icon {
   background: white;
   border-radius: 20px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  overflow-y: auto;
-  max-height: 80vh;
+  overflow: clip;
   padding-bottom: 20px;
 }
 
@@ -1430,10 +1430,7 @@ h1 .title-icon {
   align-items: center;
   gap: 10px;
   padding: 16px 24px 8px;
-  position: sticky;
-  top: 0;
   background: white;
-  z-index: 1;
   font-size: 0.78rem;
   font-weight: 700;
   color: #94a3b8;
@@ -1702,5 +1699,142 @@ h1 .title-icon {
     grid-template-columns: 58px 1fr;
     column-gap: 8px;
     padding: 8px;
+  }
+}
+
+/* ===================================================
+   Mobile — Global UX Improvements
+   =================================================== */
+@media (max-width: 768px) {
+  /* Nav bar */
+  .nav-bar {
+    padding: 0 8px;
+  }
+
+  .nav-left,
+  .nav-right {
+    gap: 8px;
+  }
+
+  /* Hide the "N events · M clubs" stat on narrow screens to prevent overflow */
+  .events-stats {
+    display: none;
+  }
+
+  /* Filter button — bring to ~44px touch target */
+  .filter-button {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+
+  /* View mode switcher — enlarge touch targets */
+  .view-mode-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Filter panel — stack groups vertically */
+  .event-filters {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .filter-toggle {
+    min-height: 44px;
+  }
+
+  .clear-filters-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+
+  /* Filter dropdowns — prevent viewport overflow */
+  .club-filter-dropdown {
+    left: 0;
+    right: 0;
+    min-width: unset;
+    max-width: unset;
+  }
+
+  .club-filter-list-item {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+
+  /* List view — larger text and spacing */
+  .lv-date-header {
+    font-size: 0.82rem;
+    padding: 14px 16px 6px;
+  }
+
+  .lv-event-card {
+    grid-template-columns: 62px 1fr;
+    column-gap: 10px;
+    padding: 10px;
+  }
+
+  .lv-time {
+    font-size: 0.85rem;
+  }
+
+  .lv-club-name {
+    font-size: 0.78rem;
+  }
+
+  .lv-event-title {
+    font-size: 0.95rem;
+  }
+
+  .lv-stats-row {
+    font-size: 0.8rem;
+    gap: 8px;
+  }
+
+  .lv-section-title {
+    font-size: 0.72rem;
+  }
+
+  .lv-detail-panel {
+    padding: 12px 12px 14px;
+  }
+
+  /* FullCalendar — shrink verbose view buttons to prevent toolbar overflow */
+  .fc-toolbar .fc-button-group .fc-dayGridMonth-button,
+  .fc-toolbar .fc-button-group .fc-timeGridWeek-button,
+  .fc-toolbar .fc-button-group .fc-timeGridDay-button {
+    font-size: 0.78rem !important;
+    padding: 6px 8px !important;
+  }
+
+  /* FullCalendar toolbar — allow wrapping so nav row and view row can split */
+  .fc .fc-toolbar.fc-header-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px 6px;
+  }
+
+  /* Title — much smaller on mobile so it doesn't crowd the toolbar */
+  .fc-toolbar-title {
+    font-size: 1.1rem !important;
+  }
+
+  /* Footer — stack copyright above Strava logo on narrow screens */
+  .footer-content {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: center;
+  }
+
+  .strava-logo {
+    margin-left: 0;
   }
 }
