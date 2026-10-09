@@ -19,6 +19,9 @@ class InMemoryCache extends AbstractCache {
     this.store = new Map();
     this.defaultTTL = options.defaultTTL || 15 * 60 * 1000; // 15 minutes default
     this.initialized = false;
+    this.maxEntries = options.maxEntries ?? 1000;
+    this.maxBytes = options.maxBytes ?? 32 * 1024 * 1024;
+    this.bytes = 0;
   }
 
   /**
@@ -48,10 +51,12 @@ class InMemoryCache extends AbstractCache {
     // Check if entry is expired
     if (entry.expiresAt < Date.now()) {
       logger.debug(`Cache expired for key: ${key}`);
-      this.store.delete(key);
+      await this.del(key);
       return null;
     }
 
+    this.store.delete(key);
+    this.store.set(key, entry);
     logger.debug(`Cache hit for key: ${key}`);
     return entry.data;
   }
@@ -67,7 +72,17 @@ class InMemoryCache extends AbstractCache {
     if (!this.initialized) await this.init();
     
     const expiresAt = Date.now() + ttl;
-    this.store.set(key, { data: value, expiresAt });
+    const bytes = Buffer.byteLength(JSON.stringify(value));
+    await this.del(key);
+    for (const [oldKey, entry] of this.store) {
+      if (entry.expiresAt <= Date.now()) await this.del(oldKey);
+    }
+    if (bytes > this.maxBytes) return false;
+    while (this.store.size >= this.maxEntries || this.bytes + bytes > this.maxBytes) {
+      await this.del(this.store.keys().next().value);
+    }
+    this.store.set(key, { data: value, expiresAt, bytes });
+    this.bytes += bytes;
     
     const ttlInSeconds = Math.ceil(ttl / 1000);
     logger.debug(`Cache set for key: ${key}, TTL: ${ttlInSeconds}s`);
@@ -82,7 +97,9 @@ class InMemoryCache extends AbstractCache {
    */
   async del(key) {
     if (!this.initialized) await this.init();
+    const entry = this.store.get(key);
     const deleted = this.store.delete(key);
+    if (entry) this.bytes -= entry.bytes;
     if (deleted) {
       logger.debug(`Cache deleted for key: ${key}`);
     }
@@ -100,7 +117,7 @@ class InMemoryCache extends AbstractCache {
     let deletedCount = 0;
     for (const key of this.store.keys()) {
       if (key.startsWith(`${userId}:`)) {
-        this.store.delete(key);
+        await this.del(key);
         deletedCount++;
       }
     }
@@ -111,6 +128,7 @@ class InMemoryCache extends AbstractCache {
     
     return deletedCount;
   }
+  async close() { this.store.clear(); this.bytes = 0; }
 }
 
 export default InMemoryCache;

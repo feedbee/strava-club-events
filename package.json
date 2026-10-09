@@ -6,17 +6,18 @@
     "type": "module",
     "scripts": {
         "start": "node src/server.js",
-        "dev": "nodemon src/server.js"
+        "dev": "node --watch src/server.js",
+        "test": "node --experimental-vm-modules --test tests/baseline/*.test.js tests/regressions/*.test.js",
+        "test:baseline": "node --experimental-vm-modules --test tests/baseline/*.test.js",
+        "test:regressions": "node --experimental-vm-modules --test tests/regressions/*.test.js",
+        "test:mongodb": "node --experimental-vm-modules --test tests/integration/*.test.js"
     },
     "dependencies": {
-        "connect-mongo": "^5.1.0",
-        "express": "^4.18.2",
-        "express-session": "^1.17.3",
-        "mongodb": "^6.19.0",
+        "connect-mongo": "^6.0.0",
+        "express": "^5.2.1",
+        "express-session": "^1.19.0",
+        "mongodb": "^7.7.0",
         "node-fetch": "^3.3.2"
-    },
-    "devDependencies": {
-        "nodemon": "^3.0.3"
     },
     "keywords": [
         "strava",
@@ -24,5 +25,8 @@
         "calendar"
     ],
     "author": "",
-    "license": "BSD-2-Clause"
+    "license": "BSD-2-Clause",
+    "engines": {
+        "node": ">=24.0.0 <25"
+    }
 }

@@ -1,28 +1,10 @@
-# Use Node.js LTS
-FROM node:18
-
-# Update all packages
-RUN apt-get update \
- && apt-get upgrade -y \
- && apt-get autoremove -y \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
-
-# Set app directory
+FROM node:24.21.0-bookworm-slim
 WORKDIR /usr/src/app
-
-# Copy package.json and package-lock.json if present
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-
-# Copy rest of the app
-COPY . .
-
-# Expose port (matches server.js)
+ENV NODE_ENV=production
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
+COPY --chown=node:node src ./src
+COPY --chown=node:node public ./public
+USER node
 EXPOSE 3000
-
-# Start the app
 CMD ["node", "src/server.js"]

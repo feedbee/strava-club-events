@@ -90,12 +90,12 @@ The `LIMIT_CLUBS` cap is bypassed when using the club filter (`?clubs=`) or spor
 
 ### 2.2 Technology Stack
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **UI Components**: FullCalendar 6.1.8 (via CDN) with:
+- **UI Components**: FullCalendar 6.1.21 (via CDN) with:
   - Month, Week, and Day view support
   - Custom event rendering with club logos
   - Responsive design for all screen sizes
 - **Styling**: Custom CSS with Inter font and modern UI components
-- **Backend**: Node.js 18+, Express.js
+- **Backend**: Node.js 24 LTS, Express.js
   - **Routes**: Modular route definitions in `src/routes/`
   - **Controllers**: Request handlers in `src/controllers/`
   - **Middleware**: Authentication and utilities in `src/middleware/`
@@ -119,12 +119,14 @@ The `LIMIT_CLUBS` cap is bypassed when using the club filter (`?clubs=`) or spor
 2. **OAuth Authorization**
    - User clicks "Login with Strava"
    - App redirects to Strava's OAuth authorization page
-   - In production, when `DEV_CALLBACK_REDIRECT` is configured, the callback URL sent to Strava includes an extra query parameter: `dev-callback-redirect=<dev-base>/callback`
+   - App saves a one-time session-bound `state` with a 10-minute TTL before redirecting
+   - Callback forwarding is disabled; use a direct callback URL allowed by Strava
    - User reviews permissions and grants access
-   - Strava redirects to `/callback?code=...`
+   - Strava redirects to `/callback?code=...&state=...`
 
 3. **Token Exchange**
-   - Backend exchanges authorization code for access token
+   - Backend checks state and consumes the transaction before exchanging the code
+   - Successful authentication regenerates the session ID and saves credentials before redirect
    - Token is stored in server-side session
    - User is redirected to the main calendar view
 
@@ -187,13 +189,14 @@ The `LIMIT_CLUBS` cap is bypassed when using the club filter (`?clubs=`) or spor
 - **Event Management**
   - Fetch events from all user's clubs
   - Filter events: now → now + 30 days
-  - Support for recurring events via `upcoming_occurrences`
+  - Expand every unique instant in `upcoming_occurrences` within the inclusive interval now → now + 30 × 24 hours. Ignore invalid dates and repeated instants; preserve the original Strava event ID and link.
+  - Return a distinct `occurrence_id` (club ID, event ID, UTC start instant) for calendar identity. Event totals count occurrences; API fetch limits count source events. Enrich route details once per source event.
   - Timezone-aware date handling (UTC)
   - Club logo integration with each event
   - Event grouping by club in calendar views
 
 - **User Interface**
-  - Responsive calendar view (FullCalendar 6.1.8)
+  - Responsive calendar view (FullCalendar 6.1.21)
   - Multiple view options: Month, Week, and Day
   - Events list view as an alternative to the calendar, toggled via nav bar
   - Club logos displayed next to each event in the calendar titles
@@ -439,12 +442,12 @@ interface EventsResponse {
 |----------|----------|---------|-------------|
 | `CLIENT_ID` | Yes | - | Strava API client ID |
 | `CLIENT_SECRET` | Yes | - | Strava API client secret |
-| `SESSION_SECRET` | No | `supersecret` | Secret for session encryption |
+| `SESSION_SECRET` | In production | Random per process in development | Session signing secret; production requires at least 32 non-whitespace characters |
 | `NODE_ENV` | No | `development` | Runtime environment |
 | `HOST` | No | `0.0.0.0` | Bind address for the HTTP server |
 | `PORT` | No | `3000` | Port for the HTTP server |
 | `PUBLIC_URL` | No | `http://localhost:${PORT}` | Public base URL used to build OAuth redirect URI (`${PUBLIC_URL}/callback`) |
-| `DEV_CALLBACK_REDIRECT` | No | - | Optional base URL for dev forwarding. When set in prod, login flow appends `dev-callback-redirect=<dev-base>/callback` and `/callback` forwards to it |
+| `DEV_CALLBACK_REDIRECT` | Removed | - | Must be unset; see security-step2.md for direct-callback migration |
 | `CACHE_DRIVER` | No | `memory` | Cache driver: `memory` or `mongodb` |
 | `MONGODB_URI` | No | `mongodb://localhost:27017` | MongoDB connection string for cache driver |
 | `MONGODB_DB` | No | `strava-club-events` | MongoDB database name for cache |
@@ -648,7 +651,7 @@ interface EventsResponse {
 ## 21. Appendix
 
 ### 21.1 Dependencies
-- Node.js 18+
+- Node.js 24 LTS
 - Express.js
 - FullCalendar
 - Docker
@@ -684,3 +687,11 @@ interface EventsResponse {
 - Tests (unit for server, integration with mocked Strava API)
 
 
+
+### HTTP security (current implementation)
+
+Logout uses `POST /logout` with the session-bound `csrfToken` issued by `GET /me`; invalid/missing tokens return 403, GET returns 405, success redirects with 303, storage failure returns 503. `/dev/token` has been removed. CSP prohibits inline scripts and framing, allows the pinned FullCalendar CDN script and same-origin scripts. Inline styles are currently necessary; fonts allow Google Fonts and FullCalendar data URLs. HSTS is enabled for an HTTPS PUBLIC_URL.
+
+### Operational endpoints (current implementation)
+
+`GET /health/live` returns 200 with `{ "status": "alive" }`. `GET /health/ready` returns 200 with `{ "status": "ready" }` after initialization while the configured storage connections respond, otherwise 503 with `{ "status": "not_ready" }`. Both endpoints are public, bypass session middleware and return `Cache-Control: no-store`. MongoDB probes reuse existing connections and are bounded by a 1500 ms overall deadline; Strava is not probed. Shutdown immediately withdraws readiness. See `operations-step11.md` for configuration validation, probe limits and cache-clearing behavior.

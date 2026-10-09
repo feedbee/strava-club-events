@@ -1,0 +1,40 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {MongoClient} from 'mongodb';
+import {spawn} from 'node:child_process';
+import {backend} from '../helpers/runtime.js';
+const uri=process.env.TEST_MONGODB_URI;
+if(!uri)throw new Error('Set TEST_MONGODB_URI to an isolated MongoDB');
+
+test('Readiness checks real configured stores and recovers after a quota connection is replaced',async t=>{
+  const dbName='strava_operations_'+randomUUID().replaceAll('-','');
+  const admin=new MongoClient(uri);await admin.connect();
+  const load=await backend({env:{SESSION_DRIVER:'mongodb',CACHE_DRIVER:'mongodb',MONGODB_URI:uri,MONGODB_DB:dbName}});
+  const sessions=await load('src/middleware/session.middleware.js');
+  const cache=await load('src/services/strava.service.js');
+  const quotas=await load('src/services/strava-rate-limits.js');
+  t.after(async()=>{await Promise.all([sessions.closeSessionStore(),cache.closeCache(),quotas.closeRateLimits()]);await admin.db(dbName).dropDatabase();await admin.close();});
+  await Promise.all([sessions.initializeSessionStore(),cache.initializeCache(),quotas.initializeRateLimits()]);
+  const {health}=await load('src/services/health.js');
+  health.start([sessions.checkSessionStore,cache.checkCache,quotas.checkRateLimits]);
+  assert.equal(await health.ready(),true);
+  await quotas.closeRateLimits();assert.equal(await health.ready(),false);
+  await quotas.initializeRateLimits();assert.equal(await health.ready(),true);
+  health.stop();assert.equal(await health.ready(),false);
+});
+test('Cache clearing CLI removes only the specified user from the shared MongoDB cache',async t=>{
+  const dbName='strava_operations_'+randomUUID().replaceAll('-','');const client=new MongoClient(uri);await client.connect();
+  t.after(async()=>{await client.db(dbName).dropDatabase();await client.close();});
+  const collection=client.db(dbName).collection('cache');
+  await collection.insertMany([{key:'strava_test:clubs',userId:'strava_test'},{key:'strava_other:clubs',userId:'strava_other'}]);
+  await client.db(dbName).collection('sessions').insertOne({_id:'protected-session'});
+  await client.db(dbName).collection('strava_rate_limits').insertOne({_id:'protected-quota'});
+  const child=spawn(process.execPath,['scripts/drop-cache.js','strava_test'],{env:{...process.env,CACHE_DRIVER:'mongodb',MONGODB_URI:uri,MONGODB_DB:dbName},stdio:['ignore','pipe','pipe']});
+  let output='';child.stdout.on('data',chunk=>output+=chunk);child.stderr.on('data',chunk=>output+=chunk);
+  const status=await new Promise((resolve,reject)=>{child.on('error',reject);child.on('close',resolve);});
+  assert.equal(status,0,output);assert.match(output,/Deleted 1 cache entries/);
+  assert.equal(await collection.countDocuments({userId:'strava_test'}),0);assert.equal(await collection.countDocuments({userId:'strava_other'}),1);
+  assert.equal(await client.db(dbName).collection('sessions').countDocuments(),1);
+  assert.equal(await client.db(dbName).collection('strava_rate_limits').countDocuments(),1);
+});

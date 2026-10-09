@@ -1147,7 +1147,7 @@ h1 .title-icon {
 }
 
 /* Hover states */
-.user-profile:hover {
+:is(.user-profile:hover, .user-profile:focus-within) {
   min-width: 200px;
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid #e2e8f0;
@@ -1155,11 +1155,11 @@ h1 .title-icon {
   margin-right: 0;
 }
 
-.user-profile:hover .user-avatar {
+:is(.user-profile:hover, .user-profile:focus-within) .user-avatar {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.user-profile:hover .user-name {
+:is(.user-profile:hover, .user-profile:focus-within) .user-name {
   opacity: 1;
   transform: translateX(0);
   max-width: 200px;
@@ -1218,24 +1218,24 @@ h1 .title-icon {
 }
 
 /* Hover states */
-.user-profile:hover {
+:is(.user-profile:hover, .user-profile:focus-within) {
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid #e2e8f0;
   padding: 4px 4px 4px 40px;
 }
 
-.user-profile:hover .user-avatar {
+:is(.user-profile:hover, .user-profile:focus-within) .user-avatar {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.user-profile:hover .user-name {
+:is(.user-profile:hover, .user-profile:focus-within) .user-name {
   opacity: 1;
   max-width: 200px;
   padding: 0 8px;
   margin-right: 4px;
 }
 
-.user-profile:hover .logout-link {
+:is(.user-profile:hover, .user-profile:focus-within) .logout-link {
   opacity: 1;
   max-width: 120px;
   padding: 0 10px;
@@ -1838,3 +1838,5 @@ h1 .title-icon {
     margin-left: 0;
   }
 }
+
+.logout-form { margin: 0; display: flex; }

@@ -12,8 +12,27 @@ const CLUB_FILTER_LIMIT = 10; // max clubs selectable in the per-club filter
 // -- Error handling --
 
 function handleAuthRequired() {
-  // Clear any invalid session
-  document.cookie = 'connect.sid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+  // HttpOnly cookies are managed by the server; clear private UI immediately.
+  eventsRequestVersion++;
+  allEvents = []; allClubs = []; allClubsById = new Map(); eventsMeta = null;
+  listViewEvents = []; lvExpandedIndex = null;
+  calendarInstance?.destroy?.(); calendarInstance = null;
+  hideNavBar(); hideCalendar(); hidePreloader();
+  calendarElement.classList.remove('calendar-loading');
+  document.getElementById('list-view').innerHTML = '';
+  document.getElementById('list-view').style.display = 'none';
+  document.getElementById('event-filters').classList.remove('is-open');
+  const tooltip = document.getElementById('fc-tooltip');
+  if (tooltip) { tooltip.textContent = ''; tooltip.classList.remove('visible'); }
+  const error = document.getElementById('error-message');
+  if (error) error.textContent = '';
+  document.getElementById('user-name').innerHTML = '';
+  document.getElementById('logout-csrf').value = '';
+  document.getElementById('user-avatar').removeAttribute?.('src');
+  filterState.selectedClubs = []; filterState.selectedSportTypes = [];
+  saveFilterState();
+  clubFilter.renderTrigger();
+  sportTypeFilter.renderTrigger();
   // Show the auth div
   const authDiv = document.getElementById("auth");
   if (authDiv) {
@@ -57,18 +76,43 @@ function displayErrorMessage(errorMessage) {
 // -- API calls ---
 
 // Get current user data
+function handleLoadError(error) {
+  if (error.isAuthError) handleAuthRequired();
+  else if (error.response?.status === 429) {
+    const seconds = error.responseData?.retry_after;
+    displayErrorMessage(`Strava request limit reached.${retryMessage(seconds)}`);
+  } else displayErrorMessage('Unable to load events. Please try to reload the page.');
+}
+
+function retryMessage(seconds) {
+  if (!Number.isSafeInteger(seconds) || seconds <= 0) return ' Please try again later.';
+  const unit = seconds >= 3600 ? 'hour' : seconds >= 60 ? 'minute' : 'second';
+  const amount = Math.ceil(seconds / (unit === 'hour' ? 3600 : unit === 'minute' ? 60 : 1));
+  return ` Please try again in ${amount} ${unit}${amount === 1 ? '' : 's'}.`;
+}
+
+function safeImageUrl(value) {
+  if (typeof value !== 'string') return '';
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && !url.username && !url.password ? url.href : '';
+  } catch { return ''; }
+}
+
 async function getCurrentUser() {
   const response = await handleApiResponse(await fetch("/me"));
   return await response.json();
 }
 
 // Retrieve events from the server
-async function getEvents() {
+async function getEvents(isCurrent = () => true) {
   const params = new URLSearchParams();
   if (filterState.selectedClubs.length > 0)      params.set('clubs', filterState.selectedClubs.join(','));
   if (filterState.selectedSportTypes.length > 0) params.set('sportTypes', filterState.selectedSportTypes.join(','));
   const url = params.size > 0 ? `/events?${params}` : '/events';
-  const response = await handleApiResponse(await fetch(url));
+  const rawResponse = await fetch(url);
+  if (!isCurrent()) return null;
+  const response = await handleApiResponse(rawResponse);
   const data = await response.json();
   // Support both legacy array response and new { events, clubs, meta } shape
   if (Array.isArray(data)) return { events: data, clubs: [], meta: null };
@@ -118,6 +162,7 @@ function updateUserProfile(user) {
   const userAvatarElement = document.getElementById('user-avatar');
   
   if (user) {
+    document.getElementById('logout-csrf').value = user.csrfToken || '';
     // Create a link to the user's Strava profile
     const profileLink = document.createElement('a');
     profileLink.href = `https://www.strava.com/athletes/${user.athleteId}`;
@@ -129,7 +174,7 @@ function updateUserProfile(user) {
     userNameElement.appendChild(profileLink);
     
     if (user.profile_pic) {
-      userAvatarElement.src = user.profile_pic;
+      userAvatarElement.src = safeImageUrl(user.profile_pic);
     }
   }
 }
@@ -157,6 +202,11 @@ function displayEventsMeta(meta, visibleEventCount) {
 
   // Build warning messages only when limits are hit
   const warnings = [];
+  if (meta.clubs_failed > 0 || (meta.partial && meta.clubs_failed === undefined && !meta.routes_failed)) {
+    warnings.push('Some clubs could not be loaded. Results are incomplete.');
+  }
+  if (Number.isSafeInteger(meta.routes_failed) && meta.routes_failed > 0) warnings.push(`Route details could not be loaded for ${meta.routes_failed} ${meta.routes_failed === 1 ? 'route' : 'routes'}. Events are still shown.`);
+  if (meta.retry_after) warnings.push(retryMessage(meta.retry_after));
   if (meta.clubs_fetch_limited) {
     warnings.push(`Only the first 200 clubs are loaded. Users with more than 200 clubs are not fully supported.`);
   } else if (meta.clubs_limited && filterState.selectedClubs.length === 0) {
@@ -376,9 +426,9 @@ function buildCalendar(events) {
       // Create custom event content with club logo
       const titleEl = info.el.querySelector('.fc-event-title');
       if (titleEl) {
-        const clubLogo = info.event.extendedProps.club_info.logo;
+        const clubLogo = safeImageUrl(info.event.extendedProps.club_info.logo);
         if (clubLogo) {
-          const logoHtml = `<img src="${clubLogo}" class="club-logo" alt="Club Logo">`;
+          const logoHtml = `<img src="${escapeHtml(clubLogo)}" class="club-logo" alt="Club Logo">`;
           titleEl.insertAdjacentHTML('afterbegin', logoHtml);
         }
       }
@@ -457,10 +507,11 @@ function formatListViewDateHeader(dateKey) {
   });
 }
 
-function getTodayDateKey() {
-  const d = new Date();
+function getLocalDateKey(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+
+function getTodayDateKey() { return getLocalDateKey(new Date()); }
 
 function getActivityEmoji(routeInfo) {
   if (!routeInfo) return '🎯';
@@ -476,8 +527,9 @@ function getActivityEmoji(routeInfo) {
 function buildListCardHtml(event, index) {
   const time     = formatListViewTime(event.start_date);
   const clubName = escapeHtml(event.club_info?.name || '');
-  const clubLogo = event.club_info?.logo
-    ? `<img src="${escapeHtml(event.club_info.logo)}" class="lv-club-logo-sm" alt="">`
+  const logoUrl = safeImageUrl(event.club_info?.logo);
+  const clubLogo = logoUrl
+    ? `<img src="${escapeHtml(logoUrl)}" class="lv-club-logo-sm" alt="">`
     : '';
   const joined = event.joined
     ? `<span class="lv-joined-badge">✓ Joined</span>` : '';
@@ -507,7 +559,7 @@ function buildListDetailPanelHtml(event) {
   // --- Club section ---
   const clubId  = event.club_info?.id;
   const clubUrl = clubId ? `https://www.strava.com/clubs/${clubId}` : null;
-  const logo    = event.club_info?.logo;
+  const logo    = safeImageUrl(event.club_info?.logo);
   const logoHtml = logo
     ? `<div class="lv-club-logo-md"><img src="${escapeHtml(logo)}" alt=""></div>`
     : `<div class="lv-club-logo-md">${escapeHtml((event.club_info?.name || '').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase())}</div>`;
@@ -609,7 +661,7 @@ function renderListView(events) {
   const todayKey = getTodayDateKey();
   const groups   = new Map();
   listViewEvents.forEach(ev => {
-    const key = ev.start_date.slice(0, 10);
+    const key = getLocalDateKey(new Date(ev.start_date));
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(ev);
   });
@@ -680,8 +732,12 @@ function setViewMode(mode) {
 
 // -- Event loading --
 
+let eventsRequestVersion = 0;
+
 // Load events and build the calendar
 async function loadEvents() {
+  const version = ++eventsRequestVersion;
+  const isCurrent = () => version === eventsRequestVersion;
   const isFirstLoad = calendarInstance === null;
   const errorElement = document.getElementById("error-message");
   if (errorElement) errorElement.textContent = '';
@@ -696,30 +752,40 @@ async function loadEvents() {
   }
 
   // Make the API request
-  const { events, clubs, meta } = await getEvents(); // Throws AuthenticationError if auth is needed
-  allEvents = events;
-  allClubs = clubs;
-  allClubsById = new Map(allClubs.map(c => [String(c.id), c]));
-  eventsMeta = meta;
+  try {
+    const result = await getEvents(isCurrent);
+    if (!isCurrent()) return;
+    const { events, clubs, meta } = result;
+    allEvents = events;
+    allClubs = clubs;
+    allClubsById = new Map(allClubs.map(c => [String(c.id), c]));
+    eventsMeta = meta;
 
-  if (isFirstLoad) {
-    const filteredEvents = applyFilters(allEvents);
-    buildCalendar(filteredEvents);
-    showNavBar();
-    hidePreloader();
-    displayEventsMeta(meta, filteredEvents.length);
-    // Restore saved view mode (filterState.viewMode was loaded from localStorage)
-    if (filterState.viewMode === 'list') {
-      setViewMode('list');
+    if (isFirstLoad) {
+      const filteredEvents = applyFilters(allEvents);
+      buildCalendar(filteredEvents);
+      showNavBar();
+      hidePreloader();
+      displayEventsMeta(meta, filteredEvents.length);
+      // Restore saved view mode (filterState.viewMode was loaded from localStorage)
+      if (filterState.viewMode === 'list') {
+        setViewMode('list');
+      }
+    } else {
+      updateCalendarWithFilteredEvents(); // reads updated allEvents / eventsMeta
     }
-  } else {
-    calendarElement.classList.remove('calendar-loading');
-    updateCalendarWithFilteredEvents(); // reads updated allEvents / eventsMeta
-  }
 
-  // Refresh club picker avatars and sport type pills now that club data is available
-  clubFilter.renderTrigger();
-  sportTypeFilter.renderTrigger(); sportTypeFilter.updateGroupVisibility();
+    // Refresh club picker avatars and sport type pills now that club data is available
+    clubFilter.renderTrigger();
+    sportTypeFilter.renderTrigger(); sportTypeFilter.updateGroupVisibility();
+  } catch (error) {
+    if (isCurrent()) throw error;
+  } finally {
+    if (isCurrent()) {
+      calendarElement.classList.remove('calendar-loading');
+      hidePreloader();
+    }
+  }
 }
 
 // Transform raw events for FullCalendar
@@ -727,6 +793,7 @@ function transformEventsForCalendar(events) {
   if (!events) return [];
   
   return events.map(event => ({
+    id: event.occurrence_id,
     title: event.title,
     start: event.start_date,
     url: event.strava_event_url,
@@ -873,7 +940,7 @@ function setupFilterEventListeners() {
     updateClearFiltersButton();
     updateFilterCount();
     if (hadBackendFilter) {
-      loadEvents().catch(() => displayErrorMessage('Unable to load events. Please try to reload the page.'));
+      loadEvents().catch(handleLoadError);
     } else {
       updateCalendarWithFilteredEvents();
     }
@@ -910,8 +977,9 @@ function escapeHtml(str) {
 
 // Shared helper — returns an <img> or initial <span> for a club logo.
 function clubMarkupHtml(club, imgClass, initialClass) {
-  if (club?.logo) {
-    return `<img src="${club.logo}" class="${imgClass}" alt="${escapeHtml(club.name)}" title="${escapeHtml(club.name)}">`;
+  const logo = safeImageUrl(club?.logo);
+  if (logo) {
+    return `<img src="${escapeHtml(logo)}" class="${imgClass}" alt="${escapeHtml(club.name)}" title="${escapeHtml(club.name)}">`;
   }
   const letter = club ? escapeHtml(club.name.charAt(0).toUpperCase()) : '?';
   const title = club ? ` title="${escapeHtml(club.name)}"` : '';
@@ -1215,7 +1283,7 @@ function scheduleEventsReload() {
   if (_filterDebounceTimer) clearTimeout(_filterDebounceTimer);
   _filterDebounceTimer = setTimeout(() => {
     _filterDebounceTimer = null;
-    loadEvents().catch(() => displayErrorMessage('Unable to load events. Please try to reload the page.'));
+    loadEvents().catch(handleLoadError);
   }, 400);
 }
 
@@ -1227,7 +1295,7 @@ function closePanelAndReload() {
     eventFiltersEl.classList.remove('is-open');
     if (toggleFiltersBtnEl) toggleFiltersBtnEl.setAttribute('aria-expanded', false);
   }
-  loadEvents().catch(() => displayErrorMessage('Unable to load events. Please try to reload the page.'));
+  loadEvents().catch(handleLoadError);
 }
 
 // Shared onAfterToggle for both filters
@@ -1366,7 +1434,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   // -- Async init --
   try {
     showPreloader();
-    loadUserProfile();
+    await loadUserProfile();
     await loadEvents();
   } catch (error) {
     if (error.isAuthError) {
@@ -1375,7 +1443,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       return;
     }
     console.error('Error loading events:', error);
-    displayErrorMessage('Unable to load events. Please try to reload the page.');
+    handleLoadError(error);
   } finally {
     hidePreloader();
   }

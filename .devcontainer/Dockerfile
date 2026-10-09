@@ -1,22 +1,9 @@
-FROM node:18
-
-# Update all packages and install common dev tools
+FROM node:24.21.0-bookworm-slim
 RUN apt-get update \
-&& apt-get upgrade -y \
-&& apt-get autoremove -y \
-&& apt-get clean \
-&& rm -rf /var/lib/apt/lists/* \
-&& apt-get install -y git curl \
-&& rm -rf /var/lib/apt/lists/*
-
-# Set working dir
+    && apt-get install -y --no-install-recommends git curl \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /workspace
-
-# Copy only package.json first to speed up rebuilds
-COPY package*.json ./
-RUN npm install
-
-# Copy everything (source will also be mounted by VS Code)
+COPY package.json package-lock.json ./
+RUN npm ci --ignore-scripts
 COPY . .
-
 EXPOSE 3000

@@ -51,7 +51,4 @@ docker-compose.yml
 .cache/
 coverage/
 
-# Test files
-__tests__/
-*.test.js
-*.spec.js
+# Production Dockerfiles copy only src/public; development builds include tests.

@@ -11,7 +11,7 @@
  *   MONGODB_DB     - MongoDB database name (default: strava-club-events)
  */
 
-import AbstractCache from '../src/cache/abstract-cache.js';
+import MongoDBCache from '../src/cache/drivers/mongodb-cache.js';
 
 const userId = process.argv[2];
 
@@ -20,7 +20,13 @@ if (!userId) {
   process.exit(1);
 }
 
-const driver = process.env.CACHE_DRIVER || 'memory';
+const driver = process.env.CACHE_DRIVER ?? 'memory';
+if (driver !== 'mongodb') {
+  console.error(driver === 'memory'
+    ? 'Cannot clear memory cache from another process. Restart the running application to reset its cache.'
+    : 'CACHE_DRIVER must be memory or mongodb.');
+  process.exit(1);
+}
 const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 const mongoDb = process.env.MONGODB_DB || 'strava-club-events';
 
@@ -29,17 +35,19 @@ console.log(`Dropping cache for user: ${userId}`);
 
 let cache;
 try {
-  cache = await AbstractCache.create(driver, {
+  // Keep ownership before init so even an initialization failure closes the client.
+  cache = new MongoDBCache({
     uri: mongoUri,
     dbName: mongoDb,
     collectionName: 'cache',
   });
+  await cache.init();
 
   const deleted = await cache.clearUserData(userId);
   console.log(`Deleted ${deleted} cache entries for user ${userId}.`);
 } catch (err) {
   console.error('Error:', err.message);
-  process.exit(1);
+  process.exitCode = 1;
 } finally {
   if (cache?.close) await cache.close();
 }

@@ -1,4 +1,6 @@
-import fetch from 'node-fetch';
+import { stravaRequest } from './strava-client.js';
+import { createHash } from 'node:crypto';
+import { upcomingOccurrences } from '../utils/occurrences.js';
 import { parseJsonWithStringIds } from '../utils/parsing.js';
 import AbstractCache from '../cache/abstract-cache.js';
 import { Logger } from '../utils/logger.js';
@@ -15,21 +17,35 @@ import { config } from '../config/index.js';
 // Cache instance
 let cache;
 
-// Initialize cache
-(async () => {
-  try {
-    const cacheConfig = {
-      defaultTTL: config.cache.ttl.DEFAULT,
-      ...config.cache.mongodb
-    };
-    
-    cache = await AbstractCache.create(config.cache.driver, cacheConfig);
-    logger.info(`Cache initialized with ${config.cache.driver} driver`);
-  } catch (error) {
-    logger.error('Failed to initialize cache:', error);
-    process.exit(1);
-  }
-})();
+let cacheReady;
+export function initializeCache() {
+  cacheReady ??= AbstractCache.create(config.cache.driver, {
+    defaultTTL: config.cache.ttl.DEFAULT, ...config.cache.mongodb
+  }).then(instance => { cache = instance; return instance; });
+  return cacheReady;
+}
+export async function closeCache() {
+  if (cacheReady) await (await cacheReady).close?.();
+}
+export async function checkCache({ signal }) {
+  if (!cache) throw new Error('Cache unavailable');
+  if (config.cache.driver === 'mongodb') await cache.db.command({ ping: 1 }, { signal, timeoutMS: 1000 });
+}
+const pending = new Map();
+async function cachedRequest(key, ttl, load) {
+  await initializeCache();
+  const hit = await cache.get(key);
+  if (hit !== null && hit !== undefined) return hit;
+  if (pending.has(key)) return pending.get(key);
+  const task = (async () => {
+    const value = await load();
+    if (value !== null) await cache.set(key, value, ttl);
+    return value;
+  })();
+  pending.set(key, task);
+  try { return await task; } finally { pending.delete(key); }
+}
+const refreshes = new Map();
 
 // Use configured TTLs
 const CACHE_TTL = config.cache.ttl;
@@ -42,24 +58,16 @@ const CACHE_TTL = config.cache.ttl;
  * @returns {Promise<Object>} - The new access token data
  */
 async function refreshAccessToken(refreshToken, clientId, clientSecret) {
-  logger.debug('Refreshing access token');
-  const tokenResp = await fetch("https://www.strava.com/oauth/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      client_id: clientId,
-      client_secret: clientSecret,
-      refresh_token: refreshToken,
-      grant_type: "refresh_token",
-    }),
-  });
+  const key = createHash('sha256').update(`${clientId}:${refreshToken}`).digest('hex');
+  if (refreshes.has(key)) return refreshes.get(key);
+  const task = stravaRequest('https://www.strava.com/oauth/token', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ client_id: clientId, client_secret: clientSecret,
+      refresh_token: refreshToken, grant_type: 'refresh_token' })
+  }).then(JSON.parse);
+  refreshes.set(key, task);
+  try { return await task; } finally { refreshes.delete(key); }
 
-  if (!tokenResp.ok) {
-    const errorData = await tokenResp.text();
-    throw new Error(`Token refresh failed: ${errorData}`);
-  }
-
-  return await tokenResp.json();
 }
 
 /**
@@ -68,29 +76,14 @@ async function refreshAccessToken(refreshToken, clientId, clientSecret) {
  * @returns {Promise<Array>} - List of user's clubs
  */
 async function getUserClubs(accessToken, userId) {
-  const cacheKey = AbstractCache.generateKey(userId, 'clubs');
-  
-  // Try to get from cache first
-  const cached = await cache.get(cacheKey);
-  if (cached) {
-    return cached;
-  }
-
-  // If not in cache, fetch from API
-  const response = await fetch(`https://www.strava.com/api/v3/athlete/clubs?page=1&per_page=${LIMIT_CLUBS_FETCH}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
+  const key = AbstractCache.generateKey(userId, 'clubs');
+  return cachedRequest(key, CACHE_TTL.CLUBS, async () => {
+    const clubs = parseJsonWithStringIds(await stravaRequest(`https://www.strava.com/api/v3/athlete/clubs?page=1&per_page=${LIMIT_CLUBS_FETCH}`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    }));
+    if (!Array.isArray(clubs)) throw new Error('Invalid Strava clubs response');
+    return clubs;
   });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to fetch clubs: ${response.statusText}`);
-  }
-  
-  const clubs = parseJsonWithStringIds(await response.text());
-  
-  // Cache the result
-  await cache.set(cacheKey, clubs, CACHE_TTL.CLUBS);
-  
-  return clubs;
 }
 
 /**
@@ -100,35 +93,14 @@ async function getUserClubs(accessToken, userId) {
  * @returns {Promise<Array>} - List of raw club events
  */
 async function fetchRawClubEvents(accessToken, userId, clubId) {
-  const cacheKey = AbstractCache.generateKey(userId, 'club_events', clubId);
-  
-  // Try to get from cache first
-  const cached = await cache.get(cacheKey);
-  if (cached) {
-    return cached;
-  }
-
-  // If not in cache, fetch from API
-  const url = `https://www.strava.com/api/v3/clubs/${clubId}/group_events?upcoming=true&page=1&per_page=${LIMIT_EVENTS}`;
-  logger.debug(`Fetching club events from: ${url}`);
-  
-  const response = await fetch(url, {
-    headers: { 
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json'
-    }
+  const key = AbstractCache.generateKey(userId, 'club_events', clubId);
+  return cachedRequest(key, CACHE_TTL.EVENTS, async () => {
+    const events = parseJsonWithStringIds(await stravaRequest(`https://www.strava.com/api/v3/clubs/${clubId}/group_events?upcoming=true&page=1&per_page=${LIMIT_EVENTS}`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    }));
+    if (!Array.isArray(events)) throw new Error('Invalid Strava events response');
+    return events;
   });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to fetch events for club ${clubId}: ${response.statusText}`);
-  }
-  
-  const events = parseJsonWithStringIds(await response.text());
-  
-  // Cache the result
-  await cache.set(cacheKey, events, CACHE_TTL.EVENTS);
-  
-  return events;
 }
 
 /**
@@ -141,45 +113,18 @@ async function fetchRawClubEvents(accessToken, userId, clubId) {
  */
 async function getRouteDetails(accessToken, routeId, options = {}) {
   if (!routeId) return null;
-  
-  const { shouldFetch = () => true } = options;
-  const cacheKey = AbstractCache.generateKey('_', 'route', routeId); // routes are user-agnostic (it's important NOT to use route.starred field since this field is user specific)
-  
-  // Try to get from cache first
-  const cached = await cache.get(cacheKey);
-  if (cached) return cached;
-
-  // If not in cache and should not fetch, return null
-  if (!shouldFetch()) {
-    logger.debug(`Skipping fetch for route ${routeId} due to limit`);
-    return null;
-  }
-
-  // Fetch from API
-  const url = `https://www.strava.com/api/v3/routes/${routeId}`;
-  logger.debug(`Fetching route details from: ${url}`);
-  
-  const response = await fetch(url, {
-    headers: { 
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json'
+  if (!options.userId) throw new Error('Route cache requires authenticated user ID');
+  const key = AbstractCache.generateKey(options.userId, 'route', routeId);
+  return cachedRequest(key, CACHE_TTL.ROUTE, async () => {
+    if (options.shouldFetch && !options.shouldFetch()) return null;
+    const route = parseJsonWithStringIds(await stravaRequest(`https://www.strava.com/api/v3/routes/${routeId}`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    }));
+    if (!route || typeof route !== 'object' || Array.isArray(route) || String(route.id) !== String(routeId)) {
+      throw Object.assign(new Error('Invalid Strava route response'), { status: 502 });
     }
+    return route;
   });
-  
-  if (!response.ok) {
-    console.error(`Failed to fetch route ${routeId}: ${response.statusText}`);
-    return null;
-  }
-  
-  const routeDetails = await parseJsonWithStringIds(await response.text());
-  
-  // Cache the result
-  if (routeDetails) {
-    logger.debug(`Caching route details for route ID: ${routeId}`);
-    await cache.set(cacheKey, routeDetails, CACHE_TTL.ROUTE);
-  }
-  
-  return routeDetails;
 }
 
 /**
@@ -189,31 +134,17 @@ async function getRouteDetails(accessToken, routeId, options = {}) {
  * @param {string} accessToken - The OAuth access token
  * @param {Object} [options] - Additional options
  * @param {Function} [options.shouldFetchRoute] - Function that returns true if route details should be fetched
- * @returns {Promise<Object|null>} - Prepared event or null if not within date range
+ * @returns {Promise<Array>} - Prepared occurrences within the date range
  */
 async function prepareEvent(event, club, accessToken, options = {}) {
   const { shouldFetchRoute = () => true } = options;
   
-  // Process upcoming occurrences
-  const now = new Date();
-  const nextMonth = new Date();
-  nextMonth.setDate(now.getDate() + 30);
-
-  if (!Array.isArray(event.upcoming_occurrences) || event.upcoming_occurrences.length === 0) {
-    return null;
-  }
-
-  const candidateDates = event.upcoming_occurrences.map(d => new Date(d));
-  const match = candidateDates.find(d => d >= now && d <= nextMonth);
-
-  if (!match) {
-    return null;
-  }
+  const occurrences = upcomingOccurrences(event.upcoming_occurrences, options.now);
+  if (occurrences.length === 0) return [];
 
   // Create event copy with processed data
   const processedEvent = {
     ...event,
-    start_date: match.toISOString(),
     strava_event_url: `https://www.strava.com/clubs/${club.id}/group_events/${event.id}`,
     club_info: {
       id: club.id,
@@ -231,10 +162,11 @@ async function prepareEvent(event, club, accessToken, options = {}) {
     try {
       // Always try to get from cache first, only apply limit when fetching from Strava
       routeDetails = await getRouteDetails(accessToken, event.route.id, {
-        shouldFetch: shouldFetchRoute
+        shouldFetch: shouldFetchRoute, userId: options.userId
       });
     } catch (error) {
-      console.error(`Error with route details for route ${event.route.id}:`, error);
+      processedEvent.route_details_failed = true;
+      options.onRouteError?.({ route_id: String(event.route.id), status: error.status || 502, retry_after: error.retryAfter });
     }
   }
 
@@ -245,7 +177,11 @@ async function prepareEvent(event, club, accessToken, options = {}) {
     processedEvent.route_info = getBasicRouteInfo(event);
   }
 
-  return processedEvent;
+  return occurrences.map(date => {
+    const startDate = date.toISOString();
+    return { ...processedEvent, start_date: startDate,
+      occurrence_id: `${club.id}:${event.id}:${startDate}` };
+  });
 }
 
 /**
@@ -369,15 +305,16 @@ function getBasicRouteInfo(event) {
  */
 async function getClubEvents(accessToken, club, userId, options = {}) {
   const { shouldFetchRoute } = options;
+  const now = options.now ?? new Date();
   const rawEvents = await fetchRawClubEvents(accessToken, userId, club.id);
 
   // Process events in parallel with route request limiting
   const eventPromises = rawEvents.map(event =>
-    prepareEvent(event, club, accessToken, { shouldFetchRoute })
+    prepareEvent(event, club, accessToken, { shouldFetchRoute, userId, now, onRouteError: options.onRouteError })
   );
 
   const preparedEvents = await Promise.all(eventPromises);
-  return { events: preparedEvents.filter(Boolean), rawCount: rawEvents.length };
+  return { events: preparedEvents.flat(), rawCount: rawEvents.length };
 }
 
 /**
@@ -390,6 +327,7 @@ async function getClubEvents(accessToken, club, userId, options = {}) {
  * @returns {Promise<{events: Array, clubs: Array, meta: Object}>} - All prepared events, full clubs list, and metadata
  */
 async function getAllUserClubsEvents(accessToken, userId, { filterClubIds, filterSportTypes } = {}) {
+  const now = new Date();
   const allClubs = await getUserClubs(accessToken, userId);
 
   const hasClubFilter  = filterClubIds   && filterClubIds.length > 0;
@@ -421,15 +359,26 @@ async function getAllUserClubsEvents(accessToken, userId, { filterClubIds, filte
     return true;
   };
 
+  const errors = [];
+  const routeErrors = new Map();
+  const onRouteError = error => routeErrors.set(error.route_id, error);
   // Process all clubs in parallel
   const clubResults = await Promise.all(clubsToProcess.map(club => 
-    getClubEvents(accessToken, club, userId, { shouldFetchRoute })
+    getClubEvents(accessToken, club, userId, { shouldFetchRoute, now, onRouteError })
       .catch(error => {
-        console.error(`Error getting events for club ${club.id}:`, error);
+        errors.push({ club_id: club.id, status: error.status || 502, retry_after: error.retryAfter });
         return { events: [], rawCount: 0 };
       })
   ));
 
+  if (clubsToProcess.length > 0 && errors.length === clubsToProcess.length) {
+    throw Object.assign(new Error('Failed to fetch all Strava clubs'), {
+      status: errors.some(error => error.status === 429) ? 429 : 502,
+      retryAfter: Math.max(0, ...errors.map(error => error.retry_after || 0)) || undefined
+    });
+  }
+  const retryAfter = Math.max(0, ...errors.map(error => error.retry_after || 0),
+    ...[...routeErrors.values()].map(error => error.retry_after || 0)) || undefined;
   let eventsLimited = false;
   for (const result of clubResults) {
     if (result.rawCount >= LIMIT_EVENTS) eventsLimited = true;
@@ -449,6 +398,13 @@ async function getAllUserClubsEvents(accessToken, userId, { filterClubIds, filte
       localized_sport_type: c.localized_sport_type || ''
     })),
     meta: {
+      partial: errors.length > 0 || routeErrors.size > 0,
+      retry_after: retryAfter,
+      routes_failed: routeErrors.size,
+      route_errors: [...routeErrors.values()],
+      events_route_details_failed: allEvents.filter(event => event.route_details_failed).length,
+      clubs_failed: errors.length,
+      errors,
       clubs_total: allClubs.length,
       clubs_processed: clubsToProcess.length,
       clubs_limited: (hasClubFilter || hasSportFilter) ? false : allClubs.length > LIMIT_CLUBS,

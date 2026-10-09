@@ -17,6 +17,11 @@ async function getEvents(req, res) {
     }
     const userId = req.user.id;
 
+    for (const name of ['clubs', 'sportTypes']) {
+      if (req.query[name] !== undefined && typeof req.query[name] !== 'string') {
+        return res.status(400).json({ error: `Invalid ${name} parameter` });
+      }
+    }
     // Parse optional ?clubs=id1,id2,... filter
     let filterClubIds;
     if (req.query.clubs) {
@@ -42,10 +47,11 @@ async function getEvents(req, res) {
 
     res.json({ events, clubs, meta });
   } catch (error) {
-    console.error('Error in getEvents:', error);
-    res.status(500).json({
-      error: 'Failed to fetch events',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    const limited = error.status === 429;
+    if (Number.isSafeInteger(error.retryAfter) && error.retryAfter > 0) res.set('Retry-After', String(error.retryAfter));
+    res.status(limited ? 429 : error.status === 503 ? 503 : 502).json({
+      error: limited ? 'Strava rate limit reached' : 'Failed to fetch events. Please try again later.',
+      retry_after: error.retryAfter
     });
   }
 }

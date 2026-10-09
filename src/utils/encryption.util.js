@@ -5,130 +5,87 @@ import { config } from '../config/index.js';
 const ENCRYPTION_KEY = config.encryptionKey;
 const ENCRYPTION_PREFIX = ':encrypted::';
 
-// Use a fixed IV for deterministic encryption of the same input
-// In production, consider using a random IV for each encryption
-const IV_LENGTH = 16; // For AES-256-CBC
-const ALGORITHM = 'aes-256-cbc';
-const ENCODING = 'hex';
-
-/**
- * Encrypts a string value
- * @param {string} text - The text to encrypt
- * @returns {string} Encrypted string
- */
-export const encrypt = (text) => {
+// v2 authenticates the ciphertext and its session/field context. Legacy CBC is read-only.
+export const encrypt = (text, context = '') => {
   if (!text) return text;
-  
   try {
-    const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipheriv(
-      ALGORITHM,
-      Buffer.from(ENCRYPTION_KEY, 'hex'),
-      iv
-    );
-    
-    let encrypted = cipher.update(text, 'utf8', ENCODING);
-    encrypted += cipher.final(ENCODING);
-    
-    // Return prefix + IV + encrypted data
-    return ENCRYPTION_PREFIX + iv.toString(ENCODING) + ':' + encrypted;
-  } catch (error) {
-    console.error('Encryption error:', error);
-    throw new Error('Failed to encrypt data');
-  }
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv('aes-256-gcm', Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
+    cipher.setAAD(Buffer.from(context));
+    const encrypted = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()]);
+    return `${ENCRYPTION_PREFIX}v2:${iv.toString('hex')}:${cipher.getAuthTag().toString('hex')}:${encrypted.toString('hex')}`;
+  } catch { throw new Error('Failed to encrypt data'); }
 };
 
-/**
- * Decrypts a string
- * @param {string} text - The encrypted text to decrypt
- * @returns {string} Decrypted string
- */
-export const decrypt = (text) => {
+export const decrypt = (text, context = '') => {
   if (!text) return text;
-  
-  // Only process if the text has our encryption prefix
-  if (!text.startsWith(ENCRYPTION_PREFIX)) {
-    return text;
-  }
-  
+  if (typeof text !== 'string') throw new Error('Invalid encrypted data');
+  if (!text.startsWith(ENCRYPTION_PREFIX)) return text;
   try {
-    // Remove the prefix and split the remaining string
-    const encryptedData = text.slice(ENCRYPTION_PREFIX.length);
-    const [ivString, encryptedText] = encryptedData.split(':');
-    
-    if (!ivString || !encryptedText) {
-      throw new Error('Invalid encrypted text format');
+    const parts = text.slice(ENCRYPTION_PREFIX.length).split(':');
+    let decipher; let payload;
+    if (parts[0] === 'v2') {
+      if (parts.length !== 4 || !/^[a-f0-9]{24}$/.test(parts[1]) ||
+          !/^[a-f0-9]{32}$/.test(parts[2]) || !/^(?:[a-f0-9]{2})+$/.test(parts[3])) throw new Error();
+      decipher = crypto.createDecipheriv('aes-256-gcm', Buffer.from(ENCRYPTION_KEY, 'hex'), Buffer.from(parts[1], 'hex'));
+      decipher.setAAD(Buffer.from(context));
+      decipher.setAuthTag(Buffer.from(parts[2], 'hex'));
+      payload = parts[3];
+    } else {
+      if (parts.length !== 2 || !/^[a-f0-9]{32}$/.test(parts[0]) ||
+          !/^(?:[a-f0-9]{32})+$/.test(parts[1])) throw new Error();
+      decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY, 'hex'), Buffer.from(parts[0], 'hex'));
+      payload = parts[1];
     }
-    
-    const iv = Buffer.from(ivString, ENCODING);
-    const decipher = crypto.createDecipheriv(
-      ALGORITHM,
-      Buffer.from(ENCRYPTION_KEY, 'hex'),
-      iv
-    );
-    
-    let decrypted = decipher.update(encryptedText, ENCODING, 'utf8');
-    decrypted += decipher.final('utf8');
-    
-    return decrypted;
-  } catch (error) {
-    console.error('Decryption error:', error);
-    throw new Error('Failed to decrypt data');
-  }
+    return Buffer.concat([decipher.update(Buffer.from(payload, 'hex')), decipher.final()]).toString('utf8');
+  } catch { throw new Error('Failed to decrypt data'); }
 };
 
-/**
- * Middleware to automatically encrypt/decrypt sensitive session data
- */
-export const sessionEncryptionMiddleware = (req, res, next) => {
-  if (!req.session) return next();
-  
-  // Store original save method
-  const originalSave = req.session.save;
-  
-  // Override save method to handle encryption
-  req.session.save = function(callback) {
-    if (this.tokens) {
-      // Create a copy of tokens to modify
-      const tokensToSave = { ...this.tokens };
-      
-      // Encrypt sensitive fields if they exist
-      const sensitiveFields = ['access_token', 'refresh_token'];
-      sensitiveFields.forEach(field => {
-        if (tokensToSave[field]) {
-          tokensToSave[field] = encrypt(tokensToSave[field]);
+/** Encrypt only at the persistence boundary; request sessions remain plaintext. */
+export function encryptSessionStore(store) {
+  const originalSet = store.set;
+  const originalGet = store.get;
+  function transform(id, session, operation) {
+    if (!session?.tokens) return session;
+    const copy = { ...session, tokens: { ...session.tokens } };
+    for (const field of ['access_token', 'refresh_token']) {
+      if (copy.tokens[field]) {
+        copy.tokens[field] = operation(copy.tokens[field], `${id}:${field}`);
+        if (operation === decrypt && copy.tokens[field].startsWith(ENCRYPTION_PREFIX)) {
+          throw new Error('Invalid nested session encryption');
         }
-      });
-      
-      // Store the potentially encrypted tokens
-      this.tokens = tokensToSave;
+      }
     }
-    
-    return originalSave.call(this, callback);
+    return copy;
+  }
+  store.decodeSession = (id, data) => transform(id, data, decrypt);
+  store.requiresEncryptionUpgrade = data => ['access_token', 'refresh_token'].some(field =>
+    data?.tokens?.[field] && !data.tokens[field].startsWith(`${ENCRYPTION_PREFIX}v2:`));
+  store.set = function (id, session, callback = () => {}) {
+    let encrypted;
+    try { encrypted = transform(id, session, encrypt); }
+    catch (error) { return callback(error); }
+    return originalSet.call(this, id, encrypted, error => {
+      if (!error && encrypted?._revision) session._revision = encrypted._revision;
+      callback(error);
+    });
   };
-  
-  // Decrypt tokens when loading from session
-  if (req.session.tokens) {
-    try {
-      const tokens = { ...req.session.tokens };
-      const sensitiveFields = ['access_token', 'refresh_token'];
-      
-      // Decrypt sensitive fields if they exist and are encrypted
-      sensitiveFields.forEach(field => {
-        if (tokens[field] && typeof tokens[field] === 'string') {
-          tokens[field] = decrypt(tokens[field]);
-        }
-      });
-      
-      // Replace with decrypted tokens
-      req.session.tokens = tokens;
-    } catch (error) {
-      console.error('Failed to decrypt session tokens:', error);
-      // Clear invalid session data
-      req.session.tokens = {};
-      req.session.encryptedTokens = {};
-    }
+  store.get = function (id, callback) {
+    return originalGet.call(this, id, (error, session) => {
+      if (error || !session) return callback(error, session);
+      let decrypted;
+      try { decrypted = transform(id, session, decrypt); }
+      catch {
+        return this.destroy(id, error => callback(error, null));
+      }
+      callback(null, decrypted);
+    });
+  };
+  if (store.commitRefresh) {
+    const commit = store.commitRefresh;
+    store.commitRefresh = function (id, revision, owner, tokens) {
+      return commit.call(this, id, revision, owner, transform(id, { tokens }, encrypt).tokens);
+    };
   }
-  
-  next();
-};
+  return store;
+}

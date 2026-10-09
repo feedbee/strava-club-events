@@ -6,12 +6,12 @@ A modern web application that connects to Strava, fetches upcoming club events f
 - **Secure Authentication** - Robust OAuth2 implementation with Strava
   - Automatic token refresh before expiration
   - Configurable session management with multiple storage backends
-  - Optional AES-256-CBC encryption for sensitive session data
+  - Optional AES-256-GCM encryption for sensitive session data (reads legacy CBC sessions)
   - Secure cookie configuration with httpOnly, secure, and sameSite flags
 
 - **Event Management**
   - Fetches events from all your Strava clubs
-  - Filters events to show only upcoming ones (next 30 days)
+  - Shows every unique upcoming occurrence in the next 30 days, including recurring events
   - Displays detailed event information
   - **Smart Filtering System**
     - Filter events by join status (show only joined events)
@@ -70,8 +70,11 @@ docker-compose up -d
 ```
 
 ### Local Development
+
+Use Node 24.21.0 (`nvm use`, version pinned in `.nvmrc`). `npm run dev` uses Node’s built-in watch mode. See [dependency migration and verification](docs/dependencies-step3.md).
+
 1. Clone the repository
-2. Install dependencies: `npm install`
+2. Install dependencies: `npm ci --ignore-scripts`
 3. Create a `.env` file with your Strava API credentials
 4. Start the server: `npm start`
 5. Open `http://localhost:3000` in your browser
@@ -80,13 +83,14 @@ docker-compose up -d
 
 #### Prerequisites
 - [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) (recommended)
-- [Node.js 18+](https://nodejs.org/) (for local development without Docker)
+- [Node.js 24 LTS](https://nodejs.org/) (for local development without Docker)
 - A [Strava API application](https://www.strava.com/settings/api) with `CLIENT_ID` and `CLIENT_SECRET`
 
 ### 🔒 Security Features
 
 - **Token Rotation**: Access tokens are automatically refreshed before expiration
-- **Secure Storage**: Tokens stored in HTTP-only, secure cookies
+- **OAuth state**: One-time session-bound state expires after 10 minutes; successful login rotates the session ID
+- **Secure Storage**: Tokens stay in the server-side session store; the HttpOnly cookie contains only a signed session ID
 - **Session Management**: Automatic cleanup of expired sessions
 - **Error Handling**: Graceful degradation and user-friendly error messages
 
@@ -106,13 +110,12 @@ NODE_ENV=development
 HOST=0.0.0.0
 PORT=3000
 PUBLIC_URL=http://localhost:3000
-DEV_CALLBACK_REDIRECT=
 
 # Session Configuration
 SESSION_DRIVER=memory  # or 'mongodb'
 SESSION_SECRET=your_session_secret
 SESSION_TTL=86400  # 24 hours in seconds
-SESSION_SECURE_COOKIE=true  # set to false for HTTP
+SESSION_SECURE_COOKIE=false  # development over HTTP; production requires true
 SESSION_TRUST_PROXY=false  # set to true if behind a reverse proxy
 
 # MongoDB Configuration (required if using mongodb driver)
@@ -120,7 +123,7 @@ MONGODB_URI=mongodb://localhost:27017
 MONGODB_DB=strava-club-events
 
 # Encryption (highly recommended for production)
-ENCRYPTION_KEY=your_secure_encryption_key_here
+ENCRYPTION_KEY=  # optional; set to 64 hexadecimal characters for a 32-byte key
 
 # Cache Configuration
 CACHE_DRIVER=memory  # or 'mongodb'
@@ -142,14 +145,14 @@ CACHE_TTL_ROUTE=3600000    # 1 hour
 | `HOST` | No | `0.0.0.0` | Bind address for the HTTP server |
 | `PORT` | No | `3000` | Port for the HTTP server |
 | `PUBLIC_URL` | No | `http://localhost:${PORT}` | Base URL for OAuth redirects |
-| `DEV_CALLBACK_REDIRECT` | No | - | Development callback URL for OAuth flow |
+| `DEV_CALLBACK_REDIRECT` | Removed | - | Must be unset; callback forwarding is rejected |
 | **Session** | | | |
-| `SESSION_DRIVER` | No | `memory` | Session storage: `memory` or `mongodb` |
-| `SESSION_SECRET` | No | `supersecret` | Secret for signing session cookies |
+| `SESSION_DRIVER` | In production | `memory` in development | Production requires `mongodb` |
+| `SESSION_SECRET` | In production | Random per process in development | Signing secret; production requires at least 32 non-whitespace characters |
 | `SESSION_TTL` | No | `86400` | Session lifetime in seconds (24h) |
-| `SESSION_SECURE_COOKIE` | No | `true` | Use secure cookies (HTTPS only) |
-| `SESSION_TRUST_PROXY` | No | `false` | Trust reverse proxy headers |
-| `ENCRYPTION_KEY` | No | - | AES-256-CBC key for encrypting sensitive data |
+| `SESSION_SECURE_COOKIE` | No | `true` in production, `false` otherwise | Production rejects `false` |
+| `SESSION_TRUST_PROXY` | No | `false` | Trust TLS-forwarding headers only when the backend is reachable solely through the trusted proxy |
+| `ENCRYPTION_KEY` | No | - | 64-hex-character AES-256 key; new writes use GCM, legacy CBC remains readable |
 | **MongoDB** | | | |
 | `MONGODB_URI` | If using MongoDB | `mongodb://localhost:27017` | MongoDB connection string |
 | `MONGODB_DB` | If using MongoDB | `strava-club-events` | Database name |
@@ -177,13 +180,13 @@ CACHE_TTL_ROUTE=3600000    # 1 hour
 - The project directory is bind-mounted into the container for live code changes
 - For new dependencies, either:
   - Rebuild the container: `docker compose up --build`
-  - Or install inside the container: `docker compose exec app npm install <package>`
+  - Or install inside the container: `docker compose exec -u root strava-app npm ci --omit=dev --ignore-scripts`
 
 ### 💻 Local Development (Node.js)
 
 1. Install dependencies:
    ```bash
-   npm install
+   npm ci --ignore-scripts
    ```
 
 2. Set environment variables:
@@ -201,6 +204,9 @@ CACHE_TTL_ROUTE=3600000    # 1 hour
 4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ### OAuth Callback URL
+
+OAuth callbacks are direct and bound to the browser session. The old production-to-development callback forwarding is disabled. See [security configuration and migration](docs/security-step2.md) before deploying these changes.
+
 The server expects `http://localhost:PORT/callback` (default: `http://localhost:3000/callback`). Configure this in your Strava app settings.
 
 ### 🔌 API Endpoints
@@ -210,11 +216,14 @@ The server expects `http://localhost:PORT/callback` (default: `http://localhost:
 |----------|--------|-------------|
 | `/login` | GET | Initiates OAuth flow with Strava |
 | `/callback` | GET | Handles OAuth callback and token exchange |
+| `/logout` | POST | Destroys the session; requires the session-bound `csrfToken` from `/me` |
 
 #### Events
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/events` | GET | Returns `{ events, clubs, meta }` for upcoming club events (next 30 days) |
+
+Each item in `events` represents one occurrence. `id` remains the original Strava event ID; `occurrence_id` identifies the club, event and UTC start instant. `start_date` is that occurrence’s start. `meta.events_total` counts displayed occurrences; per-club fetch limits still count source events. The window includes now through now + 30 × 24 hours. Invalid dates and duplicate instants within one source event are omitted.
 | `/events?clubs=id1,id2` | GET | Filter to up to 10 specific clubs |
 | `/events?sportTypes=cycling` | GET | Filter by sport type (case-insensitive) |
 
@@ -309,3 +318,11 @@ This project is licensed under the [BSD-2-Clause License](LICENSE).
 - Built with [Express.js](https://expressjs.com/)
 - UI powered by [FullCalendar](https://fullcalendar.io/)
 - Styled with [Inter](https://rsms.me/inter/) font
+
+HTTP responses include CSP, frame protection, nosniff and referrer/permissions policies. HSTS is enabled when `PUBLIC_URL` is HTTPS. Logout is a POST form protected by a session-bound CSRF token. The former `/dev/token` endpoint has been removed. See [HTTP security details](docs/http-security-step8.md).
+
+Token refresh is coordinated per session through the shared MongoDB store, with versioned writes to prevent stale credentials overwriting a refresh or restoring a logged-out session. Keep the existing `ENCRYPTION_KEY`; stop old application instances before starting this version. See [encryption migration and refresh coordination](docs/session-security-step9.md).
+
+Strava quotas are read from provider response headers. MongoDB-backed sessions also provide shared quota reservations and cooldowns across application instances using the same session database and CLIENT_ID. A complete club failure returns HTTP 502/429; partial club or route failures retain events and display warnings. See [quota handling and upstream failures](docs/strava-quota-step10.md).
+
+Health probes are public and bypass sessions: `GET /health/live` returns 200 while the process responds; `GET /health/ready` returns 200 when initialized storage connections respond, otherwise 503. Responses disable caching and disclose only a status. Readiness checks never call Strava. PORT and session/cache TTL settings require positive decimal integers; CACHE_DRIVER accepts only memory or mongodb. The cache-clearing CLI supports shared MongoDB storage and rejects process-local memory clearing. See [configuration and operations](docs/operations-step11.md).

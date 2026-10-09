@@ -40,10 +40,7 @@ class MongoDBCache {
     if (this.initialized) return;
 
     try {
-      this.client = new MongoClient(this.uri, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      });
+      this.client = new MongoClient(this.uri, { serverSelectionTimeoutMS: 10000, connectTimeoutMS: 10000, socketTimeoutMS: 15000 });
 
       await this.client.connect();
       this.db = this.client.db(this.dbName);
@@ -174,7 +171,7 @@ class MongoDBCache {
       return deletedCount;
     } catch (error) {
       logger.error(`Error clearing cache for user ${userId}:`, error);
-      return 0;
+      throw error;
     }
   }
 
