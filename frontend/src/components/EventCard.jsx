@@ -26,6 +26,7 @@ export function EventCard({ event, onOpen, expanded = false }) {
         aria-haspopup="dialog"
       >
         <ClubLogo event={event} />
+        {event.joined && <span className="card-joined" aria-label="Joined">✓</span>}
         <span className="card-copy">
           <span className="card-time">
             <time>
@@ -35,7 +36,6 @@ export function EventCard({ event, onOpen, expanded = false }) {
               })}
             </time>
             <span className="card-club"> · {event.club_info?.name}</span>
-            {event.joined && <span aria-label="Joined"> ✓</span>}
           </span>
           <strong>{event.title}</strong>
         </span>

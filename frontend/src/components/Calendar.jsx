@@ -6,6 +6,8 @@ import React, {
   useState,
 } from "react";
 import { dateKey, indexByDate } from "../data/events.js";
+import { CalendarDate } from "./CalendarDate.jsx";
+import { Icon } from "./Icon.jsx";
 import { TimeGrid } from "./TimeGrid.jsx";
 import { EventCard } from "./EventCard.jsx";
 function shift(date, days) {
@@ -76,7 +78,7 @@ export function Calendar({
     if (element)
       viewport.current.scrollTop += element.getBoundingClientRect().top - top;
     anchor.current = null;
-  }, [range]);
+  }, [range, mode]);
   function navigate(next) {
     pendingDate.current = dateKey(next);
     setDate(next);
@@ -138,13 +140,7 @@ export function Calendar({
         data-date={key}
       >
         <h3>
-          <time dateTime={key}>
-            {new Date(key + "T12:00:00").toLocaleDateString("en-US", {
-              weekday: "short",
-              month: "short",
-              day: "numeric",
-            })}
-          </time>
+          <CalendarDate date={new Date(key + "T12:00:00")} long={mode === "list" || narrow} />
         </h3>
         <div className="day-events">
           {(showAll ? entries : entries.slice(0, 5)).map((event) => (
@@ -181,11 +177,14 @@ export function Calendar({
               className={`control ${mode === value ? "primary" : ""}`}
               aria-pressed={mode === value}
               onClick={() => {
+                if (value === mode) return;
+                if (value === "month") pendingDate.current = dateKey(date);
                 setMode(value);
                 onModeChange?.(value);
-                if (viewport.current) viewport.current.scrollTop = 0;
+                if (value === "list" && viewport.current) viewport.current.scrollTop = 0;
               }}
             >
+              <Icon name={value} size={14} />
               {value[0].toUpperCase() + value.slice(1)}
             </button>
           ))}

@@ -22,6 +22,9 @@ try {
   const base = `http://127.0.0.1:${server.address().port}`;
   await page.goto(base + "/next/");
   await page.locator(".event-card").first().waitFor();
+  const initialScroll = await page.locator(".calendar-viewport").evaluate(el => el.scrollTop);
+  await page.getByRole("button", { name: "Month", exact: true }).click();
+  assert.equal(await page.locator(".calendar-viewport").evaluate(el => el.scrollTop), initialScroll);
   assert.equal(await page.locator(".current-day .event-card").count(), 5);
   await page.locator(".current-day .day-overflow").click();
   assert.equal(await page.locator(".current-day .event-card").count(), 7);
@@ -56,6 +59,8 @@ try {
     .getByRole("button", { name: "Clear filters", exact: true })
     .click();
   for (const width of [1440, 768, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert.ok(await page.locator(".service-footer").evaluate(el => el.getBoundingClientRect().bottom <= innerHeight + 1), `Footer outside viewport at ${width}`);
     await page.setViewportSize({ width, height: 1000 });
     await page.waitForFunction(
       () =>

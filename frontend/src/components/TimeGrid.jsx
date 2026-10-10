@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useRef } from "react";
 import { dateKey } from "../data/events.js";
+import { CalendarDate } from "./CalendarDate.jsx";
 import { EventCard } from "./EventCard.jsx";
 export function TimeGrid({ date, mode, days, onOpen }) {
   const root = useRef(null);
@@ -33,13 +34,7 @@ export function TimeGrid({ date, mode, days, onOpen }) {
             key={dateKey(d)}
             className={dateKey(d) === dateKey(new Date()) ? "time-today" : ""}
           >
-            <time dateTime={dateKey(d)}>
-              {d.toLocaleDateString("en-US", {
-                weekday: "short",
-                month: "short",
-                day: "numeric",
-              })}
-            </time>
+            <CalendarDate date={d} />
           </h3>
         ))}
       </div>

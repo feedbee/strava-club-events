@@ -54,7 +54,7 @@ try {
   await page.keyboard.press("Enter");
   await page.getByRole("dialog").waitFor();
   assert.ok(await page.getByRole("dialog").getAttribute("aria-labelledby"));
-  assert.equal(await page.locator(".detail-link-row svg").count(), 4);
+  assert.equal(await page.locator(".detail-link-row:not(.detail-club-row) svg").count(), 4);
   await page.keyboard.press("Escape");
   assert.ok(
     await page

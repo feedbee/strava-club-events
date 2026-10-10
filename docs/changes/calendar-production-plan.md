@@ -137,3 +137,13 @@ relative, array and query-bearing destinations are rejected by falling back to `
 Verification: 144 default tests pass, including OAuth destination validation and a real local
 HTTP login/callback/profile/logout sequence with a synthetic Strava token response. Production
 build passes. This verifies application integration, not a completed live Strava authorization.
+
+### React increment: final local visual parity review
+
+Paired native/React screenshots cover Month/Week/Day/List at 1440px and supported narrow modes
+at 320px. Corrected missing mode SVGs, date emphasis/full narrow dates, joined-mark placement,
+repeat-Month scroll reset and return-to-Month positioning. Calendar sizing now uses remaining
+shell height rather than a fixed viewport subtraction, keeping the footer visible when controls
+are present. See [the parity matrix](react-calendar-parity.md) for evidence and remaining gates.
+Default checks: 144 passing tests; production build and calendar/time-preview/scenario browser
+gates pass. No primary routing switch or live OAuth acceptance is claimed.
