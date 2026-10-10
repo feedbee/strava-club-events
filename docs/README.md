@@ -1,6 +1,7 @@
 # Documentation index
 
 ## Living guidance
+- [Provider models and data minimization](api-model-coverage.md): cache fields, public DTO and synthetic examples.
 - [Architecture and coding](architecture.md): system boundaries and implementation constraints.
 - [Testing](testing-conventions.md): canonical checks and infrastructure selection.
 - [Releases](releases.md): versioning, changelog, Docker Hub and GitHub publication.

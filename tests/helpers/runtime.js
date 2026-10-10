@@ -8,10 +8,11 @@ const root = new URL('../../', import.meta.url);
 const quietConsole = { log() {}, info() {}, warn() {}, error() {}, debug() {} };
 
 // Execute unchanged ESM sources; replace only external boundaries in each test.
-export async function backend({ env = {}, modules = {} } = {}) {
+export async function backend({ env = {}, modules = {}, argv = [] } = {}) {
   const context = vm.createContext({
     console: quietConsole, Buffer, URL, URLSearchParams, setTimeout, clearTimeout, AbortController,
     process: { env: { CLIENT_ID: 'test-client', CLIENT_SECRET: 'test-secret', ...env },
+      argv: ['node', 'script', ...argv],
       exit(code) { throw new Error(`Unexpected process.exit(${code})`); } },
   });
   const loaded = new Map();
@@ -22,6 +23,7 @@ export async function backend({ env = {}, modules = {} } = {}) {
     const source = await readFile(url, 'utf8');
     const module = new vm.SourceTextModule(source, {
       context, identifier: key,
+      initializeImportMeta(meta) { meta.url = key; },
       importModuleDynamically: (specifier, parent) => {
         const pending = (async () => {
           const child = await resolve(specifier, parent);

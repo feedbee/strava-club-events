@@ -7,6 +7,13 @@ by Git tags; their release notes have not been reconstructed.
 
 ## [Unreleased]
 
+### Security
+- Events and cached Strava models retain only consumed fields; organizing profiles, route geometry and unknown provider fields are excluded. Existing full cache entries are scrubbed when read.
+- Provider model examples and future fetch-model output use synthetic values and identifiers; upstream error bodies are no longer logged by that script.
+
+### Upgrade notes
+- `/events` no longer forwards unused raw Strava fields; consume the documented event DTO. Existing encryption/signing keys remain unchanged. Unread legacy cache records expire by their existing TTL; Git history is not rewritten.
+
 ## [0.9.0] - 2026-10-10
 
 ### Added

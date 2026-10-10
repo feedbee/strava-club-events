@@ -1,0 +1,42 @@
+{
+    "id": 900001,
+    "resource_state": 3,
+    "name": "Example resource",
+    "profile_medium": "https://example.com/synthetic-resource",
+    "profile": "https://example.com/synthetic-resource",
+    "cover_photo": null,
+    "cover_photo_small": null,
+    "activity_types": [
+        "Ride",
+        "Ride",
+        "Ride",
+        "Ride",
+        "Ride"
+    ],
+    "activity_types_icon": "cycling",
+    "dimensions": [
+        "Example value",
+        "Example value",
+        "Example value",
+        "Example value",
+        "Example value",
+        "Example value"
+    ],
+    "sport_type": "cycling",
+    "localized_sport_type": "Cycling",
+    "city": "Example city",
+    "state": "Example region",
+    "country": "Example country",
+    "private": false,
+    "member_count": 12,
+    "featured": false,
+    "verified": false,
+    "url": "https://example.com/synthetic-resource",
+    "membership": "member",
+    "admin": false,
+    "owner": false,
+    "description": "Synthetic model example.",
+    "club_type": "casual",
+    "following_count": 0,
+    "website": "https://example.com/synthetic-resource"
+}

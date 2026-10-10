@@ -2,6 +2,7 @@ import { stravaRequest } from './strava-client.js';
 import { createHash } from 'node:crypto';
 import { upcomingOccurrences } from '../utils/occurrences.js';
 import { parseJsonWithStringIds } from '../utils/parsing.js';
+import { clubRecord, eventRecord, routeRecord, resourceList } from './strava-models.js';
 import AbstractCache from '../cache/abstract-cache.js';
 import { Logger } from '../utils/logger.js';
 
@@ -32,13 +33,19 @@ export async function checkCache({ signal }) {
   if (config.cache.driver === 'mongodb') await cache.db.command({ ping: 1 }, { signal, timeoutMS: 1000 });
 }
 const pending = new Map();
-async function cachedRequest(key, ttl, load) {
+async function cachedRequest(key, ttl, load, project = value => value) {
   await initializeCache();
   const hit = await cache.get(key);
-  if (hit !== null && hit !== undefined) return hit;
+  if (hit !== null && hit !== undefined) {
+    const value = project(hit);
+    // Scrub legacy full responses on access; minimized entries keep their expiry.
+    if (JSON.stringify(value) !== JSON.stringify(hit)) await cache.set(key, value, ttl);
+    return value;
+  }
   if (pending.has(key)) return pending.get(key);
   const task = (async () => {
-    const value = await load();
+    const loaded = await load();
+    const value = loaded === null ? null : project(loaded);
     if (value !== null) await cache.set(key, value, ttl);
     return value;
   })();
@@ -83,7 +90,7 @@ async function getUserClubs(accessToken, userId) {
     }));
     if (!Array.isArray(clubs)) throw new Error('Invalid Strava clubs response');
     return clubs;
-  });
+  }, value => resourceList(value, clubRecord));
 }
 
 /**
@@ -100,7 +107,7 @@ async function fetchRawClubEvents(accessToken, userId, clubId) {
     }));
     if (!Array.isArray(events)) throw new Error('Invalid Strava events response');
     return events;
-  });
+  }, value => resourceList(value, eventRecord));
 }
 
 /**
@@ -124,6 +131,10 @@ async function getRouteDetails(accessToken, routeId, options = {}) {
       throw Object.assign(new Error('Invalid Strava route response'), { status: 502 });
     }
     return route;
+  }, value => {
+    const route = routeRecord(value);
+    if (String(route.id) !== String(routeId)) throw Object.assign(new Error('Invalid cached route ID'), { status: 502 });
+    return route;
   });
 }
 
@@ -137,6 +148,8 @@ async function getRouteDetails(accessToken, routeId, options = {}) {
  * @returns {Promise<Array>} - Prepared occurrences within the date range
  */
 async function prepareEvent(event, club, accessToken, options = {}) {
+  event = eventRecord(event);
+  club = clubRecord(club);
   const { shouldFetchRoute = () => true } = options;
   
   const occurrences = upcomingOccurrences(event.upcoming_occurrences, options.now);
@@ -144,7 +157,9 @@ async function prepareEvent(event, club, accessToken, options = {}) {
 
   // Create event copy with processed data
   const processedEvent = {
-    ...event,
+    id: event.id,
+    title: event.title || '',
+    joined: event.joined,
     strava_event_url: `https://www.strava.com/clubs/${club.id}/group_events/${event.id}`,
     club_info: {
       id: club.id,

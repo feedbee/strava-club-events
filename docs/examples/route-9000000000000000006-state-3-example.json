@@ -1,0 +1,1230 @@
+{
+    "athlete": {
+        "id": 900003,
+        "username": null,
+        "resource_state": 2,
+        "firstname": "Example",
+        "lastname": "Athlete",
+        "bio": null,
+        "city": "Example city",
+        "state": "Example region",
+        "country": "Example country",
+        "sex": "F",
+        "premium": false,
+        "summit": false,
+        "created_at": "2020-01-01T00:00:00Z",
+        "updated_at": "2020-01-01T00:00:00Z",
+        "badge_type_id": 0,
+        "weight": 0,
+        "profile_medium": "https://example.com/synthetic-resource",
+        "profile": "https://example.com/synthetic-resource",
+        "friend": null,
+        "follower": null
+    },
+    "description": "Synthetic model example.",
+    "distance": 12000,
+    "elevation_gain": 250,
+    "id": "9000000000000000006",
+    "id_str": "9000000000000000006",
+    "map": {
+        "id": "900007",
+        "summary_polyline": "",
+        "resource_state": 3,
+        "polyline": ""
+    },
+    "map_urls": {
+        "url": "https://example.com/synthetic-resource",
+        "retina_url": "https://example.com/synthetic-resource",
+        "light_url": "https://example.com/synthetic-resource",
+        "dark_url": "https://example.com/synthetic-resource"
+    },
+    "name": "Example resource",
+    "private": false,
+    "resource_state": 3,
+    "starred": false,
+    "sub_type": 1,
+    "created_at": "2020-01-01T00:00:00Z",
+    "updated_at": "2020-01-01T00:00:00Z",
+    "timestamp": 0,
+    "type": 1,
+    "estimated_moving_time": 3600,
+    "waypoints": [],
+    "segments": [
+        {
+            "id": 900019,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900020,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900021,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900022,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900023,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900024,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900025,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900026,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900027,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900028,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900029,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900030,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900031,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900032,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900033,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900034,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900035,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900036,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900037,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900038,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900039,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900040,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900041,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900042,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900043,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900044,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900045,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900046,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900047,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900048,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900049,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900050,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": null,
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900051,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900052,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900053,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900054,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900055,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900056,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900057,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900058,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900059,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        },
+        {
+            "id": 900060,
+            "resource_state": 2,
+            "name": "Example resource",
+            "activity_type": "Ride",
+            "distance": 12000,
+            "average_grade": 2,
+            "maximum_grade": 4,
+            "elevation_high": 500,
+            "elevation_low": 100,
+            "start_latlng": [
+                0,
+                0
+            ],
+            "end_latlng": [
+                0,
+                0
+            ],
+            "elevation_profile": null,
+            "elevation_profiles": null,
+            "climb_category": 0,
+            "city": "Example city",
+            "state": "Example region",
+            "country": "Example country",
+            "private": false,
+            "hazardous": false,
+            "starred": false
+        }
+    ]
+}

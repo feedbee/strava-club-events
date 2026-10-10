@@ -5,7 +5,7 @@ These tests cover steps 1–3 of [the audit plan](../docs/code-audit-2026-10-09.
 ## Run
 
 ```sh
-npm test                  # default gate: 106 passing checks
+npm test                  # default gate: 117 passing checks
 npm run test:baseline     # baseline/security/HTTP subset
 npm run test:regressions  # audit regression subset
 ```
@@ -62,3 +62,7 @@ Quota tests exercise short/day windows, Retry-After seconds and HTTP dates, out-
 ## Configuration and operations (step 11)
 
 Tests cover strict numeric configuration, cache driver validation, health HTTP contracts without session requests, readiness timeout/cancellation and shutdown, real MongoDB connection checks/recovery, and cache CLI isolation. All 116 tests (106 ordinary + 10 MongoDB) pass on Node 24.21.0 and 26.7.0. The genuine server also recovered readiness after the disposable MongoDB container was paused and resumed.
+
+## Data minimization
+
+The default suite verifies the explicit event DTO, each minimal provider cache record, existing rich cache hits, failed scrub writes, malformed optional values and invalid resources. Model-script checks cover synthetic filenames/values, large reference IDs and suppression of raw error bodies. The MongoDB suite verifies new stored records and scrubbing of real legacy entries with user isolation. All 128 checks (117 ordinary + 11 MongoDB) pass on Node 24.21.0 and Node 26. Browser smoke now obtains its initial event fixture from the real Strava service projection rather than constructing a DTO manually.

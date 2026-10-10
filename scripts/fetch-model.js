@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Fetch and save Strava API responses as reference JSON examples in docs/.
+ * Fetch Strava models and save synthetic reference examples in docs/examples/.
  *
  * ── FETCH MODE (default) ─────────────────────────────────────────────────────
  * Fetch a single resource by type and ID.
  *
  *   node scripts/fetch-model.js --type <club|event|route> --id <id>
  *
- *   Output: docs/<type>-<id>-example.json
+ *   Output: docs/examples/<type>-<synthetic-id>-example.json
  *
  * ── CRAWL MODE ───────────────────────────────────────────────────────────────
  * Traverse the club → events → event → route chain and save every
@@ -22,7 +22,7 @@
  *   --route <id>   Target route to fetch directly (state-3).
  *                  Routes embedded inside events are always saved when encountered.
  *
- *   Output: docs/<type>-<id>-state-<n>-example.json
+ *   Output: docs/examples/<type>-<synthetic-id>-state-<n>-example.json
  *
  *   How each state is obtained:
  *
@@ -44,10 +44,11 @@ import fetch from 'node-fetch';
 import { writeFile } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { parseJsonWithStringIds } from '../src/utils/parsing.js';
+import { createExampleSanitizer, parseExampleJson } from './lib/synthetic-example.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DOCS_DIR = join(__dirname, '..', 'docs');
+const DOCS_DIR = join(__dirname, '..', 'docs', 'examples');
+const sanitize = createExampleSanitizer();
 const API_BASE = 'https://www.strava.com/api/v3';
 
 // ── CLI parsing ───────────────────────────────────────────────────────────────
@@ -75,15 +76,17 @@ async function fetchApi(path) {
     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
   });
   const body = await response.text();
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}: ${body}`);
-  return parseJsonWithStringIds(body);
+  if (!response.ok) throw new Error(`Strava model request failed (${response.status})`);
+  return parseExampleJson(body);
 }
 
-async function saveFile(filename, data) {
-  const outputPath = join(DOCS_DIR, filename);
-  await writeFile(outputPath, JSON.stringify(data, null, 4), 'utf-8');
-  console.log(`  ✓  docs/${filename}`);
-  return filename;
+async function saveFile(type, id, data, state) {
+  const example = sanitize(data);
+  const safeFilename = `${type}-${sanitize.id(id)}${state === undefined ? '' : `-state-${state}`}-example.json`;
+  const outputPath = join(DOCS_DIR, safeFilename);
+  await writeFile(outputPath, JSON.stringify(example, null, 4), 'utf-8');
+  console.log(`  ✓  docs/examples/${safeFilename}`);
+  return safeFilename;
 }
 
 // ── FETCH MODE ────────────────────────────────────────────────────────────────
@@ -98,13 +101,13 @@ async function runFetch() {
   }
 
   const endpoints = { club: `/clubs/${id}`, event: `/group_events/${id}`, route: `/routes/${id}` };
-  if (!endpoints[type]) {
+  if (!Object.hasOwn(endpoints, type)) {
     console.error(`Error: unknown type "${type}". Valid types: club, event, route`);
     process.exit(1);
   }
 
   const data = await fetchApi(endpoints[type]);
-  await saveFile(`${type}-${id}-example.json`, data);
+  await saveFile(type, id, data);
 }
 
 // ── CRAWL MODE ────────────────────────────────────────────────────────────────
@@ -125,8 +128,8 @@ async function runCrawl() {
 
   async function maybeSave(type, id, data) {
     const state = data?.resource_state;
-    if (state == null) {
-      console.warn(`  ⚠  ${type} ${id} has no resource_state, skipping`);
+    if (![1, 2, 3].includes(state)) {
+      console.warn(`  ⚠  ${type} ${id} has no valid resource_state, skipping`);
       return;
     }
     const key = `${type}:${id}:${state}`;
@@ -135,7 +138,7 @@ async function runCrawl() {
       return;
     }
     seen.add(key);
-    const filename = await saveFile(`${type}-${id}-state-${state}-example.json`, data);
+    const filename = await saveFile(type, id, data, state);
     saved.push(filename);
   }
 
@@ -204,7 +207,7 @@ async function runCrawl() {
   }
 
   console.log(`\nDone — ${saved.length} file(s) saved:`);
-  saved.forEach(f => console.log(`  docs/${f}`));
+  saved.forEach(f => console.log(`  docs/examples/${f}`));
 }
 
 // ── Entry point ───────────────────────────────────────────────────────────────

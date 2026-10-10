@@ -3,7 +3,17 @@ import assert from 'node:assert/strict';
 import { backend, apiResponse } from '../helpers/runtime.js';
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
-const load = await backend({ modules: { 'node-fetch': { default: async () => apiResponse([]) } } });
+const date = new Date(); date.setDate(date.getDate()+1); date.setHours(10,0,0,0);
+const nextOccurrence = new Date(date.getTime() + 86400000);
+const load = await backend({ modules: { 'node-fetch': { default: async url => {
+  if (url.includes('/athlete/clubs')) return apiResponse([{id:1,name:'Test Club',sport_type:'cycling',profile_medium:''}]);
+  if (url.includes('/routes/')) return apiResponse({},429,{'retry-after':'120'});
+  return apiResponse([{id:'test-event',title:'Dependency smoke ride',joined:true,route:{id:'route',name:'Route'},
+    upcoming_occurrences:[date.toISOString(),nextOccurrence.toISOString()],organizing_athlete:{bio:'PRIVATE_FIXTURE'}}]);
+} } } });
+const {getAllUserClubsEvents} = await load('src/services/strava.service.js');
+const eventFixture = await getAllUserClubsEvents('fixture-token','strava_1');
+assert.equal(JSON.stringify(eventFixture).includes('PRIVATE_FIXTURE'),false);
 const { app } = await load('src/app.js');
 const server = await new Promise(resolve => { const server = app.listen(0, '127.0.0.1', () => resolve(server)); });
 let browser;
@@ -14,15 +24,7 @@ try {
   page.on('console', message => { if (/Content Security Policy|Refused to (load|execute|apply)/i.test(message.text())) errors.push(message.text()); });
   const base = `http://127.0.0.1:${server.address().port}`;
   await page.route(`${base}/me`, route => route.fulfill({ json: { csrfToken: 'ab'.repeat(32), athleteId: 1, firstname: 'Test', lastname: 'User' } }));
-  const date = new Date(); date.setDate(date.getDate()+1); date.setHours(10,0,0,0);
-  const nextOccurrence = new Date(date.getTime() + 86400000);
-  await page.route(`${base}/events*`, route => route.fulfill({ json: {
-    events: [date, nextOccurrence].map(start => ({ id: 'test-event',
-      occurrence_id: `1:test-event:${start.toISOString()}`, title: 'Dependency smoke ride', start_date: start.toISOString(),
-      strava_event_url: 'https://www.strava.com/clubs/1/group_events/1', club_info: {id:1,name:'Test Club',logo:''}, joined: true })),
-    clubs: [{id:1,name:'Test Club',sport_type:'cycling',logo:''}],
-    meta: {clubs_total:1,clubs_processed:1,events_total:2,routes_skipped:0,routes_failed:1,partial:true,retry_after:120,limits:{events_per_club:100}},
-  } }));
+  await page.route(`${base}/events*`, route => route.fulfill({ json: eventFixture }));
   await page.goto(base, { waitUntil: 'networkidle' });
   await page.locator('.fc-event-title').filter({hasText:'Dependency smoke ride'}).first().waitFor();
   assert.equal(await page.locator('.fc-event-title').filter({hasText:'Dependency smoke ride'}).count(), 2);

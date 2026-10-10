@@ -1,0 +1,17 @@
+{
+    "id": "9000000000000000006",
+    "id_str": "9000000000000000006",
+    "resource_state": 1,
+    "name": "Example resource",
+    "map": {
+        "id": "900007",
+        "summary_polyline": "",
+        "resource_state": 2
+    },
+    "map_urls": {
+        "url": "https://example.com/synthetic-resource",
+        "retina_url": "https://example.com/synthetic-resource",
+        "light_url": "https://example.com/synthetic-resource",
+        "dark_url": "https://example.com/synthetic-resource"
+    }
+}
