@@ -1,17 +1,10 @@
 import React, { useRef } from "react";
 import { createPortal } from "react-dom";
+import { ClubLogo } from "./ClubLogo.jsx";
 import { useCardPreview } from "../hooks/useCardPreview.js";
 export function EventCard({ event, onOpen, expanded = false }) {
   const source = useRef(null);
   const hover = useCardPreview(source);
-  const logo = /^https:\/\//.test(event.club_info?.logo || "")
-    ? event.club_info.logo
-    : [
-          "/prototypes/calendar/images/demo-club-road.svg",
-          "/prototypes/calendar/images/demo-club-gravel.svg",
-        ].includes(event.demo_logo)
-      ? event.demo_logo
-      : null;
   return (
     <>
       {" "}
@@ -32,13 +25,7 @@ export function EventCard({ event, onOpen, expanded = false }) {
         }}
         aria-haspopup="dialog"
       >
-        {logo ? (
-          <img src={logo} alt={event.club_info?.name || "Club"} />
-        ) : (
-          <span className="club-initial">
-            {(event.club_info?.name || "?").slice(0, 1)}
-          </span>
-        )}
+        <ClubLogo event={event} />
         <span className="card-copy">
           <span className="card-time">
             <time>

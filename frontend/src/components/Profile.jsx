@@ -20,7 +20,8 @@ export function Profile({ user, demo, onDemoLogout }) {
     `${user.firstname || ""} ${user.lastname || ""}`.trim() || "Strava athlete";
   const avatar = demo
     ? "/prototypes/calendar/images/demo-profile.svg"
-    : /^https:\/\//.test(user.profile_pic || "")
+    : (/^https:\/\//.test(user.profile_pic || "") ||
+       user.profile_pic === "/prototypes/calendar/images/demo-profile.svg")
       ? user.profile_pic
       : null;
   return (

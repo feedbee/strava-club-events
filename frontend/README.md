@@ -15,3 +15,9 @@ Club/sport selections are forwarded to the API; joined-only selection is local. 
 warnings remain visible above the calendar, and refresh errors retain the last successful data.
 The mock backend includes a `partial` scenario. Run `tests/integration/react-scenarios-smoke.mjs`
 with the same Playwright environment to verify every scenario at desktop and mobile widths.
+
+Open `/next/?mock=1` on the standalone mock backend to reveal the collapsible **Mock data**
+scenario selector. Selecting a scenario reloads the page with the same browser mock session.
+These controls are opt-in and remain hidden when the mock endpoint is unavailable. Club logos
+share one React component between cards and dialogs, with an initial fallback for missing or
+failed images. The mock session supplies the synthetic profile avatar.

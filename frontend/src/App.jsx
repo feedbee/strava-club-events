@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { readCurrentUser } from "./data/auth.js";
 import { EventsPage } from "./components/EventsPage.jsx";
+import { MockControls } from "./components/MockControls.jsx";
 import { Profile } from "./components/Profile.jsx";
 
 const demo = new URLSearchParams(location.search).get("demo") === "1";
@@ -58,6 +59,7 @@ export function App() {
           />
         )}
       </header>
+      {new URLSearchParams(location.search).get("mock") === "1" && <MockControls />}
       <main className={`main-content ${session.user ? "signed-in" : ""}`}>
         {session.status === "loading" && (
           <p role="status">Loading your Strava session…</p>

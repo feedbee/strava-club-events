@@ -112,3 +112,16 @@ mock scenarios at 1440px and 320px, opening event dialogs and rejecting horizont
 JavaScript exceptions. Calendar and preference browser checks also pass after server filtering.
 `npm test`: 138 passing tests; `npm run build`: successful. This is mock/API contract evidence,
 not live OAuth acceptance. The primary entry and OAuth callback destination remain unchanged.
+
+### React increment: mock controls and club identity
+
+The React page exposes the standalone backend's scenario selector only with `?mock=1`.
+Switching scenarios persists in the same mock session and reloads React; failed updates show a
+retryable message. This removes the need to return to the native prototype to choose test data.
+The production backend receives no new routes. Cards and event dialogs share `ClubLogo`, including
+missing-image and failed-image fallback. The mock profile uses the synthetic avatar asset.
+
+Verification: 138 default tests, production build, all mock scenarios at 1440px/320px, and the
+login/profile/logout shell browser check pass. Screenshots confirm the mobile dialog remains
+inside the viewport with club identity, joined status and route attributes. Live Strava OAuth
+acceptance and final prototype comparison still remain before making React the primary entry.

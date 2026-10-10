@@ -65,7 +65,7 @@ export function createMockApp({ now = new Date() } = {}) {
       firstname: "Alex",
       lastname: "Rider",
       athleteId: 0,
-      profile_pic: "",
+      profile_pic: "/prototypes/calendar/images/demo-profile.svg",
       csrfToken: req.mock.csrfToken,
     });
   });

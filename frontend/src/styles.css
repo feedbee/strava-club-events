@@ -824,3 +824,23 @@ h1 img {
 }
 .api-warning p { margin: 0 0 4px; }
 .api-warning a { color: inherit; }
+
+.detail-club-row > img,
+.detail-club-row > .club-initial {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.mock-controls {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #f3efff;
+  color: var(--ink, #29204c);
+  font-size: 12px;
+}
+.mock-controls summary { cursor: pointer; font-weight: 700; }
+.mock-controls label { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+.mock-controls select { max-width: 100%; height: auto; min-height: 30px; }

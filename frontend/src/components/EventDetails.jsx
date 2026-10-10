@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useRef } from "react";
+import { ClubLogo } from "./ClubLogo.jsx";
 import { Icon } from "./Icon.jsx";
 import { createPortal } from "react-dom";
 function ExternalLink({ href, children }) {
@@ -53,6 +54,8 @@ export function EventDetails({ event, onClose }) {
       <h2 id={titleId}>{event.title}</h2>
       <section>
         <h3>Club</h3>
+        <div className="detail-link-row detail-club-row">
+        <ClubLogo event={event} />
         <ExternalLink
           href={
             event.club_info?.url ||
@@ -60,8 +63,9 @@ export function EventDetails({ event, onClose }) {
               `https://www.strava.com/clubs/${encodeURIComponent(event.club_info.id)}`)
           }
         >
-          {event.club_info?.name}
+          {event.club_info?.name || "Club"}
         </ExternalLink>
+        </div>
       </section>
       <section>
         <h3>

@@ -13,7 +13,12 @@ try {
     const page = await browser.newPage({ viewport: { width, height: 1000 } });
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    await page.goto(base + '/next/');
+    await page.goto(base + '/next/?mock=1');
+    await page.getByText('Mock data', { exact: true }).click();
+    await page.getByLabel('Scenario', { exact: true }).waitFor();
+    await Promise.all([page.waitForEvent('framenavigated'), page.getByLabel('Scenario', { exact: true }).selectOption('empty')]);
+    await page.locator('.react-calendar').waitFor();
+    assert.equal(await page.locator('.event-card').count(), 0);
     for (const scenario of Object.keys(SCENARIOS)) {
       await page.request.post(base + '/__mock', { data: { scenario } });
       await page.reload();
@@ -31,6 +36,8 @@ try {
           await page.getByRole('button', { name: 'List', exact: true }).click();
           await page.locator('.event-card').first().click();
           await page.locator('dialog[open]').waitFor();
+          assert.equal(await page.locator('.detail-club-row img, .detail-club-row .club-initial').count(), 1);
+          if (scenario === 'dense') await page.screenshot({ path: `/tmp/react-detail-${width}.png` });
           assert.ok(await page.locator('dialog').evaluate(el => el.getBoundingClientRect().width <= innerWidth));
           await page.keyboard.press('Escape');
         }
