@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { normalizeEventsResponse, readEvents } from "../data/events.js";
-export function useEvents({ demo, onAuthRequired }) {
+export function useEvents({ demo, onAuthRequired, filters }) {
   const [state, setState] = useState({
     status: "loading",
     events: [],
     clubs: [],
   });
   const [attempt, setAttempt] = useState(0);
+  const clubs = filters.clubs.join(",");
+  const sports = filters.sports.join(",");
   useEffect(() => {
     const controller = new AbortController();
-    setState({ status: "loading", events: [], clubs: [] });
+    setState((previous) => ({ ...previous, status: "loading" }));
     async function load() {
       if (demo) {
         const { demoEvents } = await import(
@@ -17,11 +19,14 @@ export function useEvents({ demo, onAuthRequired }) {
         );
         return normalizeEventsResponse(demoEvents());
       }
-      return readEvents(fetch, controller.signal);
+      return readEvents(fetch, controller.signal, {
+        clubs: clubs ? clubs.split(",") : [],
+        sports: sports ? sports.split(",") : [],
+      });
     }
     load().then(
       (data) => {
-        if (!controller.signal.aborted) setState({ ...data, status: "ready" });
+        if (!controller.signal.aborted) setState({ ...data, status: "ready", loaded: true });
       },
       (error) => {
         if (controller.signal.aborted) return;
@@ -29,15 +34,13 @@ export function useEvents({ demo, onAuthRequired }) {
           onAuthRequired();
           return;
         }
-        setState({
-          status: "error",
-          events: [],
-          clubs: [],
-          message: error.message,
-        });
+        setState((previous) => ({
+          ...previous, status: "error", message: error.message,
+          retryAfter: error.retryAfter,
+        }));
       },
     );
     return () => controller.abort();
-  }, [demo, attempt, onAuthRequired]);
+  }, [demo, attempt, onAuthRequired, clubs, sports]);
   return { ...state, retry: () => setAttempt((value) => value + 1) };
 }

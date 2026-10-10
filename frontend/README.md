@@ -10,3 +10,8 @@
 Month/Week/Day/List, compact cards, inline overflow, club/sport/joined filters, cancellable event requests, delayed hover previews and a basic route/event dialog are implemented. Week is available on wide screens; narrowing it switches to Month. Hourly layouts group by start hour and stack simultaneous starts; duration and exact minute positioning are not implemented. Validated mode/filter preferences are saved per athlete (demo separately). Filter search/Escape and modal focus/touch controls have browser checks. Final visual/accessibility review and live Strava parity remain before switching the primary page. Real OAuth redirects remain unchanged and return to the existing page.
 
 Verify `npm test`, `npm run build`, and optional `node --experimental-vm-modules tests/integration/react-shell-smoke.mjs` with Playwright available. `PLAYWRIGHT_MODULE` and `CHROME_EXECUTABLE` optionally select installed tooling. The browser script starts its own loopback server and substitutes API responses; it does not use live Strava or MongoDB.
+
+Club/sport selections are forwarded to the API; joined-only selection is local. API metadata
+warnings remain visible above the calendar, and refresh errors retain the last successful data.
+The mock backend includes a `partial` scenario. Run `tests/integration/react-scenarios-smoke.mjs`
+with the same Playwright environment to verify every scenario at desktop and mobile widths.

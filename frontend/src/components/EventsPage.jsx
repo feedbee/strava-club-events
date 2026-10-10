@@ -5,13 +5,13 @@ import {
   readPreferences,
   writePreferences,
 } from "../data/preferences.js";
+import { eventWarnings } from "../data/event-warnings.js";
 import { useEvents } from "../hooks/useEvents.js";
 import { filterEvents } from "../data/events.js";
 import { EventFilters } from "./EventFilters.jsx";
 import { Calendar } from "./Calendar.jsx";
 import { EventDetails } from "./EventDetails.jsx";
 export function EventsPage({ demo, user, onAuthRequired }) {
-  const data = useEvents({ demo, onAuthRequired });
   const key = preferenceKey({ demo, athleteId: user.athleteId });
   const [preferences, setPreferences] = useState(() =>
     readPreferences(browserStorage(), key),
@@ -21,6 +21,8 @@ export function EventsPage({ demo, user, onAuthRequired }) {
     [key, preferences],
   );
   const filters = preferences;
+  const data = useEvents({ demo, onAuthRequired, filters });
+  const warnings = eventWarnings(data.meta, filters.clubs);
   const setFilters = (filters) =>
     setPreferences((previous) => ({ ...previous, ...filters }));
   const [selected, setSelected] = useState(null);
@@ -28,12 +30,13 @@ export function EventsPage({ demo, user, onAuthRequired }) {
     () => filterEvents(data.events, filters),
     [data.events, filters],
   );
-  if (data.status === "loading")
+  if (data.status === "loading" && !data.loaded)
     return <p role="status">Loading your events…</p>;
-  if (data.status === "error")
+  if (data.status === "error" && !data.loaded)
     return (
       <div role="alert">
         <p>{data.message}</p>
+        {Number.isSafeInteger(data.retryAfter) && data.retryAfter > 0 && <p>Please retry in {data.retryAfter} seconds.</p>}
         <button className="control" onClick={data.retry}>
           Try again
         </button>
@@ -46,7 +49,17 @@ export function EventsPage({ demo, user, onAuthRequired }) {
         filters={filters}
         onChange={setFilters}
         count={events.length}
+        meta={data.meta}
       />
+      {data.status === "loading" && <p role="status">Updating events…</p>}
+      {data.status === "error" && <div className="api-warning" role="alert">
+        <p>{data.message} Previously loaded events are still shown.</p>
+        <button className="control" onClick={data.retry}>Try again</button>
+      </div>}
+      {warnings.length > 0 && <aside className="api-warning" aria-label="Data availability">
+        {warnings.map((message) => <p key={message}>{message}</p>)}
+        <a href="/limits.html" target="_blank" rel="noopener noreferrer">Learn about Strava limits ↗</a>
+      </aside>}
       <Calendar
         events={events}
         onOpen={setSelected}

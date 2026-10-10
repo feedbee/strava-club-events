@@ -98,3 +98,17 @@ Verification: 136 default checks, production build, Month/List and Week/Day/prev
 pass. The new preferences/details browser gate covers persistence, keyboard and touch controls.
 Next: visual comparison across mock scenarios, API limits/warnings and authenticated parity;
 keep the existing primary entry until acceptance.
+
+### React increment: provider limits and scenario coverage
+
+The React client now forwards selected clubs and sports to `/events`, allowing clubs outside
+Strava's default processing limit to be requested. Joined-only filtering stays local. Requests
+remain cancellable; refresh keeps the calendar and filters mounted, and failed refreshes explicitly
+retain previously loaded events. Partial-result metadata exposes club/route failures and provider
+caps without hiding otherwise available events. Club statistics distinguish selected and limited clubs.
+
+A new `partial` mock scenario exercises these warnings. `react-scenarios-smoke.mjs` checks all
+mock scenarios at 1440px and 320px, opening event dialogs and rejecting horizontal overflow and
+JavaScript exceptions. Calendar and preference browser checks also pass after server filtering.
+`npm test`: 138 passing tests; `npm run build`: successful. This is mock/API contract evidence,
+not live OAuth acceptance. The primary entry and OAuth callback destination remain unchanged.

@@ -75,7 +75,7 @@ function Picker({ label, options, selected, onChange }) {
     </div>
   );
 }
-export function EventFilters({ clubs, filters, onChange, count }) {
+export function EventFilters({ clubs, filters, onChange, count, meta }) {
   const [open, setOpen] = useState(false);
   const opener = useRef(null);
   const sports = [
@@ -103,7 +103,7 @@ export function EventFilters({ clubs, filters, onChange, count }) {
           Filters
         </button>
         <span aria-live="polite">
-          {count} events · {clubs.length} clubs
+          {count} events · {filters.clubs.length ? `${filters.clubs.length} selected clubs` : meta?.clubs_limited ? `${meta.clubs_processed} of ${meta.clubs_total} clubs` : `${clubs.length} clubs`}
         </span>
       </div>
       {open && (

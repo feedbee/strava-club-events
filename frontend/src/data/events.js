@@ -27,8 +27,11 @@ export function normalizeEventsResponse(response) {
     meta: data.meta || null,
   };
 }
-export async function readEvents(request = fetch, signal) {
-  const response = await request("/events", {
+export async function readEvents(request = fetch, signal, { clubs = [], sports = [] } = {}) {
+  const query = new URLSearchParams();
+  if (clubs.length) query.set("clubs", clubs.join(","));
+  if (sports.length) query.set("sportTypes", sports.join(","));
+  const response = await request(`/events${query.size ? `?${query}` : ""}`, {
     credentials: "same-origin",
     signal,
   });

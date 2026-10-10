@@ -2,6 +2,7 @@ import { demoEvents } from "../../../public/prototypes/calendar/js/experiment-fi
 
 export const SCENARIOS = {
   dense: "Many events · simultaneous starts",
+  partial: "Incomplete clubs and route details",
   empty: "No events",
   missing: "Missing routes, logos and attributes",
   long: "Long international titles and club names",
@@ -15,6 +16,11 @@ export function createMockDataset(scenario = "dense", now = new Date()) {
   if (!Object.hasOwn(SCENARIOS, scenario))
     throw new Error("Unknown mock scenario");
   const data = demoEvents(now);
+  if (scenario === "partial") data.meta = {
+    clubs_total: 12, clubs_processed: 10, clubs_limited: true,
+    clubs_failed: 1, routes_failed: 2, routes_skipped: 3, partial: true,
+    events_limited: true, limits: { events_per_club: 100 },
+  };
   if (scenario === "empty") data.events = [];
   if (scenario === "missing")
     data.events.forEach((event, index) => {
