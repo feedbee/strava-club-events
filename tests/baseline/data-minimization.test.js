@@ -51,3 +51,16 @@ test('Invalid top-level provider resources return an explicit failure',async()=>
   const {getAllUserClubsEvents}=await load('src/services/strava.service.js');
   await assert.rejects(getAllUserClubsEvents('token','user'),error=>error.status===502);
 });
+
+
+test('Zero route metrics remain available, while absent metrics stay N/A', async () => {
+  for (const metrics of [{distance:0,elevation_gain:0,maximum_grade:0,elevation_high:0,elevation_low:0,estimated_moving_time:0}, {}]) {
+    const load=await backend({modules:{'node-fetch':{default:async url=>apiResponse(url.includes('/routes/')?{id:'route',resource_state:3,...metrics}:[event])}}});
+    const {getClubEvents}=await load('src/services/strava.service.js');
+    const {events:[shown]}=await getClubEvents('token',club,'user');
+    assert.equal(shown.route_info.distance, 'distance' in metrics ? '0.0 km' : 'N/A');
+    for (const key of ['elevation_gain','elevation_high','elevation_low']) assert.equal(shown.route_info[key], key in metrics ? '0m' : 'N/A');
+    assert.equal(shown.route_info.estimated_moving_time, 'estimated_moving_time' in metrics ? '0m' : 'N/A');
+    assert.equal(shown.route_info.max_slope, 'maximum_grade' in metrics ? '0%' : 'N/A');
+  }
+});

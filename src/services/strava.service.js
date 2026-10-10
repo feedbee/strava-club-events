@@ -205,7 +205,7 @@ async function prepareEvent(event, club, accessToken, options = {}) {
  * @returns {string} Formatted time string (e.g., "2h 30m" or "45m")
  */
 function formatMovingTime(seconds) {
-  if (!seconds) return 'N/A';
+  if (!Number.isFinite(seconds)) return 'N/A';
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
@@ -277,13 +277,13 @@ function createRouteInfo(routeDetails) {
     id: routeDetails.id || null,
     name: routeDetails.name || 'Route is not attached',
     is_full: routeDetails.resource_state == 3,
-    distance: routeDetails.distance ? `${(routeDetails.distance / 1000).toFixed(1)} km` : 'N/A',
-    elevation_gain: routeDetails.elevation_gain ? `${Math.round(routeDetails.elevation_gain)}m` : 'N/A',
+    distance: Number.isFinite(routeDetails.distance) ? `${(routeDetails.distance / 1000).toFixed(1)} km` : 'N/A',
+    elevation_gain: Number.isFinite(routeDetails.elevation_gain) ? `${Math.round(routeDetails.elevation_gain)}m` : 'N/A',
     activity_type: getRouteType(routeDetails.type, routeDetails.sub_type) || 'Ride',
     estimated_moving_time: formatMovingTime(routeDetails.estimated_moving_time),
-    max_slope: routeDetails.maximum_grade ? `${routeDetails.maximum_grade}%` : 'N/A',
-    elevation_high: routeDetails.elevation_high ? `${Math.round(routeDetails.elevation_high)}m` : 'N/A',
-    elevation_low: routeDetails.elevation_low ? `${Math.round(routeDetails.elevation_low)}m` : 'N/A'
+    max_slope: Number.isFinite(routeDetails.maximum_grade) ? `${routeDetails.maximum_grade}%` : 'N/A',
+    elevation_high: Number.isFinite(routeDetails.elevation_high) ? `${Math.round(routeDetails.elevation_high)}m` : 'N/A',
+    elevation_low: Number.isFinite(routeDetails.elevation_low) ? `${Math.round(routeDetails.elevation_low)}m` : 'N/A'
   };
 }
 
