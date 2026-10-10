@@ -70,3 +70,17 @@ Verification for Events/Month/List: 134 default checks pass; production bundle b
 session and calendar Chromium checks pass, including responsive width and bidirectional month
 windowing. Live Strava parity, exact prototype styling, preference persistence, Week/Day and
 animated hover previews are not claimed by this increment.
+
+Week/Day and preview increment: hourly rows with stacked simultaneous starts, mode-aware date
+navigation, compact current-date badge, desktop Week with responsive normalization to Month,
+and Day on narrow screens. Portaled previews wait 850ms, stay 44px high, clamp to the viewport
+and never shrink below the source width. The entire preview opens details, including during
+the opacity animation. Scroll, resize, pointer departure and source destruction dismiss previews
+and clean timers/listeners. Global listeners exist only for active card previews.
+
+Verification: 134 default tests, production build, Month/List browser gate and the new
+`react-time-preview-smoke.mjs` pass. Browser coverage includes three simultaneous starts,
+Week/Day headers, clicks at 0/500/830/860/930/1050ms, outside-cell preview clicks and width/height
+at desktop/mobile sizes. Hour grouping deliberately matches the prototype; minute-offset and
+duration semantics remain pending. Next: full detail/filter visual parity, persisted validated
+preferences, keyboard/touch/accessibility checks and authenticated production parity.

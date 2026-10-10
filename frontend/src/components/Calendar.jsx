@@ -1,5 +1,12 @@
-import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { dateKey, indexByDate } from "../data/events.js";
+import { TimeGrid } from "./TimeGrid.jsx";
 import { EventCard } from "./EventCard.jsx";
 function shift(date, days) {
   const next = new Date(date);
@@ -22,6 +29,19 @@ function initialRange(date) {
 }
 export function Calendar({ events, onOpen }) {
   const [mode, setMode] = useState("month");
+  const [narrow, setNarrow] = useState(
+    () => matchMedia("(max-width: 999px)").matches,
+  );
+  useEffect(() => {
+    const breakpoint = matchMedia("(max-width: 999px)");
+    function resize() {
+      setNarrow(breakpoint.matches);
+      if (breakpoint.matches)
+        setMode((current) => (current === "week" ? "month" : current));
+    }
+    breakpoint.addEventListener("change", resize);
+    return () => breakpoint.removeEventListener("change", resize);
+  }, []);
   const [date, setDate] = useState(new Date());
   const [range, setRange] = useState(() => initialRange(new Date()));
   const [expanded, setExpanded] = useState(new Set());
@@ -143,7 +163,10 @@ export function Calendar({ events, onOpen }) {
     <section className={`react-calendar ${mode}`} aria-label="Event calendar">
       <div className="calendar-toolbar">
         <div className="calendar-modes">
-          {["month", "list"].map((value) => (
+          {(narrow
+            ? ["month", "day", "list"]
+            : ["month", "week", "day", "list"]
+          ).map((value) => (
             <button
               key={value}
               className={`control ${mode === value ? "primary" : ""}`}
@@ -153,26 +176,29 @@ export function Calendar({ events, onOpen }) {
                 if (viewport.current) viewport.current.scrollTop = 0;
               }}
             >
-              {value === "month" ? "Month" : "List"}
+              {value[0].toUpperCase() + value.slice(1)}
             </button>
           ))}
         </div>
         <h2>
-          {mode === "month"
+          {mode !== "list"
             ? date.toLocaleDateString("en-US", {
                 month: "long",
                 year: "numeric",
+                ...(mode === "day" ? { day: "numeric" } : {}),
               })
             : "Upcoming events"}
         </h2>
-        {mode === "month" && (
+        {mode !== "list" && (
           <div className="calendar-navigation">
             <button
               className="control"
-              aria-label="Previous month"
+              aria-label={`Previous ${mode}`}
               onClick={() =>
                 navigate(
-                  new Date(date.getFullYear(), date.getMonth() - 1, 1, 12),
+                  mode === "month"
+                    ? new Date(date.getFullYear(), date.getMonth() - 1, 1, 12)
+                    : shift(date, mode === "week" ? -7 : -1),
                 )
               }
             >
@@ -183,10 +209,12 @@ export function Calendar({ events, onOpen }) {
             </button>
             <button
               className="control"
-              aria-label="Next month"
+              aria-label={`Next ${mode}`}
               onClick={() =>
                 navigate(
-                  new Date(date.getFullYear(), date.getMonth() + 1, 1, 12),
+                  mode === "month"
+                    ? new Date(date.getFullYear(), date.getMonth() + 1, 1, 12)
+                    : shift(date, mode === "week" ? 7 : 1),
                 )
               }
             >
@@ -210,25 +238,29 @@ export function Calendar({ events, onOpen }) {
           ))}
         </div>
       )}
-      <div
-        className="calendar-viewport"
-        ref={viewport}
-        onScroll={scroll}
-        tabIndex={0}
-        aria-label="Scroll calendar"
-      >
-        <div className="calendar-days">
-          {mode === "month"
-            ? Array.from({ length: range.weeks * 7 }, (_, index) => {
-                const key = dateKey(shift(range.start, index));
-                return day(key, days.get(key) || []);
-              })
-            : [...days].map(([key, entries]) => day(key, entries))}
+      {mode === "week" || mode === "day" ? (
+        <TimeGrid date={date} mode={mode} days={days} onOpen={onOpen} />
+      ) : (
+        <div
+          className="calendar-viewport"
+          ref={viewport}
+          onScroll={scroll}
+          tabIndex={0}
+          aria-label="Scroll calendar"
+        >
+          <div className="calendar-days">
+            {mode === "month"
+              ? Array.from({ length: range.weeks * 7 }, (_, index) => {
+                  const key = dateKey(shift(range.start, index));
+                  return day(key, days.get(key) || []);
+                })
+              : [...days].map(([key, entries]) => day(key, entries))}
+          </div>
+          {mode === "list" && !events.length && (
+            <p className="calendar-empty">No matching events</p>
+          )}
         </div>
-        {mode === "list" && !events.length && (
-          <p className="calendar-empty">No matching events</p>
-        )}
-      </div>
+      )}
     </section>
   );
 }

@@ -50,8 +50,8 @@ request failures and forwards cancellation. `components/Profile.jsx` owns accoun
 The React entry now provides session presentation, event loading, filters and Month/List layouts.
 `data/events.js` validates occurrence identity, indexes local dates and applies filter intersections;
 `hooks/useEvents.js` owns cancellable requests. Calendar, card, picker and dialog components own
-React state rather than manipulating prototype markup. Week/Day and animated previews remain
-upcoming migration increments. `/next/?demo=1` uses synthetic state without OAuth.
+React state rather than manipulating prototype markup. `TimeGrid.jsx` adds hourly Week/Day layouts. `useCardPreview.js` owns cancellable delayed
+previews rendered through React portals; active previews alone install global listeners. `/next/?demo=1` uses synthetic state without OAuth.
 `npm run dev:frontend` proxies auth/API/assets to the existing server at 127.0.0.1:3000; `npm run build`
 produces ignored `/next/` assets served by Express. Both production Dockerfiles build this frontend
 in a Node 24.21.0 stage. The existing `/` entry is unchanged until parity acceptance.

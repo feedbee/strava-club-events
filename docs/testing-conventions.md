@@ -38,3 +38,8 @@ React calendar gate: build first, then optionally run `tests/integration/react-c
 with the same Playwright variables. It starts the shared mock server and checks Month/List,
 inline overflow, route details, filter intersections, responsive width, bounded bidirectional
 scrolling, empty results and retry after an API error.
+
+React hourly/preview gate: after `npm run build`, optionally run
+`tests/integration/react-time-preview-smoke.mjs` with the same Playwright variables. It checks
+Week/Day simultaneous starts, responsive mode normalization, preview dimensions and full-area
+clicks before/during/after the hover animation on the standalone mock backend.
