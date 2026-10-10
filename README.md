@@ -326,3 +326,7 @@ Token refresh is coordinated per session through the shared MongoDB store, with 
 Strava quotas are read from provider response headers. MongoDB-backed sessions also provide shared quota reservations and cooldowns across application instances using the same session database and CLIENT_ID. A complete club failure returns HTTP 502/429; partial club or route failures retain events and display warnings. See [quota handling and upstream failures](docs/strava-quota-step10.md).
 
 Health probes are public and bypass sessions: `GET /health/live` returns 200 while the process responds; `GET /health/ready` returns 200 when initialized storage connections respond, otherwise 503. Responses disable caching and disclose only a status. Readiness checks never call Strava. PORT and session/cache TTL settings require positive decimal integers; CACHE_DRIVER accepts only memory or mongodb. The cache-clearing CLI supports shared MongoDB storage and rejects process-local memory clearing. See [configuration and operations](docs/operations-step11.md).
+
+### Release history and publication
+
+See [CHANGELOG.md](CHANGELOG.md) and the [release procedure](docs/releases.md).

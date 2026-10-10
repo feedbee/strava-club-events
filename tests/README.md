@@ -5,12 +5,12 @@ These tests cover steps 1–3 of [the audit plan](../docs/code-audit-2026-10-09.
 ## Run
 
 ```sh
-npm test                  # all 50 checks: currently 46 pass, 4 fail
-npm run test:baseline     # 40 baseline/security/HTTP checks: must pass
-npm run test:regressions  # 10 audit regressions: 6 pass, 4 still fail
+npm test                  # default gate: 106 passing checks
+npm run test:baseline     # baseline/security/HTTP subset
+npm run test:regressions  # audit regression subset
 ```
 
-The complete suite intentionally exits with status 1 until the corresponding application defects are fixed. No test is skipped, marked TODO, or written to require a bug to remain present. `npm test` includes every regression so the green baseline cannot be mistaken for a clean security gate. As each fix lands, the same regression assertion should turn green.
+All default tests must pass. See [current testing conventions](../docs/testing-conventions.md).
 
 Install the exact lock-file dependencies with `npm ci --ignore-scripts`. HTTP checks bind to an ephemeral 127.0.0.1 port and use real Express, express-session and MemoryStore; the Strava response is stubbed. No real Strava credentials or database are required. Run with Node supporting `node:test` and VM modules; validated on Node 24.21.0 in both production container variants, with an additional host run on Node 26.7.0. The VM module flag emits Node's experimental feature warning. Node 18 is no longer supported.
 
