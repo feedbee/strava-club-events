@@ -33,3 +33,8 @@ Mock design backend: `npm run dev:mock` starts a standalone loopback server on 8
 MongoDB or production configuration. Default checks include deterministic fixtures and its real
 HTTP contract. Optional `tests/integration/mock-calendar-smoke.mjs` checks scenario switching and
 prototype/React session flows; build the React frontend first. See `prototypes/calendar/README.md`.
+
+React calendar gate: build first, then optionally run `tests/integration/react-calendar-smoke.mjs`
+with the same Playwright variables. It starts the shared mock server and checks Month/List,
+inline overflow, route details, filter intersections, responsive width, bounded bidirectional
+scrolling, empty results and retry after an API error.

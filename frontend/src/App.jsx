@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { readCurrentUser } from "./data/auth.js";
+import { EventsPage } from "./components/EventsPage.jsx";
 import { Profile } from "./components/Profile.jsx";
 
 const demo = new URLSearchParams(location.search).get("demo") === "1";
@@ -21,7 +22,9 @@ export function App() {
     const controller = new AbortController();
     setSession({ status: "loading", user: null });
     readCurrentUser(fetch, controller.signal).then(
-      (user) => setSession({ status: "ready", user }),
+      (user) => {
+        if (!controller.signal.aborted) setSession({ status: "ready", user });
+      },
       (error) => {
         if (!controller.signal.aborted)
           setSession({ status: "error", user: null, error: error.message });
@@ -29,6 +32,10 @@ export function App() {
     );
     return () => controller.abort();
   }, [attempt]);
+  const handleAuthRequired = useCallback(
+    () => setSession({ status: "ready", user: null }),
+    [],
+  );
   function demoNavigate(user) {
     const url = new URL(location.href);
     if (user) url.searchParams.delete("screen");
@@ -84,12 +91,7 @@ export function App() {
           </a>
         )}
         {session.user && (
-          <a
-            className="control calendar-entry"
-            href={demo ? "/prototypes/calendar/index.html?demo=1" : "/"}
-          >
-            Open calendar
-          </a>
+          <EventsPage demo={demo} onAuthRequired={handleAuthRequired} />
         )}
       </main>
       <footer className="service-footer">

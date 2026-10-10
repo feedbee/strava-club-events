@@ -1,4 +1,4 @@
-# React frontend: first implementation increment
+# React frontend: implementation in progress
 
 - `npm ci --ignore-scripts`: canonical installation from repository root.
 - `npm run build`: emits ignored assets into `public/next/`.
@@ -7,6 +7,6 @@
 - `/next/?demo=1&screen=login`: synthetic login → profile → logout.
 - `/next/`: real session detection and standard Strava login/logout form.
 
-The calendar is the next increment. The signed-in shell currently links to the existing calendar (demo to the frozen prototype). Real OAuth redirects remain unchanged and return to the existing page.
+Month/List, compact cards, inline overflow, club/sport/joined filters, cancellable event requests and a basic route/event dialog are implemented. Week/Day and animated hover previews remain next increments. Real OAuth redirects remain unchanged and return to the existing page.
 
 Verify `npm test`, `npm run build`, and optional `node --experimental-vm-modules tests/integration/react-shell-smoke.mjs` with Playwright available. `PLAYWRIGHT_MODULE` and `CHROME_EXECUTABLE` optionally select installed tooling. The browser script starts its own loopback server and substitutes API responses; it does not use live Strava or MongoDB.

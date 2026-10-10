@@ -56,3 +56,17 @@ and Debian Docker builds succeed on Node 24.21.0. No live OAuth or publication w
 Mock development increment: standalone server under `prototypes/calendar/backend/` provides
 selectable synthetic `/me` and `/events` scenarios to both the native prototype and React shell.
 Run `npm run dev:mock`; see the mock README for fixture cases and workflow. Production is unchanged.
+
+Events/Month/List increment: stable occurrence keys, validated event responses, cancellable loading
+with separate error/empty/auth states, intersecting joined/club/sport filters, reusable compact
+cards and a basic native detail dialog. Month has continuous bidirectional windowing capped at
+24 weeks with visible-date anchoring; List includes populated dates without date navigation.
+Month overflow expands/collapses inline. Narrow Month uses the same date/card components in
+one column. The modal is an initial React implementation; full visual/detail parity and hover
+preview remain follow-up work, alongside Week/Day, filter preferences and accessibility review.
+Documentation and inline comments remain in English.
+
+Verification for Events/Month/List: 134 default checks pass; production bundle builds; React
+session and calendar Chromium checks pass, including responsive width and bidirectional month
+windowing. Live Strava parity, exact prototype styling, preference persistence, Week/Day and
+animated hover previews are not claimed by this increment.
