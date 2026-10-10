@@ -34,3 +34,6 @@ build/
 *.local
 docker-data/
 
+
+# Compiled opt-in React frontend
+public/next/

@@ -10,14 +10,18 @@
         "test": "node --experimental-vm-modules --test tests/baseline/*.test.js tests/regressions/*.test.js",
         "test:baseline": "node --experimental-vm-modules --test tests/baseline/*.test.js",
         "test:regressions": "node --experimental-vm-modules --test tests/regressions/*.test.js",
-        "test:mongodb": "node --experimental-vm-modules --test tests/integration/*.test.js"
+        "test:mongodb": "node --experimental-vm-modules --test tests/integration/*.test.js",
+        "build": "vite build --config frontend/vite.config.js",
+        "dev:frontend": "vite --config frontend/vite.config.js"
     },
     "dependencies": {
         "connect-mongo": "^6.0.0",
         "express": "^5.2.1",
         "express-session": "^1.19.0",
         "mongodb": "^7.7.0",
-        "node-fetch": "^3.3.2"
+        "node-fetch": "^3.3.2",
+        "react": "19.3.0",
+        "react-dom": "19.3.0"
     },
     "keywords": [
         "strava",
@@ -28,5 +32,8 @@
     "license": "BSD-2-Clause",
     "engines": {
         "node": ">=24.0.0 <25"
+    },
+    "devDependencies": {
+        "vite": "8.3.4"
     }
 }

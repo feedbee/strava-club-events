@@ -35,3 +35,20 @@ Pure indexing/date helpers, design tokens, fixtures and outcome-based tests tran
 The default suite and optional browser smoke cover synthetic data without Strava credentials or MongoDB. Browser smoke includes clicks before/during/after the hover delay, clicking outside the source cell, same-time events, bidirectional DOM windowing, inline expansion/collapse, responsive modes, filters and overflow. Additional local browser checks verify preview width is never smaller than its source and its highlight does not change when entering the overlay.
 
 Unauthenticated backend rendering and authenticated presentation with substituted API responses were checked. Live OAuth was not exercised. This review prepares the prototype for migration; it does not establish production readiness or implement the proposed migration.
+
+## Implementation tracking
+
+Branch: `codex/calendar-react`. Checkpoint: `5961d88` isolates the native prototype in
+`public/prototypes/calendar/`; old experiment bookmarks redirect there.
+
+- Completed first increment: React/Vite static build, separate `/next/` entry, CI build gate and both Docker build stages; login/profile/logout shell with demo state and existing session API.
+- Next: event DTO/identity and request-state boundary, then filters and Month/List renderers.
+- Then: Week/Day, preview/dialog, focus/windowing/localization, authenticated parity and primary-page switch.
+
+The React shell temporarily links to the working legacy calendar or demo prototype. Live OAuth
+returns to the existing application until the frontend routing/parity increment is accepted.
+The frozen prototype stylesheet is a reference; React owns an independent stylesheet.
+
+First increment verification: 126 default tests pass, Vite production build succeeds, React-shell
+browser smoke passes at 320/768/1440px with synthetic and substituted session states. Both Alpine
+and Debian Docker builds succeed on Node 24.21.0. No live OAuth or publication was performed.

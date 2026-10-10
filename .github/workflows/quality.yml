@@ -20,5 +20,6 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm test
+      - run: npm run build
       - run: docker build -f Dockerfile.build -t strava-release-check .
       - run: docker build -f Dockerfile -t strava-debian-check .

@@ -23,3 +23,8 @@ then run `node --experimental-vm-modules tests/integration/calendar-experiment-s
 an installed Chrome executable. The script starts its own ephemeral loopback server, uses only
 synthetic demo data and needs neither Strava credentials nor MongoDB. Sandbox loopback restrictions
 may require approved execution. See the migration plan for live-account checks still required.
+
+React implementation gate: `npm run build` in addition to `npm test`. Optional
+`tests/integration/react-shell-smoke.mjs` checks the built `/next/` bundle, synthetic login/logout,
+responsive profile disclosure and substituted `/me` success/401/503 responses. Build first;
+Playwright configuration is the same as the calendar experiment smoke.

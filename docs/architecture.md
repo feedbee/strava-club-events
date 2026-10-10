@@ -1,7 +1,8 @@
 # Architecture and coding guidance
 
 Express serves static HTML/CSS/JavaScript from `public/` and session-authenticated API routes.
-There is no React, Vite, compilation or frontend bundle step. FullCalendar loads from a pinned CDN URL.
+The legacy page remains native JavaScript with FullCalendar from a pinned CDN URL.
+The opt-in frontend in `frontend/` uses React/Vite and builds static assets into `public/next/`.
 
 Routes select controllers; controllers handle HTTP shapes; reusable Strava and refresh rules belong
 in services. Middleware owns authentication, sessions and security headers. Configuration validates
@@ -41,3 +42,13 @@ owns delayed hover listeners/timers, and `event-dialog.js` owns the shared detai
 Experimental CSS is organized by component in `public/prototypes/calendar/css/experiment.css`. Demo fixtures are imported
 only when requested and use separate presentation preferences. See
 [the migration proposal](changes/calendar-production-plan.md) before moving this into the primary page.
+
+## React implementation in progress
+
+`frontend/src/App.jsx` owns session presentation; `data/auth.js` distinguishes signed-out 401 from
+request failures and forwards cancellation. `components/Profile.jsx` owns account disclosure.
+This first slice provides login/profile/logout and a link to the working calendar; the custom
+calendar has not yet been migrated. `/next/?demo=1` uses synthetic state without OAuth.
+`npm run dev:frontend` proxies auth/API/assets to the existing server at 127.0.0.1:3000; `npm run build`
+produces ignored `/next/` assets served by Express. Both production Dockerfiles build this frontend
+in a Node 24.21.0 stage. The existing `/` entry is unchanged until parity acceptance.
