@@ -5,7 +5,7 @@ move it into a dated version section when preparing a release. GitHub Release bo
 are extracted from this file, not maintained separately. Older versions are recorded
 by Git tags; their release notes have not been reconstructed.
 
-## [Unreleased]
+## [0.9.1] - 2026-10-10
 
 ### Security
 - Events and cached Strava models retain only consumed fields; organizing profiles, route geometry and unknown provider fields are excluded. Existing full cache entries are scrubbed when read.
@@ -23,6 +23,10 @@ by Git tags; their release notes have not been reconstructed.
 ### Upgrade notes
 - Deploy the complete `public/` tree, including the new `js/` and `css/` directories; the browser now loads native ES modules.
 - `/events` no longer forwards unused raw Strava fields; consume the documented event DTO. Existing encryption/signing keys remain unchanged. Unread legacy cache records expire by their existing TTL; Git history is not rewritten.
+
+### Artifacts
+- Docker image: `feedbee/strava-club-events:0.9.1` (amd64 and arm64).
+- [Full changes](https://github.com/feedbee/strava-club-events/compare/v0.9.0...v0.9.1).
 
 ## [0.9.0] - 2026-10-10
 
