@@ -136,3 +136,17 @@ for (const kind of ['legacy', 'corrupt', 'nested']) {
     else { assert.equal(data, null); assert.equal(raw.records.has('id'), false); }
   });
 }
+
+for (const destination of ['/next/', 'https://evil.example', '//evil.example', '/next/?redirect=evil', ['/next/']]) {
+  test(`OAuth return destination is allowlisted: ${JSON.stringify(destination)}`, async () => {
+    const controller = await auth();
+    const req = sessionRequest();
+    req.query = { returnTo: destination };
+    const start = response();
+    await controller.login(req, start);
+    req.query = { code: 'code', state: new URL(start.location).searchParams.get('state'), returnTo: 'https://evil.example' };
+    const done = response();
+    await controller.oauthCallback(req, done);
+    assert.equal(done.location, destination === '/next/' ? '/next/' : '/');
+  });
+}

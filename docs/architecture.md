@@ -70,3 +70,8 @@ and deduplicated club/sport string selections capped at ten. Storage is isolated
 demo keys and contains no session/token fields. Blocked storage falls back to defaults. React
 pickers handle Escape locally only while open, allowing a second Escape to close the panel.
 Native dialogs expose a labelled title and restore focus to the source occurrence after closing.
+
+OAuth return destinations are an exact allowlist: `/next/` for the opted-in React entry, otherwise
+`/`. Login stores this destination inside the server-side OAuth transaction before leaving for
+Strava. The callback validates state and uses the stored destination after session regeneration,
+never callback query parameters. POST logout accepts the same allowlist only after CSRF validation.

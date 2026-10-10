@@ -128,3 +128,23 @@ test('Logout storage failure returns an error and does not clear the cookie', as
   logout({body:{csrfToken},session:{csrfToken,destroy(done){done(new Error('Store unavailable'));}}},res);
   assert.equal(res.statusCode, 503); assert.equal(cleared, false); assert.equal(redirected, false);
 });
+
+test('React login and CSRF-protected logout return to the opted-in frontend', async t => {
+  const base = await server(t);
+  const login = await fetch(`${base}/login?returnTo=%2Fnext%2F`, { redirect: 'manual' });
+  const state = new URL(login.headers.get('location')).searchParams.get('state');
+  const callback = await fetch(`${base}/callback?code=test-code&state=${state}`, {
+    redirect: 'manual', headers: { cookie: cookie(login) },
+  });
+  assert.equal(callback.headers.get('location'), '/next/');
+  const sessionCookie = cookie(callback);
+  const profile = await (await fetch(`${base}/me`, { headers: { cookie: sessionCookie } })).json();
+  const logout = await fetch(`${base}/logout`, {
+    method: 'POST', redirect: 'manual',
+    headers: { cookie: sessionCookie, 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ csrfToken: profile.csrfToken, returnTo: '/next/' }),
+  });
+  assert.equal(logout.status, 303);
+  assert.equal(logout.headers.get('location'), '/next/');
+  assert.equal((await fetch(`${base}/me`, { headers: { cookie: sessionCookie } })).status, 401);
+});

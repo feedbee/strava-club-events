@@ -43,7 +43,7 @@ try {
     await page
       .getByRole("link", { name: "Connect with Strava" })
       .getAttribute("href"),
-    "/login",
+    "/login?returnTo=%2Fnext%2F",
   );
   await page.unroute("**/me");
   await page.route("**/me", (route) =>

@@ -125,3 +125,15 @@ Verification: 138 default tests, production build, all mock scenarios at 1440px/
 login/profile/logout shell browser check pass. Screenshots confirm the mobile dialog remains
 inside the viewport with club identity, joined status and route attributes. Live Strava OAuth
 acceptance and final prototype comparison still remain before making React the primary entry.
+
+### React increment: OAuth return continuity
+
+React login supplies `returnTo=/next/`; the backend stores the exact allowlisted destination in
+its OAuth transaction. Successful callback uses that stored value after validating state and
+rotating the session. Callback query parameters cannot override it. CSRF-protected React logout
+returns to the same signed-out page. Existing login/logout default to `/`; external, protocol-
+relative, array and query-bearing destinations are rejected by falling back to `/`.
+
+Verification: 144 default tests pass, including OAuth destination validation and a real local
+HTTP login/callback/profile/logout sequence with a synthetic Strava token response. Production
+build passes. This verifies application integration, not a completed live Strava authorization.
