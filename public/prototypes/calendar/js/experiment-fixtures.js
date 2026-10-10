@@ -1,4 +1,4 @@
-export function demoEvents() {
+export function demoEvents(now = new Date()) {
   const titles = [
     "Sunday coffee loop",
     "Into the forest",
@@ -9,7 +9,7 @@ export function demoEvents() {
     "City spin",
   ];
   const events = Array.from({ length: 84 }, (_, i) => {
-    const d = new Date();
+    const d = new Date(now);
     d.setDate(d.getDate() + Math.floor(i / 7) * 2);
     d.setHours([7, 9, 9, 9, 13, 17, 19][i % 7], 30, 0, 0);
     return {

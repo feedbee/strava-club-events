@@ -52,3 +52,7 @@ The frozen prototype stylesheet is a reference; React owns an independent styles
 First increment verification: 126 default tests pass, Vite production build succeeds, React-shell
 browser smoke passes at 320/768/1440px with synthetic and substituted session states. Both Alpine
 and Debian Docker builds succeed on Node 24.21.0. No live OAuth or publication was performed.
+
+Mock development increment: standalone server under `prototypes/calendar/backend/` provides
+selectable synthetic `/me` and `/events` scenarios to both the native prototype and React shell.
+Run `npm run dev:mock`; see the mock README for fixture cases and workflow. Production is unchanged.

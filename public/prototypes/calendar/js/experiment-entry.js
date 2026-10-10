@@ -35,3 +35,5 @@ document.addEventListener('pointerdown', event => {
     updateProfile();
   }
 });
+
+import './mock-controls.js';

@@ -12,7 +12,8 @@
         "test:regressions": "node --experimental-vm-modules --test tests/regressions/*.test.js",
         "test:mongodb": "node --experimental-vm-modules --test tests/integration/*.test.js",
         "build": "vite build --config frontend/vite.config.js",
-        "dev:frontend": "vite --config frontend/vite.config.js"
+        "dev:frontend": "vite --config frontend/vite.config.js",
+        "dev:mock": "node --watch prototypes/calendar/backend/server.js"
     },
     "dependencies": {
         "connect-mongo": "^6.0.0",

@@ -168,7 +168,7 @@ function updateUserProfile(user) {
     // Clear existing content and append the link
     userNameElement.innerHTML = '';
     userNameElement.appendChild(profileLink);
-    if (isExperimentDemo) userAvatarElement.src = '/prototypes/calendar/images/demo-profile.svg';
+    if (isExperimentDemo || new URLSearchParams(location.search).get('mock') === '1') userAvatarElement.src = '/prototypes/calendar/images/demo-profile.svg';
 
     if (user.profile_pic) {
       userAvatarElement.src = safeImageUrl(user.profile_pic);

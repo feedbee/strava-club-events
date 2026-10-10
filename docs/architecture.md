@@ -52,3 +52,12 @@ calendar has not yet been migrated. `/next/?demo=1` uses synthetic state without
 `npm run dev:frontend` proxies auth/API/assets to the existing server at 127.0.0.1:3000; `npm run build`
 produces ignored `/next/` assets served by Express. Both production Dockerfiles build this frontend
 in a Node 24.21.0 stage. The existing `/` entry is unchanged until parity acceptance.
+
+## Design mock backend
+
+`prototypes/calendar/backend/` is a standalone loopback-only Express application, launched with
+`npm run dev:mock`. It serves the public prototype and built React frontend through the same
+session/events HTTP shapes, with synthetic cookie-isolated sessions and selectable edge cases.
+It has no imports into `src/` and needs no production configuration or MongoDB. See
+[local mock development](../prototypes/calendar/README.md). This is the shared data boundary for
+future design experiments; UI components should remain shared with the implementation being tested.

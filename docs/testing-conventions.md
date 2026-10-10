@@ -28,3 +28,8 @@ React implementation gate: `npm run build` in addition to `npm test`. Optional
 `tests/integration/react-shell-smoke.mjs` checks the built `/next/` bundle, synthetic login/logout,
 responsive profile disclosure and substituted `/me` success/401/503 responses. Build first;
 Playwright configuration is the same as the calendar experiment smoke.
+
+Mock design backend: `npm run dev:mock` starts a standalone loopback server on 8092 without Strava,
+MongoDB or production configuration. Default checks include deterministic fixtures and its real
+HTTP contract. Optional `tests/integration/mock-calendar-smoke.mjs` checks scenario switching and
+prototype/React session flows; build the React frontend first. See `prototypes/calendar/README.md`.
