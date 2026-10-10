@@ -91,7 +91,12 @@ export function App() {
           </a>
         )}
         {session.user && (
-          <EventsPage demo={demo} onAuthRequired={handleAuthRequired} />
+          <EventsPage
+            key={`${demo}:${session.user.athleteId}`}
+            user={session.user}
+            demo={demo}
+            onAuthRequired={handleAuthRequired}
+          />
         )}
       </main>
       <footer className="service-footer">

@@ -43,3 +43,8 @@ React hourly/preview gate: after `npm run build`, optionally run
 `tests/integration/react-time-preview-smoke.mjs` with the same Playwright variables. It checks
 Week/Day simultaneous starts, responsive mode normalization, preview dimensions and full-area
 clicks before/during/after the hover animation on the standalone mock backend.
+
+React preferences/details gate: build first, then optionally run
+`tests/integration/react-preferences-smoke.mjs`. It checks reload persistence, filter search,
+sequential Escape behavior, modal labelling/focus restoration, narrow picker bounds and touch
+card/profile interaction. Pure preference validation/isolation is included in `npm test`.

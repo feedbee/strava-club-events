@@ -1,8 +1,10 @@
-import React, { useRef, useState } from "react";
+import { Icon } from "./Icon.jsx";
+import React, { useId, useRef, useState } from "react";
 function Picker({ label, options, selected, onChange }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const trigger = useRef(null);
+  const id = useId();
   return (
     <div
       className="event-picker"
@@ -10,7 +12,7 @@ function Picker({ label, options, selected, onChange }) {
         if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
       }}
       onKeyDown={(event) => {
-        if (event.key === "Escape") {
+        if (event.key === "Escape" && open) {
           setOpen(false);
           trigger.current.focus();
           event.stopPropagation();
@@ -21,6 +23,7 @@ function Picker({ label, options, selected, onChange }) {
       <button
         ref={trigger}
         className="control"
+        aria-controls={id}
         aria-expanded={open}
         onClick={() => setOpen(!open)}
       >
@@ -30,7 +33,12 @@ function Picker({ label, options, selected, onChange }) {
         ▾
       </button>
       {open && (
-        <div className="picker-options">
+        <div
+          id={id}
+          className="picker-options"
+          role="group"
+          aria-label={`Filter ${label.toLowerCase()}`}
+        >
           <input
             aria-label={`Search ${label.toLowerCase()}`}
             placeholder="Search…"
@@ -69,18 +77,29 @@ function Picker({ label, options, selected, onChange }) {
 }
 export function EventFilters({ clubs, filters, onChange, count }) {
   const [open, setOpen] = useState(false);
+  const opener = useRef(null);
   const sports = [
     ...new Set(clubs.map((club) => club.sport_type).filter(Boolean)),
   ].map((name) => ({ id: name, name }));
   return (
-    <section className="event-filter-area">
+    <section
+      className="event-filter-area"
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          setOpen(false);
+          opener.current.focus();
+        }
+      }}
+    >
       <div className="filter-summary">
         <button
+          ref={opener}
           className="control primary"
           aria-expanded={open}
           aria-controls="react-filters"
           onClick={() => setOpen(!open)}
         >
+          <Icon name="filter" size={14} />
           Filters
         </button>
         <span aria-live="polite">
@@ -109,6 +128,7 @@ export function EventFilters({ clubs, filters, onChange, count }) {
                 onChange({ ...filters, joinedOnly: event.target.checked })
               }
             />
+            <span className="joined-switch" aria-hidden="true" />
             Show only joined events
           </label>
           {(filters.joinedOnly ||

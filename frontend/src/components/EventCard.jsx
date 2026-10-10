@@ -17,6 +17,7 @@ export function EventCard({ event, onOpen, expanded = false }) {
       {" "}
       <button
         ref={source}
+        data-event-key={event.key}
         tabIndex={expanded ? -1 : undefined}
         onPointerEnter={expanded ? undefined : hover.enter}
         onPointerLeave={expanded ? undefined : hover.leave}

@@ -1,15 +1,19 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useId, useRef } from "react";
+import { Icon } from "./Icon.jsx";
 import { createPortal } from "react-dom";
 function ExternalLink({ href, children }) {
   if (!/^https:\/\//.test(href || "")) return <span>{children}</span>;
   return (
     <a href={href} target="_blank" rel="noopener noreferrer">
-      {children} ↗
+      {children}
+      <Icon name="external" size={14} />
+      <span className="sr-only"> (opens in a new tab)</span>
     </a>
   );
 }
 export function EventDetails({ event, onClose }) {
   const dialog = useRef(null);
+  const titleId = useId();
   useEffect(() => {
     dialog.current.showModal();
   }, []);
@@ -17,7 +21,15 @@ export function EventDetails({ event, onClose }) {
     <dialog
       className="event-details"
       ref={dialog}
-      onClose={onClose}
+      aria-labelledby={titleId}
+      onClose={() => {
+        onClose();
+        queueMicrotask(() => {
+          [...document.querySelectorAll(".event-card[data-event-key]")]
+            .find((card) => card.dataset.eventKey === event.key)
+            ?.focus();
+        });
+      }}
       onClick={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         if (
@@ -37,10 +49,17 @@ export function EventDetails({ event, onClose }) {
       >
         ×
       </button>
-      <h2>{event.title}</h2>
+      <span className="details-eyebrow">Event details</span>
+      <h2 id={titleId}>{event.title}</h2>
       <section>
         <h3>Club</h3>
-        <ExternalLink href={event.club_info?.url}>
+        <ExternalLink
+          href={
+            event.club_info?.url ||
+            (event.club_info?.id &&
+              `https://www.strava.com/clubs/${encodeURIComponent(event.club_info.id)}`)
+          }
+        >
           {event.club_info?.name}
         </ExternalLink>
       </section>
@@ -48,7 +67,12 @@ export function EventDetails({ event, onClose }) {
         <h3>
           Event {event.joined && <span className="joined-badge">✓ Joined</span>}
         </h3>
-        <ExternalLink href={event.strava_event_url}>{event.title}</ExternalLink>
+        <div className="detail-link-row">
+          <Icon name="event" />
+          <ExternalLink href={event.strava_event_url}>
+            {event.title}
+          </ExternalLink>
+        </div>
         <dl>
           {[
             [
@@ -74,20 +98,24 @@ export function EventDetails({ event, onClose }) {
       {event.route_info && (
         <section>
           <h3>Route</h3>
-          <ExternalLink
-            href={
-              event.route_info.url ||
-              (event.route_info.id &&
-                `https://www.strava.com/routes/${encodeURIComponent(event.route_info.id)}`)
-            }
-          >
-            {event.route_info.name || "Route"}
-          </ExternalLink>
+          <div className="detail-link-row">
+            <Icon name="route" />
+            <ExternalLink
+              href={
+                event.route_info.url ||
+                (event.route_info.id &&
+                  `https://www.strava.com/routes/${encodeURIComponent(event.route_info.id)}`)
+              }
+            >
+              {event.route_info.name || "Route"}
+            </ExternalLink>
+          </div>
           <dl>
             {[
               ["Distance", event.route_info.distance],
               ["Elevation gain", event.route_info.elevation_gain],
               ["Moving time", event.route_info.estimated_moving_time],
+              ["Type", event.route_info.activity_type],
               ["Maximum slope", event.route_info.max_slope],
             ]
               .filter(([, value]) => value && value !== "N/A")

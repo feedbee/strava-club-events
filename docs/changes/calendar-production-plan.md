@@ -84,3 +84,17 @@ Week/Day headers, clicks at 0/500/830/860/930/1050ms, outside-cell preview click
 at desktop/mobile sizes. Hour grouping deliberately matches the prototype; minute-offset and
 duration semantics remain pending. Next: full detail/filter visual parity, persisted validated
 preferences, keyboard/touch/accessibility checks and authenticated production parity.
+
+Details/filters/preferences increment: unified line SVGs for event/route/external links, club
+profile link, event participation badge, route activity type, labelled dialog and return focus
+to the source occurrence. Filter typography and controls match the approved visual direction;
+joined-only uses a keyboard-accessible switch presentation. Pickers expose named groups/search,
+Escape closes a picker first and then the panel with focus restoration. Validated layout/filter
+preferences are isolated by athlete and demo keys; only presentation fields are persisted, with
+storage failures tolerated. Narrow Week still normalizes to Month without overwriting the saved
+wide-screen preference. This does not claim complete visual or accessibility parity.
+
+Verification: 136 default checks, production build, Month/List and Week/Day/preview browser gates
+pass. The new preferences/details browser gate covers persistence, keyboard and touch controls.
+Next: visual comparison across mock scenarios, API limits/warnings and authenticated parity;
+keep the existing primary entry until acceptance.

@@ -27,8 +27,17 @@ function initialRange(date) {
     weeks: 8,
   };
 }
-export function Calendar({ events, onOpen }) {
-  const [mode, setMode] = useState("month");
+export function Calendar({
+  events,
+  onOpen,
+  initialMode = "month",
+  onModeChange,
+}) {
+  const [mode, setMode] = useState(() =>
+    initialMode === "week" && matchMedia("(max-width: 999px)").matches
+      ? "month"
+      : initialMode,
+  );
   const [narrow, setNarrow] = useState(
     () => matchMedia("(max-width: 999px)").matches,
   );
@@ -173,6 +182,7 @@ export function Calendar({ events, onOpen }) {
               aria-pressed={mode === value}
               onClick={() => {
                 setMode(value);
+                onModeChange?.(value);
                 if (viewport.current) viewport.current.scrollTop = 0;
               }}
             >

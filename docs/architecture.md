@@ -64,3 +64,9 @@ session/events HTTP shapes, with synthetic cookie-isolated sessions and selectab
 It has no imports into `src/` and needs no production configuration or MongoDB. See
 [local mock development](../prototypes/calendar/README.md). This is the shared data boundary for
 future design experiments; UI components should remain shared with the implementation being tested.
+
+React presentation preferences use `data/preferences.js`: allowlisted modes, boolean joined-only
+and deduplicated club/sport string selections capped at ten. Storage is isolated by athlete and
+demo keys and contains no session/token fields. Blocked storage falls back to defaults. React
+pickers handle Escape locally only while open, allowing a second Escape to close the panel.
+Native dialogs expose a labelled title and restore focus to the source occurrence after closing.
