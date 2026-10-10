@@ -1,11 +1,11 @@
 # Audit regression checks
 
-These tests cover steps 1–3 of [the audit plan](../docs/code-audit-2026-10-09.md): establish regression checks, then fix OAuth and session security before dependency updates.
+These checks began with steps 1–3 of [the audit plan](../docs/code-audit-2026-10-09.md) and now cover the implemented security, reliability, data-minimization and interface work.
 
 ## Run
 
 ```sh
-npm test                  # default gate: 117 passing checks
+npm test                  # default gate: 119 passing checks
 npm run test:baseline     # baseline/security/HTTP subset
 npm run test:regressions  # audit regression subset
 ```
@@ -33,11 +33,11 @@ Regression checks require:
 
 `helpers/runtime.js` loads the backend ES modules without source rewriting into isolated VM contexts. It replaces only the external boundaries selected by a test: `node-fetch`, the session middleware constructor, and MongoStore. Real configuration, controllers, middleware, services, memory cache and crypto execute. Each test gets a fresh environment and module graph. The helper waits for memory-cache dynamic import completion; it does not fix or validate production startup readiness.
 
-Frontend checks execute the whole unchanged `public/index.js` with a small DOM fake. For request ordering, calendar rendering is replaced while the real loading and API state transitions run. DOMContentLoaded initialization is not invoked. These tests cover state/date logic, not FullCalendar, real DOM parsing, XSS exploitability, layout, keyboard support, or browser behavior.
+Frontend state checks follow `public/index.js` imports and flatten import/export declarations into a small DOM fake. This is deliberately not a browser module-loader test; the real ES module graph is exercised by Chrome smoke. For request ordering, calendar rendering is replaced while the real loading and API state transitions run. DOMContentLoaded initialization is not invoked. These tests cover state/date logic, not FullCalendar, real DOM parsing, XSS exploitability, layout, keyboard support, or browser behavior.
 
 The session constructor fake inspects application-provided options. The persistence fake exercises encryption at the store boundary. Additional real HTTP tests validate session ID rotation, encrypted-session reloading, logout and Secure/HttpOnly/SameSite cookies. TLS proxy behavior is simulated with forwarded headers, not a real reverse proxy or TLS handshake. Real MongoDB and Chrome integrations have since been verified; see the sections below and the step reports.
 
-The current suite does not cover every audit finding. Refresh races, partial-failure details, route privacy, recurrence, shutdown, rate limiting and resource bounds need their own focused tests alongside their implementation steps.
+The suite now covers refresh races, partial failures, route cache isolation, recurrence, shutdown, quotas and resource bounds. Live provider behavior, a real HTTPS proxy and assistive-technology usability remain operator checks.
 
 Step 2 also checks production startup validation, malformed keys, state expiry/mismatch/replay/cancellation, persistence failures, refresh 400 vs 503 behavior, and legacy/corrupt/nested encrypted sessions. Those original club API and frontend regressions are now fixed; all ordinary checks pass.
 
@@ -65,4 +65,12 @@ Tests cover strict numeric configuration, cache driver validation, health HTTP c
 
 ## Data minimization
 
-The default suite verifies the explicit event DTO, each minimal provider cache record, existing rich cache hits, failed scrub writes, malformed optional values and invalid resources. Model-script checks cover synthetic filenames/values, large reference IDs and suppression of raw error bodies. The MongoDB suite verifies new stored records and scrubbing of real legacy entries with user isolation. All 128 checks (117 ordinary + 11 MongoDB) pass on Node 24.21.0 and Node 26. Browser smoke now obtains its initial event fixture from the real Strava service projection rather than constructing a DTO manually.
+The default suite verifies the explicit event DTO, each minimal provider cache record, existing rich cache hits, failed scrub writes, malformed optional values and invalid resources. Model-script checks cover synthetic filenames/values, large reference IDs and suppression of raw error bodies. The MongoDB suite verifies new stored records and scrubbing of real legacy entries with user isolation. At the data-minimization step, all 128 checks (117 ordinary + 11 MongoDB) passed on Node 24.21.0 and Node 26. Browser smoke now obtains its initial event fixture from the real Strava service projection rather than constructing a DTO manually.
+
+## Interface refactoring and route metrics
+
+The default suite now has 119 checks, including zero/absent route metrics and corrupted preference
+validation. The browser smoke also covers native list buttons, keyboard expansion/collapse,
+checkbox focus preservation after selection, Escape focus restoration, calendar tooltip focus,
+single percent signs, and list/calendar overflow at 320, 768, 1024 and 1440px.
+Persistence behavior did not change in this step; its 11 MongoDB checks were not rerun.

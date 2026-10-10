@@ -47,3 +47,14 @@ test('Local date keys handle both sides of UTC midnight and DST changes', async 
     }
   } finally { if (previous === undefined) delete process.env.TZ; else process.env.TZ = previous; }
 });
+
+test('Corrupted preferences cannot replace typed filter fields or add unknown keys', async () => {
+  const ui = await frontend();
+  ui.run(`applyFilterState({joinedOnly:'false',viewMode:'unknown',selectedClubs:[null,{},'1','1'],selectedSportTypes:[false,'cycling'],unknown:'value'})`);
+  assert.equal(ui.run('filterState.joinedOnly'), false);
+  assert.equal(ui.run('filterState.viewMode'), 'calendar');
+  assert.equal(ui.run("JSON.stringify(filterState.selectedClubs)"), '["1"]');
+  assert.equal(ui.run("JSON.stringify(filterState.selectedSportTypes)"), '["cycling"]');
+  assert.equal(ui.run("Object.hasOwn(filterState,'unknown')"), false);
+  ui.run('applyFilterState(null)');
+});

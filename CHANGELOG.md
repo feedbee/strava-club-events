@@ -11,7 +11,17 @@ by Git tags; their release notes have not been reconstructed.
 - Events and cached Strava models retain only consumed fields; organizing profiles, route geometry and unknown provider fields are excluded. Existing full cache entries are scrubbed when read.
 - Provider model examples and future fetch-model output use synthetic values and identifiers; upstream error bodies are no longer logged by that script.
 
+### Fixed
+- Zero route distance, elevation, slope and estimated time remain visible instead of becoming `N/A`; calendar tooltips no longer add a second percent sign.
+- Keyboard focus survives picker selection and returns to visible controls on Escape; collapsed filters are inert and list cards use native buttons.
+- Corrupted browser preferences cannot introduce invalid field types or unknown fields.
+
+### Changed
+- Frontend behavior is separated into native ES modules and shared CSS into ordered files, without a new build tool or dependency.
+- Documentation now shows the current event DTO and browser architecture; the declared BSD-2-Clause license is included.
+
 ### Upgrade notes
+- Deploy the complete `public/` tree, including the new `js/` and `css/` directories; the browser now loads native ES modules.
 - `/events` no longer forwards unused raw Strava fields; consume the documented event DTO. Existing encryption/signing keys remain unchanged. Unread legacy cache records expire by their existing TTL; Git history is not rewritten.
 
 ## [0.9.0] - 2026-10-10

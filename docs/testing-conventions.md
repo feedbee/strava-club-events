@@ -1,6 +1,6 @@
 # Testing conventions
 
-Install: `npm ci --ignore-scripts`. Default gate: `npm test` (117 checks after data minimization; 106 at v0.9.0 preparation).
+Install: `npm ci --ignore-scripts`. Default gate: `npm test` (119 checks after interface refactoring; 117 after data minimization; 106 at v0.9.0 preparation).
 `npm run test:baseline` and `npm run test:regressions` are focused subsets.
 
 The default suite covers pure rules, service scenarios with substituted Strava boundaries, real

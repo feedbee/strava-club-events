@@ -21,17 +21,29 @@ The [original audit](code-audit-2026-10-09.md) describes the baseline, and dated
 
 - **Data minimization:** explicit event DTO and minimal club/event/route models; old rich cache hits are scrubbed before use and rewritten. Provider examples and future model-script output are synthetic. See [design and verification](changes/data-minimization.md) and [model coverage](api-model-coverage.md).
 
-## Remaining work, in order
+- **Interface and minor defects:** zero/absent route metrics and double percent fixed; native browser modules and ordered CSS; keyboard focus, inert panels, native list/picker buttons and typed preferences. Current README/API examples corrected and the declared BSD-2-Clause license added. See [design and verification](changes/interface-refactoring.md).
 
-1. **CI and containers:** a default-test PR gate and reproducible release procedure now exist from the v0.9.0 work. Remaining items include persistence coverage in gates, immutable supply-chain pins/runtime scanning and operator verification appropriate to future releases. Workflow tags are still mutable. Confirm actual HTTPS and live provider flows as needed; the owner's successful deployment is reported rather than independently reverified here.
-2. **Documentation and minor defects:** local startup now loads `.env`, release guidance and the changelog are canonical. Remaining documentation inconsistencies should be reviewed against current code, including the still-missing LICENSE file. Zero-valued route metrics and duplicate percent signs remain.
-3. **Maintainability and accessibility:** separate large frontend/CSS files after stabilization; keyboard/focus and accessibility checks; account-specific preferences if needed. Selected clubs and sports reset on authentication loss, but other browser settings remain shared.
-4. **Historical data:** current examples are synthetic, but Git history has not been fully scanned or rewritten. Old cache records that are not read remain until TTL expiry; this step does not purge the database.
+## Remaining scope
+
+- **Historical data:** current examples are synthetic, but Git history has not been fully scanned or rewritten. Old cache records that are not read remain until TTL expiry; this work does not purge the database.
+- **Operator verification:** check actual HTTPS and live provider flows for each future deployment as needed. Local fixture checks do not independently verify production.
+
+## Excluded by owner decision
+
+On October 10, 2026, the owner explicitly excluded further CI work. Persistence gates, immutable
+workflow/base-image pins and runtime image scanning are therefore removed from the active audit
+plan. Existing CI remains as it was. Account-specific preferences were optional and are not added:
+view mode and joined-only remain browser-wide, while private club/sport selections clear on 401.
 
 ## Latest verification
 
-117 ordinary and 11 MongoDB integration tests pass on Node.js 26.7.0 and target Node.js 24.21.0 (128/128). The additional coverage verifies minimal persisted models, old-cache scrubbing, explicit DTOs and synthetic model-script output. Existing refresh/logout/quota/storage tests still pass. Chrome checked the real service DTO with calendar/list/week views, two recurring occurrences, route warnings, 429 retry messages with calendar preservation, authentication loss, POST logout, CSP and the limits page without uncaught page errors or CSP violations. No live Strava tokens or production database were used in this step.
+119 ordinary tests pass on Node.js 26.7.0 and target Node.js 24.21.0 for the interface/metric change.
+Chrome checks the real ES module graph, month/list/week views, recurrence, keyboard controls,
+focus restoration, zero/single-percent rendering, four viewport widths, 429 preservation,
+authentication loss, POST logout, CSP and the shared limits/about pages. No live Strava credentials or
+production database were used. Persistence was unchanged; its 11 MongoDB checks last passed during
+data minimization (128/128 at that step). No further CI changes were made.
 
 ## Deployment handoff
 
-Keep the existing `ENCRYPTION_KEY` and `SESSION_SECRET`. Stop all old application instances before starting this version: old code cannot read the new GCM records or enforce the revision/lease protocol. Follow the production configuration requirements in [step 2](security-step2.md) and the migration details in [step 9](session-security-step9.md). The owner already reports successful deployment of v0.9.0. This data-minimization change requires no signing/encryption-key rotation. Any next release follows docs/releases.md; the agent has not published or deployed this step.
+Keep the existing `ENCRYPTION_KEY` and `SESSION_SECRET`. Stop all old application instances before starting this version: old code cannot read the new GCM records or enforce the revision/lease protocol. Follow the production configuration requirements in [step 2](security-step2.md) and the migration details in [step 9](session-security-step9.md). The owner already reports successful deployment of v0.9.0. The data-minimization and interface changes require no signing/encryption-key rotation. Any next release follows docs/releases.md; the agent has not published or deployed this step.

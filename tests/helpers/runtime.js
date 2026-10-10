@@ -108,7 +108,7 @@ export async function frontend({ fetch = async () => apiResponse({}) } = {}) {
             return active;
           } },
         setAttribute() {}, addEventListener() {}, querySelectorAll: () => [],
-        closest() { return this; }, appendChild() {}, focus() {},
+        closest() { return this; }, contains() { return false; }, appendChild() {}, focus() {},
       });
     }
     return elements.get(id);
@@ -119,7 +119,17 @@ export async function frontend({ fetch = async () => apiResponse({}) } = {}) {
     document: { getElementById: element, querySelector: element,
       addEventListener() {}, createElement: () => element(Symbol()), body: element('body') },
   });
-  vm.runInContext(await readFile(new URL('public/index.js', root), 'utf8'), context,
+  const seen = new Set();
+  async function source(url) {
+    if (seen.has(url.href)) return '';
+    seen.add(url.href);
+    const code = await readFile(url, 'utf8');
+    const imports = [...code.matchAll(/^import .* from ['"](.+)['"];$/gm)];
+    let dependencies = '';
+    for (const match of imports) dependencies += await source(new URL(match[1], url));
+    return dependencies + code.replace(/^import .* from ['"].+['"];\n/gm, '').replace(/^export /gm, '') + '\n';
+  }
+  vm.runInContext(await source(new URL('public/index.js', root)), context,
     { filename: fileURLToPath(new URL('public/index.js', root)) });
   return { context, element, run: source => vm.runInContext(source, context) };
 }

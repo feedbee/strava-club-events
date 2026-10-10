@@ -222,10 +222,14 @@ The server expects `http://localhost:PORT/callback` (default: `http://localhost:
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/events` | GET | Returns `{ events, clubs, meta }` for upcoming club events (next 30 days) |
-
-Each item in `events` represents one occurrence. `id` remains the original Strava event ID; `occurrence_id` identifies the club, event and UTC start instant. `start_date` is that occurrence’s start. `meta.events_total` counts displayed occurrences; per-club fetch limits still count source events. The window includes now through now + 30 × 24 hours. Invalid dates and duplicate instants within one source event are omitted.
 | `/events?clubs=id1,id2` | GET | Filter to up to 10 specific clubs |
 | `/events?sportTypes=cycling` | GET | Filter by sport type (case-insensitive) |
+
+Each item in `events` represents one occurrence. `id` remains the original Strava event ID; `occurrence_id` identifies the club, event and UTC start instant. `start_date` is that occurrence’s start. `meta.events_total` counts displayed occurrences; per-club fetch limits still count source events. The window includes now through now + 30 × 24 hours. Invalid dates and duplicate instants within one source event are omitted.
+
+#### Health
+
+`GET /health/live` reports process liveness. `GET /health/ready` returns 200 only after initialization and while configured storage is reachable; shutdown withdraws readiness. Both endpoints bypass sessions.
 
 #### Limits
 | Endpoint | Method | Description |
@@ -233,6 +237,7 @@ Each item in `events` represents one occurrence. `id` remains the original Strav
 | `/limits` | GET | Returns application limit constants (no authentication required) |
 
 ### Code Organization
+
 - **Routes** are defined in `src/routes/`
 - **Controllers** contain request handling logic in `src/controllers/`
 - **Middleware** for authentication and other concerns in `src/middleware/`
@@ -240,24 +245,34 @@ Each item in `events` represents one occurrence. `id` remains the original Strav
 - **Static files** served from `public/`
 
 #### Example `/events` Response
+
+Synthetic illustration; see [model coverage](docs/api-model-coverage.md) for the complete contract.
+
 ```json
 {
   "events": [
     {
       "id": "456",
       "title": "Morning Ride",
-      "start": "2026-04-01T09:00:00Z",
-      "end": "2026-04-01T11:00:00Z",
-      "url": "https://www.strava.com/clubs/123/group_events/456",
-      "club": { "id": 123, "name": "Cycling Club" },
-      "recurring": false
+      "occurrence_id": "123:456:2030-04-01T09:00:00.000Z",
+      "start_date": "2030-04-01T09:00:00.000Z",
+      "strava_event_url": "https://www.strava.com/clubs/123/group_events/456",
+      "club_info": { "id": 123, "name": "Cycling Club", "logo": null },
+      "joined": false,
+      "address": null,
+      "route_info": {
+        "id": null, "name": "Route is not attached", "is_full": false,
+        "distance": "N/A", "elevation_gain": "N/A", "activity_type": "Ride",
+        "estimated_moving_time": "N/A", "max_slope": "N/A",
+        "elevation_high": "N/A", "elevation_low": "N/A"
+      }
     }
   ],
   "clubs": [
     {
       "id": 123,
       "name": "Cycling Club",
-      "logo": "https://...",
+      "logo": null,
       "sport_type": "cycling",
       "localized_sport_type": "Cycling"
     }
@@ -283,9 +298,11 @@ strava-events-calendar/
 ├── .devcontainer/     # VS Code Dev Container setup
 ├── public/            # Static frontend assets
 │   ├── index.html     # Main application UI
-│   ├── index.js       # Frontend JavaScript
+│   ├── index.js       # Frontend initialization and state coordination
+│   ├── js/            # Native browser modules: calendar, list, filters, preferences, API
+│   ├── css/           # Ordered shared styles: calendar, filters, shell, list
 │   ├── limits.html    # API limits explanation page
-│   └── styles.css     # Global styles
+│   └── styles.css     # Shared stylesheet entry point
 ├── src/               # Backend source code
 │   ├── config/        # Application configuration
 │   ├── controllers/   # Request handlers

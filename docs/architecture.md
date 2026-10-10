@@ -13,3 +13,21 @@ identity and user-specific cache boundaries. Validate provider URLs and escape d
 Keep secret values out of logs and documentation. Use ES modules and existing helpers rather than
 adding dependencies for behavior supported by Node. Preserve encryption-key compatibility and
 refresh/logout fencing when changing persistence. Add outcome-based regression checks for changes.
+
+## Browser modules
+
+`public/index.js` coordinates authentication, request versions, application state and view changes.
+Native ES modules in `public/js/` own API errors, safe HTML/image helpers, calendar rendering,
+list presentation, reusable multi-select behavior, filter configuration and preference validation.
+The HTML entry uses `type="module"`; no bundler or transpiler is required. Modules must use explicit
+imports rather than relying on other files' global declarations. FullCalendar remains a CDN global.
+
+`public/styles.css` imports calendar, filter, shell and list styles in that order. All public pages
+keep the shared entry point so the existing cascade is preserved. Update the responsible stylesheet
+rather than appending unrelated overrides to the entry point.
+
+Filters use native buttons and checkboxes. Collapsed panels are inert; Escape closes the active
+picker first and then the filter panel, returning focus to its opener. Dropdown re-rendering retains
+checkbox focus. Browser preferences contain only typed presentation/filter fields, never tokens.
+View mode and joined-only preferences intentionally remain browser-wide; club/sport selections are
+cleared on authentication loss. Account-specific preference storage is not part of this change.

@@ -1,3 +1,20 @@
+import { DEFAULT_FILTER_STATE, normalizePreferences } from './js/preferences.js';
+import { createEventFilters } from './js/event-filters.js';
+import { handleApiResponse } from './js/api.js';
+import { escapeHtml, safeImageUrl } from './js/html.js';
+import { buildListCardHtml, buildListDetailPanelHtml, getLocalDateKey, getTodayDateKey, formatListViewDateHeader, transformEventsForCalendar } from './js/event-list.js';
+import { consumeDropdownDismissal } from './js/multi-select.js';
+import { mountCalendar } from './js/calendar.js';
+
+function closeFilterPanel({ restoreFocus = false } = {}) {
+  const panel = document.getElementById('event-filters');
+  const containsFocus = panel.contains?.(document.activeElement);
+  panel.classList.remove('is-open');
+  panel.inert = true;
+  document.getElementById('toggle-filters').setAttribute('aria-expanded', 'false');
+  if (restoreFocus || containsFocus) document.getElementById('toggle-filters').focus();
+}
+
 // -- Global variables --
 let allEvents = [];
 let allClubs = [];
@@ -5,8 +22,6 @@ let allClubsById = new Map(); // id (string) → club object — rebuilt wheneve
 let eventsMeta = null;
 let listViewEvents = [];    // raw events in sorted order for accordion index lookup
 let lvExpandedIndex = null; // index of currently expanded card (null = none)
-
-const CLUB_FILTER_LIMIT = 10; // max clubs selectable in the per-club filter
 
 
 // -- Error handling --
@@ -21,7 +36,8 @@ function handleAuthRequired() {
   calendarElement.classList.remove('calendar-loading');
   document.getElementById('list-view').innerHTML = '';
   document.getElementById('list-view').style.display = 'none';
-  document.getElementById('event-filters').classList.remove('is-open');
+  closeFilterPanel();
+  clubFilter.close(); sportTypeFilter.close();
   const tooltip = document.getElementById('fc-tooltip');
   if (tooltip) { tooltip.textContent = ''; tooltip.classList.remove('visible'); }
   const error = document.getElementById('error-message');
@@ -37,24 +53,7 @@ function handleAuthRequired() {
   const authDiv = document.getElementById("auth");
   if (authDiv) {
     authDiv.style.display = 'block';
-  }
-}
-
-class AuthenticationError extends Error {
-  constructor(response) {
-    super('Authentication required');
-    this.name = 'AuthenticationError';
-    this.isAuthError = true;
-    this.response = response;
-  }
-}
-
-class ApiError extends Error {
-  constructor(message, response, responseData) {
-    super(`API Error (${response.status}): ${message}`);
-    this.name = 'ApiError';
-    this.response = response;
-    this.responseData = responseData;
+    authDiv.querySelector?.('a')?.focus();
   }
 }
 
@@ -64,6 +63,7 @@ function displayErrorMessage(errorMessage) {
     const el = document.createElement('div');
     el.id = 'error-message';
     el.className = 'error-message';
+    el.setAttribute('role', 'alert');
     // Insert after the title and before the auth div
     title.parentNode.insertBefore(el, title.nextSibling);
     return el;
@@ -71,7 +71,6 @@ function displayErrorMessage(errorMessage) {
     
   errorElement.textContent = errorMessage;
 }
-
 
 // -- API calls ---
 
@@ -89,14 +88,6 @@ function retryMessage(seconds) {
   const unit = seconds >= 3600 ? 'hour' : seconds >= 60 ? 'minute' : 'second';
   const amount = Math.ceil(seconds / (unit === 'hour' ? 3600 : unit === 'minute' ? 60 : 1));
   return ` Please try again in ${amount} ${unit}${amount === 1 ? '' : 's'}.`;
-}
-
-function safeImageUrl(value) {
-  if (typeof value !== 'string') return '';
-  try {
-    const url = new URL(value);
-    return url.protocol === 'https:' && !url.username && !url.password ? url.href : '';
-  } catch { return ''; }
 }
 
 async function getCurrentUser() {
@@ -119,21 +110,6 @@ async function getEvents(isCurrent = () => true) {
   return { events: data.events, clubs: data.clubs || [], meta: data.meta };
 }
 
-// Handle API errors consistently
-async function handleApiResponse(resp) {
-  if (resp.ok) return resp;
-  
-  const error = await resp.json().catch(() => ({}));
-  const errorMessage = error.message || error.error || 'An error occurred';
-  
-  if (resp.status === 401) {
-    throw new AuthenticationError(resp);
-  } else {
-    throw new ApiError(`API Error (${resp.status}): ${errorMessage}`, resp, error);
-  }
-}
-
-
 // -- Preloader --
 
 const preloaderElement = document.getElementById("preloader");
@@ -144,7 +120,6 @@ function showPreloader() {
 function hidePreloader() {
   preloaderElement.classList.add("hidden");
 }
-
 
 // -- Navigation bar --
 
@@ -242,212 +217,12 @@ async function loadUserProfile() {
   updateUserProfile(user);
 }
 
-
 // -- Calendar UI --
 
 const calendarElement = document.getElementById("calendar");
 let calendarInstance = null; // Module-level variable for the FullCalendar instance
 function buildCalendar(events) {
-  // Transform filtered events for FullCalendar
-  const calendarEvents = transformEventsForCalendar(events);
-
-  // Create shared tooltip element once — reused by all events
-  let tooltipEl = document.getElementById('fc-tooltip');
-  if (!tooltipEl) {
-    tooltipEl = document.createElement('div');
-    tooltipEl.id = 'fc-tooltip';
-    document.body.appendChild(tooltipEl);
-  }
-
-  calendarInstance = new FullCalendar.Calendar(calendarElement, {
-    initialView: "dayGridMonth",
-    firstDay: 1, // Monday
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: 'dayGridMonth,timeGridWeek,timeGridDay'
-    },
-    events: calendarEvents,
-    dayCellDidMount: function(arg) {
-      // Add 'weekend-day' class to Saturday (6) and Sunday (0) cells
-      if (arg.date.getDay() === 0 || arg.date.getDay() === 6) {
-        arg.el.classList.add('weekend-day');
-      }
-    },
-    buttonText: {
-      today: 'Today',
-      month: 'Month',
-      week: 'Week',
-      day: 'Day'
-    },
-    views: {
-      timeGrid: {
-        dayMaxEventRows: 4 // adjust to 6 only for timeGridWeek/timeGridDay
-      },
-      dayGridMonth: {
-        dayMaxEvents: 5, // Maximum number of events to show per day
-        dayMaxEventRows: 5 // Maximum number of event rows to show per day
-      }
-    },
-    eventTimeFormat: {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    },
-    eventDidMount: function(info) {
-      const event = info.event;
-      const view = info.view;
-      
-      // Add appropriate class based on view type
-      if (view.type === 'dayGridMonth') {
-        info.el.classList.add('fc-month-event');
-      } else {
-        info.el.classList.add('fc-list-event');
-      }
-      
-      // Add joined class if user is attending
-      if (event.extendedProps.joined) {
-        info.el.classList.add('fc-event-joined');
-      }
-      
-      // Format the date and time
-      const eventDate = new Date(event.start);
-      const options = { 
-        weekday: 'short', 
-        month: 'short', 
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      };
-      const formattedDateTime = eventDate.toLocaleString('en-US', options);
-      
-      // Build tooltip content
-      let tooltipContent = `🚀 ${event.title}\n📅 ${formattedDateTime}`;
-
-      // Add address if available
-      if (event.extendedProps.address) {
-        tooltipContent += `\n📍 ${event.extendedProps.address}`;
-      }
-
-      // Add terrain and skill level if available
-      const terrainLabel = event.extendedProps.terrain_label;
-      const skillLevelLabel = event.extendedProps.skill_level_label;
-      
-      if (terrainLabel || skillLevelLabel) {
-        const terrainText = terrainLabel ? `🌄 ${terrainLabel}` : '';
-        const skillText = skillLevelLabel ? `⚡ ${skillLevelLabel}` : '';
-        const separator = terrainLabel && skillLevelLabel ? ' • ' : '';
-        tooltipContent += `\n${terrainText}${separator}${skillText}`;
-      }
-      
-      // Add club info if available
-      if (event.extendedProps.club_info?.name) {
-        tooltipContent += `\n♣️ ${event.extendedProps.club_info.name}`;
-      }
-      
-      // Add route info to tooltip if available
-      const routeInfo = info.event.extendedProps.route_info;
-      if (routeInfo) {
-        tooltipContent += `\n\n🗺️ ${routeInfo.name}`;
-        
-        // Always show distance and elevation if they are available
-        if (routeInfo.distance !== 'N/A' || routeInfo.elevation_gain !== 'N/A') {
-          const distanceText = routeInfo.distance !== 'N/A' ? `📏 ${routeInfo.distance}` : '';
-          const elevationText = routeInfo.elevation_gain !== 'N/A' ? `🏔️ ${routeInfo.elevation_gain}` : '';
-          const separator = routeInfo.distance !== 'N/A' && routeInfo.elevation_gain !== 'N/A' ? ' • ' : '';
-          tooltipContent += `\n${distanceText}${separator}${elevationText}`;
-        }
-        
-        // Show activity type if available
-        if (routeInfo.activity_type && routeInfo.activity_type !== 'N/A') {
-          tooltipContent += `\n🚴 ${routeInfo.activity_type}`;
-        }
-
-        if (routeInfo.is_full) {
-          // Add additional route details if available
-          if (routeInfo.estimated_moving_time !== 'N/A') {
-            tooltipContent += `\n⏱️ ${routeInfo.estimated_moving_time}`;
-          }
-        
-          // Add max slope if available
-          if (routeInfo.max_slope !== 'N/A') {
-            tooltipContent += `\n📐 Max Slope: ${routeInfo.max_slope}%`;
-          }
-          
-          // Add elevation range if available
-          if (routeInfo.elevation_low !== 'N/A' && routeInfo.elevation_high !== 'N/A') {
-            tooltipContent += `\n📈 Elevation: ${routeInfo.elevation_low} → ${routeInfo.elevation_high}`;
-          }
-        } else if (routeInfo.name !== 'Route is not attached') {
-          tooltipContent += `\n(Extended route info is not available)`;
-        }
-      }
-      
-      // Add joined status to tooltip (always at the end)
-      if (event.extendedProps.joined) {
-        tooltipContent += '\n\n✅ You decided to join the event! 🎉';
-      }
-      
-      // Set tooltip via data-tooltip (not title, to avoid native browser tooltip)
-      info.el.setAttribute('data-tooltip', tooltipContent);
-
-      // Wire up JS tooltip using position:fixed so it escapes overflow:hidden ancestors
-      info.el.addEventListener('mouseenter', function() {
-        const rect = info.el.getBoundingClientRect();
-        tooltipEl.textContent = info.el.getAttribute('data-tooltip');
-        tooltipEl.classList.add('visible');
-
-        const tooltipWidth = tooltipEl.offsetWidth;
-        const tooltipHeight = tooltipEl.offsetHeight;
-        const ARROW_HEIGHT = 8;
-
-        let left = rect.left + rect.width / 2 - tooltipWidth / 2;
-        let top = rect.top - tooltipHeight - ARROW_HEIGHT;
-
-        // Clamp horizontally within viewport
-        left = Math.max(8, Math.min(left, window.innerWidth - tooltipWidth - 8));
-        // Flip below if not enough space above; arrow flips too
-        if (top < 8) {
-          top = rect.bottom + ARROW_HEIGHT;
-          tooltipEl.classList.add('flipped');
-        } else {
-          tooltipEl.classList.remove('flipped');
-        }
-
-        tooltipEl.style.left = left + 'px';
-        tooltipEl.style.top = top + 'px';
-      });
-
-      info.el.addEventListener('mouseleave', function() {
-        tooltipEl.classList.remove('visible', 'flipped');
-      });
-
-      // Create custom event content with club logo
-      const titleEl = info.el.querySelector('.fc-event-title');
-      if (titleEl) {
-        const clubLogo = safeImageUrl(info.event.extendedProps.club_info.logo);
-        if (clubLogo) {
-          const logoHtml = `<img src="${escapeHtml(clubLogo)}" class="club-logo" alt="Club Logo">`;
-          titleEl.insertAdjacentHTML('afterbegin', logoHtml);
-        }
-      }
-      
-      // Override click to open in new tab
-      info.el.addEventListener('click', function(e) {
-        e.preventDefault();
-        if (info.event.url) {
-          window.open(info.event.url, '_blank');
-        }
-      });
-    }
-  });
-  
-  // Hide preloader and show calendar
-  showCalendar();
-  
-  // Render the calendar with the initial filtered events
-  calendarInstance.render();
+  calendarInstance = mountCalendar(events, { transformEventsForCalendar, calendarElement, showCalendar });
 }
 
 // Update calendar with filtered events
@@ -491,136 +266,7 @@ function hideCalendar() {
   calendarElement.style.display = "none";
 }
 
-
 // -- List View --
-
-function formatListViewTime(isoString) {
-  return new Date(isoString).toLocaleTimeString('en-US', {
-    hour: 'numeric', minute: '2-digit', hour12: true,
-  });
-}
-
-function formatListViewDateHeader(dateKey) {
-  // Append T00:00:00 to parse as local time and avoid UTC offset issues
-  return new Date(dateKey + 'T00:00:00').toLocaleDateString('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric',
-  });
-}
-
-function getLocalDateKey(d) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function getTodayDateKey() { return getLocalDateKey(new Date()); }
-
-function getActivityEmoji(routeInfo) {
-  if (!routeInfo) return '🎯';
-  const t = (routeInfo.activity_type || '').toLowerCase();
-  if (t.includes('run'))                           return '🏃';
-  if (t.includes('ride') || t.includes('cycling')) return '🚴';
-  if (t.includes('walk'))                          return '🚶';
-  if (t.includes('hike'))                          return '🥾';
-  if (t.includes('swim'))                          return '🏊';
-  return '🎯';
-}
-
-function buildListCardHtml(event, index) {
-  const time     = formatListViewTime(event.start_date);
-  const clubName = escapeHtml(event.club_info?.name || '');
-  const logoUrl = safeImageUrl(event.club_info?.logo);
-  const clubLogo = logoUrl
-    ? `<img src="${escapeHtml(logoUrl)}" class="lv-club-logo-sm" alt="">`
-    : '';
-  const joined = event.joined
-    ? `<span class="lv-joined-badge">✓ Joined</span>` : '';
-  const emoji  = getActivityEmoji(event.route_info);
-  const title  = escapeHtml(event.title);
-
-  let statsHtml = '';
-  const r = event.route_info;
-  if (r && (r.distance !== 'N/A' || r.elevation_gain !== 'N/A' || r.estimated_moving_time !== 'N/A')) {
-    const parts = [];
-    if (r.distance !== 'N/A')              parts.push(`<span class="lv-stat">📏 ${escapeHtml(r.distance)}</span>`);
-    if (r.elevation_gain !== 'N/A')        parts.push(`<span class="lv-stat">🏔️ ${escapeHtml(r.elevation_gain)}</span>`);
-    if (r.estimated_moving_time !== 'N/A') parts.push(`<span class="lv-stat">⏱️ ${escapeHtml(r.estimated_moving_time)}</span>`);
-    statsHtml = `<div class="lv-stats-row">${parts.join('')}</div>`;
-  }
-
-  return `
-    <div class="lv-event-card" data-lv-index="${index}" role="button" tabindex="0" aria-expanded="false">
-      <div class="lv-time">${time}</div>
-      <div class="lv-club-name">${clubLogo}${clubName}${joined}</div>
-      <div class="lv-event-title">${emoji} ${title}</div>
-      ${statsHtml}
-    </div>`;
-}
-
-function buildListDetailPanelHtml(event) {
-  // --- Club section ---
-  const clubId  = event.club_info?.id;
-  const clubUrl = clubId ? `https://www.strava.com/clubs/${clubId}` : null;
-  const logo    = safeImageUrl(event.club_info?.logo);
-  const logoHtml = logo
-    ? `<div class="lv-club-logo-md"><img src="${escapeHtml(logo)}" alt=""></div>`
-    : `<div class="lv-club-logo-md">${escapeHtml((event.club_info?.name || '').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase())}</div>`;
-  const clubNameHtml = clubUrl
-    ? `<a href="${escapeHtml(clubUrl)}" target="_blank" rel="noopener" class="lv-detail-link">${escapeHtml(event.club_info?.name || '')}</a>`
-    : `<span>${escapeHtml(event.club_info?.name || '')}</span>`;
-  const clubSection = `
-    <div class="lv-detail-section">
-      <div class="lv-section-title">Club</div>
-      <div class="lv-club-row">${logoHtml}${clubNameHtml}</div>
-    </div>`;
-
-  // --- Event section ---
-  const when = new Date(event.start_date).toLocaleDateString('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric',
-    hour: 'numeric', minute: '2-digit', hour12: true,
-  });
-  let eventRows = `<div class="lv-detail-row"><span class="lv-detail-row-label">When</span>${escapeHtml(when)}</div>`;
-  if (event.address)           eventRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Where</span>${escapeHtml(event.address)}</div>`;
-  if (event.terrain_label)     eventRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Terrain</span>${escapeHtml(event.terrain_label)}</div>`;
-  if (event.skill_level_label) eventRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Skill</span>${escapeHtml(event.skill_level_label)}</div>`;
-  if (event.joined)            eventRows += `<div class="lv-detail-joined">✅ You joined this event</div>`;
-  const eventSection = `
-    <div class="lv-detail-section">
-      <div class="lv-section-title">Event</div>
-      <div><a href="${escapeHtml(event.strava_event_url)}" target="_blank" rel="noopener" class="lv-detail-link">${escapeHtml(event.title)}</a></div>
-      ${eventRows}
-    </div>`;
-
-  // --- Route section (only if is_full) ---
-  let routeSection = '';
-  const r = event.route_info;
-  if (r?.is_full) {
-    const routeUrl  = r.id ? `https://www.strava.com/routes/${r.id}` : null;
-    const routeNameHtml = routeUrl
-      ? `<div class="lv-club-row"><span>🗺</span><a href="${escapeHtml(routeUrl)}" target="_blank" rel="noopener" class="lv-detail-link">${escapeHtml(r.name)}</a></div>`
-      : `<div class="lv-club-row"><span>🗺</span><span>${escapeHtml(r.name)}</span></div>`;
-    let routeRows = '';
-    if (r.distance !== 'N/A')              routeRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Distance</span>${escapeHtml(r.distance)}</div>`;
-    if (r.elevation_gain !== 'N/A')        routeRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Elevation</span>${escapeHtml(r.elevation_gain)}↑</div>`;
-    if (r.activity_type)                   routeRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Type</span>${escapeHtml(r.activity_type)}</div>`;
-    if (r.estimated_moving_time !== 'N/A') routeRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Est. time</span>${escapeHtml(r.estimated_moving_time)}</div>`;
-    if (r.max_slope !== 'N/A')             routeRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Max slope</span>${escapeHtml(r.max_slope)}</div>`;
-    if (r.elevation_low !== 'N/A' && r.elevation_high !== 'N/A')
-      routeRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Elevation</span>${escapeHtml(r.elevation_low)} → ${escapeHtml(r.elevation_high)}</div>`;
-    routeSection = `
-      <div class="lv-detail-divider"></div>
-      <div class="lv-detail-section">
-        <div class="lv-section-title">Route</div>
-        ${routeNameHtml}
-        ${routeRows}
-      </div>`;
-  }
-
-  return `<div class="lv-detail-panel">
-    ${clubSection}
-    <div class="lv-detail-divider"></div>
-    ${eventSection}
-    ${routeSection}
-  </div>`;
-}
 
 function collapseListCard() {
   if (lvExpandedIndex === null) return;
@@ -629,6 +275,7 @@ function collapseListCard() {
     card.classList.remove('lv-expanded');
     card.setAttribute('aria-expanded', 'false');
     const panel = card.nextElementSibling;
+    if (panel?.contains(document.activeElement)) card.focus();
     if (panel?.classList.contains('lv-detail-panel')) panel.remove();
   }
   lvExpandedIndex = null;
@@ -642,7 +289,7 @@ function handleListCardClick(index) {
   if (!card || !event) return;
   card.classList.add('lv-expanded');
   card.setAttribute('aria-expanded', 'true');
-  card.insertAdjacentHTML('afterend', buildListDetailPanelHtml(event));
+  card.insertAdjacentHTML('afterend', buildListDetailPanelHtml(event, index));
   lvExpandedIndex = index;
 }
 
@@ -692,12 +339,11 @@ function setupListViewClickHandler() {
     if (!isNaN(idx)) handleListCardClick(idx);
   });
   container.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter' && e.key !== ' ') return;
-    const card = e.target.closest('.lv-event-card');
-    if (!card) return;
-    e.preventDefault();
-    const idx = parseInt(card.dataset.lvIndex, 10);
-    if (!isNaN(idx)) handleListCardClick(idx);
+    if (e.key === 'Escape' && lvExpandedIndex !== null) {
+      e.preventDefault();
+      collapseListCard();
+    }
+
   });
 }
 
@@ -728,7 +374,6 @@ function setViewMode(mode) {
     renderListView(applyFilters(allEvents));
   }
 }
-
 
 // -- Event loading --
 
@@ -789,36 +434,9 @@ async function loadEvents() {
 }
 
 // Transform raw events for FullCalendar
-function transformEventsForCalendar(events) {
-  if (!events) return [];
-  
-  return events.map(event => ({
-    id: event.occurrence_id,
-    title: event.title,
-    start: event.start_date,
-    url: event.strava_event_url,
-    extendedProps: {
-      club_info: event.club_info || { name: '', logo: '' },
-      route_info: event.route_info || null,
-      joined: event.joined || false,
-      terrain_label: event.terrain_label,
-      skill_level_label: event.skill_level_label,
-      address: event.address || null,
-    }
-  }));
-}
-
-
 // -- Filtering --
 
 // Default filter state values
-const DEFAULT_FILTER_STATE = {
-  joinedOnly: false,
-  selectedClubs: [],
-  selectedSportTypes: [],
-  viewMode: 'calendar'
-};
-
 // Store all events and filter state
 const filterState = { ...DEFAULT_FILTER_STATE };
 
@@ -830,7 +448,7 @@ function loadFilterState() {
       const state = JSON.parse(savedState);
       applyFilterState(state);
       // If no viewMode was ever explicitly saved, default to list on mobile
-      if (!state.viewMode && window.innerWidth <= 768) {
+      if (!state?.viewMode && window.innerWidth <= 768) {
         filterState.viewMode = 'list';
       }
     } else if (window.innerWidth <= 768) {
@@ -843,30 +461,7 @@ function loadFilterState() {
 }
 
 function applyFilterState(newState) {
-  // Ensure all default keys exist (handles new keys added in future versions)
-  for (const key of Object.keys(DEFAULT_FILTER_STATE)) {
-    if (!(key in filterState)) {
-      filterState[key] = Array.isArray(DEFAULT_FILTER_STATE[key])
-        ? [...DEFAULT_FILTER_STATE[key]]
-        : DEFAULT_FILTER_STATE[key];
-    }
-  }
-
-  // Shallow-copy arrays to avoid sharing references with DEFAULT_FILTER_STATE.
-  // Safe because all state values are primitives (strings, booleans).
-  for (const [key, value] of Object.entries(newState)) {
-    filterState[key] = Array.isArray(value) ? [...value] : value;
-  }
-
-  // Validate selectedClubs in case of corrupted localStorage data
-  if (!Array.isArray(filterState.selectedClubs)) {
-    filterState.selectedClubs = [];
-  }
-
-  // Validate selectedSportTypes in case of corrupted localStorage data
-  if (!Array.isArray(filterState.selectedSportTypes)) {
-    filterState.selectedSportTypes = [];
-  }
+  Object.assign(filterState, normalizePreferences(newState, filterState));
 
   // Update UI to reflect saved state
   const filterCheckbox = document.getElementById('filter-joined');
@@ -939,6 +534,7 @@ function setupFilterEventListeners() {
     saveFilterState();
     updateClearFiltersButton();
     updateFilterCount();
+    document.getElementById('toggle-filters').focus();
     if (hadBackendFilter) {
       loadEvents().catch(handleLoadError);
     } else {
@@ -964,317 +560,7 @@ function applyFilters(events) {
   });
 }
 
-
 // -- Shared filter utilities & multi-select dropdown component --
-
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-// Shared helper — returns an <img> or initial <span> for a club logo.
-function clubMarkupHtml(club, imgClass, initialClass) {
-  const logo = safeImageUrl(club?.logo);
-  if (logo) {
-    return `<img src="${escapeHtml(logo)}" class="${imgClass}" alt="${escapeHtml(club.name)}" title="${escapeHtml(club.name)}">`;
-  }
-  const letter = club ? escapeHtml(club.name.charAt(0).toUpperCase()) : '?';
-  const title = club ? ` title="${escapeHtml(club.name)}"` : '';
-  return `<span class="${initialClass}"${title}>${letter}</span>`;
-}
-
-// Strava sport type values → display labels (from Strava club edit UI)
-const SPORT_TYPE_LABELS = {
-  cycling:           'Cycling',
-  running:           'Running',
-  triathlon:         'Triathlon',
-  alpine_skiing:     'Alpine Skiing',
-  backcountry_skiing:'Backcountry Skiing',
-  canoeing:          'Canoeing',
-  crossfit:          'Crossfit',
-  ebiking:           'E-Biking',
-  elliptical:        'Elliptical',
-  soccer:            'Football (Soccer)',
-  golf:              'Golf',
-  handcycling:       'Handcycling',
-  hiking:            'Hiking',
-  ice_skating:       'Ice Skating',
-  inline_skating:    'Inline Skating',
-  kayaking:          'Kayaking',
-  kitesurfing:       'Kitesurfing',
-  nordic_skiing:     'Nordic Skiing',
-  rock_climbing:     'Rock Climbing',
-  roller_skiing:     'Roller Skiing',
-  rowing:            'Rowing',
-  footsports:        'Run/Walk/Hike',
-  sailing:           'Sailing',
-  skateboarding:     'Skateboarding',
-  ski_snowboard:     'Ski/Snowboard',
-  snowboarding:      'Snowboarding',
-  snowshoeing:       'Snowshoeing',
-  stair_stepper:     'Stair Stepper',
-  stand_up_paddling: 'Stand-up Paddling',
-  surfing:           'Surfing',
-  swimming:          'Swimming',
-  velomobile:        'Velomobile',
-  virtual_ride:      'Virtual Riding',
-  virtual_run:       'Virtual Running',
-  walking:           'Walking',
-  weight_training:   'Weight Training',
-  wheelchair:        'Wheelchair',
-  windsurfing:       'Windsurfing',
-  winter_sports:     'Winter Sports',
-  workout:           'Workout',
-  yoga:              'Yoga',
-  other:             'Multisport',
-};
-
-// Registry — each instance's open() closes all others first
-const _allMultiSelectFilters = [];
-// Set to true by close() when an open dropdown is actually dismissed;
-// checked by the panel-level outside-click handler so it doesn't also close the whole panel.
-let _dropdownClosedOnThisClick = false;
-
-/**
- * Creates a reusable multi-select dropdown filter.
- * Both the club filter and the sport type filter are instances of this.
- *
- * Config:
- *   triggerId / dropdownId / listId / searchId / footerId / clearBtnId / avatarsId / placeholderId
- *   limit          {number}   max selections
- *   placeholder    {string}   trigger text when nothing is selected
- *   noun           {string}   "club" / "sport" — used in footer & empty-state text
- *   showAvatars    {boolean}  true → logo circles (clubs); false → text chips (sport types)
- *   hideWhenEmpty  {boolean}  hide the whole filter group when getItems() returns []
- *   getItems()     () => [{id, label, logo?}]
- *   getSelected()  () => string[]
- *   setSelected(ids)
- *   onAfterToggle()  called after checkbox toggles (save state, update counters, schedule reload)
- *   onClear()        called when the inline ✕ button is clicked (save, close panel, reload)
- */
-function createMultiSelectFilter(cfg) {
-  const {
-    triggerId, dropdownId, listId, searchId, footerId, clearBtnId, avatarsId, placeholderId,
-    limit = CLUB_FILTER_LIMIT, placeholder, noun = 'item',
-    showAvatars = true, hideWhenEmpty = false,
-    getItems, getSelected, setSelected, onAfterToggle, onClear,
-    isItemCompatible = () => true,
-  } = cfg;
-
-  // Cached element references — looked up once at init time instead of on every call
-  const $trigger     = document.getElementById(triggerId);
-  const $dropdown    = document.getElementById(dropdownId);
-  const $list        = document.getElementById(listId);
-  const $search      = document.getElementById(searchId);
-  const $footer      = document.getElementById(footerId);
-  const $clearBtn    = document.getElementById(clearBtnId);
-  const $avatars     = document.getElementById(avatarsId);
-  const $placeholder = document.getElementById(placeholderId);
-
-  // -- Open / close --
-
-  function open() {
-    _allMultiSelectFilters.forEach(f => { if (f !== instance) f.close(); });
-    if (!$dropdown) return;
-    $dropdown.style.display = 'block';
-    $trigger?.setAttribute('aria-expanded', 'true');
-    renderDropdown();
-    if ($search) { $search.value = ''; $search.focus(); }
-  }
-
-  function close() {
-    if ($dropdown && $dropdown.style.display !== 'none') {
-      _dropdownClosedOnThisClick = true; // tell panel handler: don't also close the panel
-    }
-    if ($dropdown) $dropdown.style.display = 'none';
-    $trigger?.setAttribute('aria-expanded', 'false');
-  }
-
-  function toggleOpen() {
-    if ($dropdown?.style.display === 'block') close(); else open();
-  }
-
-  // -- Render dropdown list --
-
-  function renderDropdown() {
-    if (!$list) return;
-
-    const query = ($search?.value || '').toLowerCase().trim();
-    const items = getItems();
-    const selected = getSelected();
-    const atLimit = selected.length >= limit;
-
-    const compatible   = items.filter(i =>  isItemCompatible(i)).sort((a, b) => a.label.localeCompare(b.label));
-    const incompatible = items.filter(i => !isItemCompatible(i)).sort((a, b) => a.label.localeCompare(b.label));
-    const sorted = [...compatible, ...incompatible];
-    const filtered = query ? sorted.filter(item => item.label.toLowerCase().includes(query)) : sorted;
-
-    if (filtered.length === 0) {
-      $list.innerHTML = `<div class="club-filter-empty">No ${noun}s found</div>`;
-    } else {
-      $list.innerHTML = filtered.map(item => {
-        const isSelected     = selected.includes(item.id);
-        const isIncompatible = !isItemCompatible(item);
-        const isDisabled     = (atLimit && !isSelected) || isIncompatible;
-        const visual = showAvatars
-          ? clubMarkupHtml({ name: item.label, logo: item.logo }, 'club-list-logo', 'club-list-initial')
-          : '';
-        const tooltip = isIncompatible ? ' title="Not available for the selected sport type"' : '';
-        return `<label class="club-filter-list-item${isDisabled ? ' disabled' : ''}${isIncompatible ? ' incompatible' : ''}${isSelected ? ' selected' : ''}"${tooltip}>
-          <input type="checkbox" class="club-filter-checkbox" value="${escapeHtml(item.id)}"${isSelected ? ' checked' : ''}${isDisabled ? ' disabled' : ''}>
-          ${visual}<span class="club-list-name">${escapeHtml(item.label)}</span>
-        </label>`;
-      }).join('');
-    }
-
-    if ($footer) {
-      $footer.textContent = selected.length > 0
-        ? `${selected.length} of ${limit} selected`
-        : `Select up to ${limit}`;
-    }
-  }
-
-  // -- Render trigger --
-
-  function renderTrigger() {
-    if (!$avatars || !$placeholder) return;
-
-    const selected = getSelected();
-
-    if (selected.length === 0) {
-      $avatars.innerHTML = '';
-      $placeholder.textContent = placeholder;
-      $placeholder.style.display = '';
-      if ($clearBtn) $clearBtn.style.display = 'none';
-      return;
-    }
-
-    if ($clearBtn) $clearBtn.style.display = '';
-    $placeholder.style.display = 'none';
-
-    const maxShow = 5;
-    const items = getItems();
-    const selectedItems = selected.map(id => items.find(item => item.id === id)).filter(Boolean);
-
-    if (selectedItems.length === 0) {
-      // Items not loaded yet (initial page load with a saved filter state)
-      $avatars.innerHTML = '';
-      $placeholder.textContent = `${selected.length} ${selected.length === 1 ? noun : noun + 's'} selected`;
-      $placeholder.style.display = '';
-      return;
-    }
-
-    const shown = selectedItems.slice(0, maxShow);
-    const overflow = selectedItems.length - maxShow;
-
-    if (showAvatars) {
-      $avatars.innerHTML = shown.map(item =>
-        clubMarkupHtml({ name: item.label, logo: item.logo }, 'club-avatar-img', 'club-avatar-initial')
-      ).join('') + (overflow > 0 ? `<span class="club-avatar-overflow">+${overflow}</span>` : '');
-    } else {
-      $avatars.innerHTML = shown.map(item =>
-        `<span class="club-filter-chip">${escapeHtml(item.label)}</span>`
-      ).join('') + (overflow > 0 ? `<span class="club-filter-chip club-filter-chip-more">+${overflow}</span>` : '');
-    }
-  }
-
-  // -- Group visibility (sport type filter hides itself when no items available) --
-
-  function updateGroupVisibility() {
-    if (!hideWhenEmpty) return;
-    if (!$trigger) return;
-    const groupEl = $trigger.closest('.filter-group-sport-type');
-    if (!groupEl) return;
-    groupEl.style.display = getItems().length > 0 ? '' : 'none';
-  }
-
-  // -- Toggle a single item --
-
-  function toggleItem(id) {
-    const selected = getSelected();
-    const idx = selected.indexOf(id);
-    let newSelected;
-    if (idx >= 0) {
-      newSelected = selected.filter(s => s !== id);
-    } else if (selected.length < limit) {
-      newSelected = [...selected, id];
-    } else {
-      return; // at limit — ignore
-    }
-    setSelected(newSelected);
-    onAfterToggle();
-    renderTrigger();
-    renderDropdown();
-  }
-
-  // -- Clear all selections --
-  // silent: true skips callbacks (used by the global "clear all filters" button)
-
-  function clearAll({ silent = false } = {}) {
-    setSelected([]);
-    close();
-    renderTrigger();
-    updateGroupVisibility();
-    if (!silent) {
-      if (onClear) onClear(); else onAfterToggle();
-    }
-  }
-
-  // -- Wire up DOM event listeners --
-
-  function setupListeners() {
-    if ($trigger) {
-      $trigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleOpen();
-      });
-      $trigger.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          e.stopPropagation();
-          toggleOpen();
-        }
-      });
-    }
-
-    if ($clearBtn) {
-      $clearBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        clearAll(); // fires onClear (or onAfterToggle as fallback)
-      });
-    }
-
-    if ($list) {
-      $list.addEventListener('change', (e) => {
-        if (e.target.classList.contains('club-filter-checkbox')) {
-          toggleItem(e.target.value);
-        }
-      });
-    }
-
-    if ($search) {
-      $search.addEventListener('input', () => renderDropdown());
-    }
-
-    // Close when clicking outside this filter's trigger + dropdown
-    // (includes clicks on the filter label, other groups, or anywhere outside the panel)
-    document.addEventListener('click', (e) => {
-      if (!$trigger?.contains(e.target) && !$dropdown?.contains(e.target)) close();
-    });
-
-    // Close on Escape
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') close();
-    });
-  }
-
-  const instance = { open, close, renderTrigger, renderDropdown, updateGroupVisibility, toggleItem, clearAll, setupListeners };
-  _allMultiSelectFilters.push(instance);
-  return instance;
-}
 
 // Debounce timer for filter changes — batches rapid toggles into one request
 let _filterDebounceTimer = null;
@@ -1287,103 +573,10 @@ function scheduleEventsReload() {
   }, 400);
 }
 
-// Helper — closes the filter panel and triggers a full events reload
-function closePanelAndReload() {
-  const eventFiltersEl = document.getElementById('event-filters');
-  const toggleFiltersBtnEl = document.getElementById('toggle-filters');
-  if (eventFiltersEl) {
-    eventFiltersEl.classList.remove('is-open');
-    if (toggleFiltersBtnEl) toggleFiltersBtnEl.setAttribute('aria-expanded', false);
-  }
-  loadEvents().catch(handleLoadError);
-}
-
-// Shared onAfterToggle for both filters
-const _onAfterFilterToggle = () => {
-  saveFilterState();
-  updateClearFiltersButton();
-  updateFilterCount();
-  scheduleEventsReload();
-};
-
-// --- Club filter instance ---
-const clubFilter = createMultiSelectFilter({
-  triggerId:     'clubFilterTrigger',
-  dropdownId:    'clubFilterDropdown',
-  listId:        'clubFilterList',
-  searchId:      'clubFilterSearch',
-  footerId:      'clubFilterFooter',
-  clearBtnId:    'clubFilterClear',
-  avatarsId:     'clubFilterAvatars',
-  placeholderId: 'clubFilterPlaceholder',
-  limit:         CLUB_FILTER_LIMIT,
-  placeholder:   'All clubs',
-  noun:          'club',
-  showAvatars:   true,
-  hideWhenEmpty: false,
-  getItems:    () => allClubs.map(c => ({ id: String(c.id), label: c.name, logo: c.logo || null })),
-  getSelected: () => filterState.selectedClubs,
-  setSelected: (ids) => { filterState.selectedClubs = ids; },
-  isItemCompatible: (item) => {
-    if (filterState.selectedSportTypes.length === 0) return true;
-    const club = allClubsById.get(item.id);
-    return !!club && filterState.selectedSportTypes.includes((club.sport_type || '').toLowerCase());
-  },
-  onAfterToggle: _onAfterFilterToggle,
-  // Intentionally leaves the filter panel open so the user can immediately
-  // make a new selection (old inline code closed the panel on clear).
-  onClear: () => {
-    saveFilterState();
-    updateClearFiltersButton();
-    updateFilterCount();
-    scheduleEventsReload();
-  },
+const { clubFilter, sportTypeFilter } = createEventFilters({
+  getClubs: () => allClubs, getClubsById: () => allClubsById, filterState,
+  saveFilterState, updateClearFiltersButton, updateFilterCount, scheduleEventsReload,
 });
-
-// --- Sport type filter instance ---
-const sportTypeFilter = createMultiSelectFilter({
-  triggerId:     'sportTypeFilterTrigger',
-  dropdownId:    'sportTypeFilterDropdown',
-  listId:        'sportTypeFilterList',
-  searchId:      'sportTypeFilterSearch',
-  footerId:      'sportTypeFilterFooter',
-  clearBtnId:    'sportTypeFilterClear',
-  avatarsId:     'sportTypeFilterAvatars',
-  placeholderId: 'sportTypeFilterPlaceholder',
-  limit:         CLUB_FILTER_LIMIT,
-  placeholder:   'All sports',
-  noun:          'sport',
-  showAvatars:   false,
-  hideWhenEmpty: true,
-  // Return only sport types present in the user's actual clubs.
-  // hideWhenEmpty:true keeps the group hidden until clubs load (seen.size === 0).
-  getItems: () => {
-    const seen = new Map();
-    for (const c of allClubs) {
-      if (c.sport_type && !seen.has(c.sport_type))
-        seen.set(c.sport_type, c.localized_sport_type || SPORT_TYPE_LABELS[c.sport_type] || c.sport_type);
-    }
-    return [...seen.entries()].map(([id, label]) => ({ id, label }));
-  },
-  getSelected: () => filterState.selectedSportTypes,
-  setSelected: (ids) => { filterState.selectedSportTypes = ids; },
-  onAfterToggle: () => { _onAfterFilterToggle(); refreshClubsDropdownIfOpen(); },
-  // Intentionally leaves the filter panel open so the user can immediately
-  // make a new selection (old inline code closed the panel on clear).
-  onClear: () => {
-    saveFilterState();
-    updateClearFiltersButton();
-    updateFilterCount();
-    refreshClubsDropdownIfOpen();
-    scheduleEventsReload();
-  },
-});
-
-// Refresh the clubs dropdown in-place when sport type selection changes (so grey-out updates immediately)
-function refreshClubsDropdownIfOpen() {
-  const dd = document.getElementById('clubFilterDropdown');
-  if (dd && dd.style.display !== 'none') clubFilter.renderDropdown();
-}
 
 // Single DOMContentLoaded handler for all initialization.
 // Using DOMContentLoaded (rather than an IIFE) guarantees DOM availability
@@ -1410,6 +603,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     e.preventDefault();
     const isVisible = eventFilters.classList.contains('is-open');
     eventFilters.classList.toggle('is-open', !isVisible);
+    eventFilters.inert = isVisible;
+    if (isVisible) { clubFilter.close(); sportTypeFilter.close(); }
     toggleFiltersBtn.setAttribute('aria-expanded', !isVisible);
   });
 
@@ -1417,8 +612,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   // If a dropdown was just dismissed on this same click, keep the panel open so the
   // user doesn't have to reopen it just to make another selection.
   document.addEventListener('click', (e) => {
-    if (_dropdownClosedOnThisClick) {
-      _dropdownClosedOnThisClick = false;
+    if (consumeDropdownDismissal()) {
       return;
     }
     if (
@@ -1426,8 +620,14 @@ document.addEventListener('DOMContentLoaded', async function () {
       !eventFilters.contains(e.target) &&
       !toggleFiltersBtn.contains(e.target)
     ) {
-      eventFilters.classList.remove('is-open');
-      toggleFiltersBtn.setAttribute('aria-expanded', false);
+      closeFilterPanel();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && eventFilters.classList.contains('is-open')) {
+      event.preventDefault();
+      closeFilterPanel({ restoreFocus: true });
     }
   });
 
