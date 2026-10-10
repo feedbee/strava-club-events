@@ -24,7 +24,7 @@ Monitoring can use `/health/live` to decide on restarts and `/health/ready` to r
 
 ## Cache clearing
 
-`node --env-file=.env.local scripts/drop-cache.js <userId>` clears only the specified user's entries in the `cache` collection when `CACHE_DRIVER=mongodb`. Use the intended instance's ENV; userId must match the internal identifier, for example `strava_12345`.
+`node --env-file=.env scripts/drop-cache.js <userId>` clears only the specified user's entries in the `cache` collection when `CACHE_DRIVER=mongodb`. Use the intended instance's ENV; userId must match the internal identifier, for example `strava_12345`.
 
 For the memory driver, the command exits with code 1 and explains that another process cannot clear the running server's memory. Restarting is required to reset it. Unknown drivers are also rejected. There is no public deletion endpoint.
 

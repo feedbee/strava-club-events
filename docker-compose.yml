@@ -7,7 +7,7 @@ services:
       - .:/usr/src/app
       - strava-node-modules:/usr/src/app/node_modules
     env_file:
-      - .env.local
+      - .env
     # environment:
     #   - CLIENT_ID=your_strava_client_id
     #   - CLIENT_SECRET=your_strava_client_secret

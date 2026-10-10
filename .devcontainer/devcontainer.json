@@ -3,7 +3,7 @@
     "dockerFile": "Dockerfile",
     "context": "..",
     "appPort": ["3000:3000"],
-    "envFile": ".env.local",
+    "envFile": ".env",
     "postCreateCommand": "npm ci --ignore-scripts",
     "settings": {
       "terminal.integrated.defaultProfile.linux": "bash"

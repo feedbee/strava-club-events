@@ -5,8 +5,8 @@
     "main": "src/server.js",
     "type": "module",
     "scripts": {
-        "start": "node src/server.js",
-        "dev": "node --watch src/server.js",
+        "start": "node --env-file-if-exists=.env src/server.js",
+        "dev": "node --env-file-if-exists=.env --watch src/server.js",
         "test": "node --experimental-vm-modules --test tests/baseline/*.test.js tests/regressions/*.test.js",
         "test:baseline": "node --experimental-vm-modules --test tests/baseline/*.test.js",
         "test:regressions": "node --experimental-vm-modules --test tests/regressions/*.test.js",

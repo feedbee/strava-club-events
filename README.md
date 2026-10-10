@@ -164,11 +164,11 @@ CACHE_TTL_ROUTE=3600000    # 1 hour
 | `CACHE_TTL_ROUTE` | No | `3600000` | Route cache TTL in ms (1h) |
 
 
-> **Important:** Never commit your `.env.local` file or share your Strava API credentials.
+> **Important:** Never commit your `.env` file or share your Strava API credentials.
 
 ### 🐳 Running with Docker Compose
 
-1. Create `.env.local` with your Strava API credentials
+1. Create `.env` with your Strava API credentials
 2. Start the application:
    ```bash
    docker compose up --build
@@ -189,17 +189,17 @@ CACHE_TTL_ROUTE=3600000    # 1 hour
    npm ci --ignore-scripts
    ```
 
-2. Set environment variables:
-   - Option 1: Create `.env.local` file (recommended)
-   - Option 2: Export variables manually:
-     ```bash
-     export $(grep -v '^#' .env.local | xargs -d'\n')
-     ```
+2. Create `.env` with your Strava API credentials and local settings.
+   Both `npm start` and `npm run dev` automatically load `.env`.
+   Existing process environment variables override values in the file.
+   The file may be absent when configuration is supplied through the environment.
 
 3. Start the development server:
    ```bash
-   npm start
+   npm run dev
    ```
+
+   Use `npm start` to run without automatic server restarts.
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
@@ -296,7 +296,7 @@ strava-events-calendar/
 │   ├── app.js         # Express app configuration
 │   ├── server.js      # HTTP server bootstrap
 ├── scripts/           # Utility scripts
-├── .env.local         # Local environment variables
+├── .env         # Local environment variables
 ├── Dockerfile         # Production container setup
 └── docker-compose.yml # Local development stack
 ```
