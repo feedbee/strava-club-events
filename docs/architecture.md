@@ -31,3 +31,13 @@ picker first and then the filter panel, returning focus to its opener. Dropdown 
 checkbox focus. Browser preferences contain only typed presentation/filter fields, never tokens.
 View mode and joined-only preferences intentionally remain browser-wide; club/sport selections are
 cleared on authentication loss. Account-specific preference storage is not part of this change.
+
+## Opt-in calendar experiment
+
+`public/prototypes/calendar/index.html` mounts the custom controller through the shared coordinator. Its interface is
+`setEvents(events)`, `updateSize()` and `destroy()`; it does not imitate FullCalendar's mutation API.
+`calendar-data.js` indexes dates, `event-card.js` renders safe compact cards, `event-preview.js`
+owns delayed hover listeners/timers, and `event-dialog.js` owns the shared detail dialog lifecycle.
+Experimental CSS is organized by component in `public/prototypes/calendar/css/experiment.css`. Demo fixtures are imported
+only when requested and use separate presentation preferences. See
+[the migration proposal](changes/calendar-production-plan.md) before moving this into the primary page.

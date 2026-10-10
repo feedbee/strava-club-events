@@ -73,7 +73,7 @@ export function buildListDetailPanelHtml(event, index) {
     ? `<a href="${escapeHtml(clubUrl)}" target="_blank" rel="noopener" class="lv-detail-link">${escapeHtml(event.club_info?.name || '')}</a>`
     : `<span>${escapeHtml(event.club_info?.name || '')}</span>`;
   const clubSection = `
-    <div class="lv-detail-section">
+    <div class="lv-detail-section" data-detail-section="club">
       <div class="lv-section-title">Club</div>
       <div class="lv-club-row">${logoHtml}${clubNameHtml}</div>
     </div>`;
@@ -89,7 +89,7 @@ export function buildListDetailPanelHtml(event, index) {
   if (event.skill_level_label) eventRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Skill</span>${escapeHtml(event.skill_level_label)}</div>`;
   if (event.joined)            eventRows += `<div class="lv-detail-joined">✅ You joined this event</div>`;
   const eventSection = `
-    <div class="lv-detail-section">
+    <div class="lv-detail-section" data-detail-section="event">
       <div class="lv-section-title">Event</div>
       <div><a href="${escapeHtml(event.strava_event_url)}" target="_blank" rel="noopener" class="lv-detail-link">${escapeHtml(event.title)}</a></div>
       ${eventRows}
@@ -109,11 +109,11 @@ export function buildListDetailPanelHtml(event, index) {
     if (r.activity_type)                   routeRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Type</span>${escapeHtml(r.activity_type)}</div>`;
     if (r.estimated_moving_time !== 'N/A') routeRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Est. time</span>${escapeHtml(r.estimated_moving_time)}</div>`;
     if (r.max_slope !== 'N/A')             routeRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Max slope</span>${escapeHtml(r.max_slope)}</div>`;
-    if (r.elevation_low !== 'N/A' && r.elevation_high !== 'N/A')
+    if (r.elevation_low && r.elevation_high && r.elevation_low !== 'N/A' && r.elevation_high !== 'N/A')
       routeRows += `<div class="lv-detail-row"><span class="lv-detail-row-label">Elevation</span>${escapeHtml(r.elevation_low)} → ${escapeHtml(r.elevation_high)}</div>`;
     routeSection = `
       <div class="lv-detail-divider"></div>
-      <div class="lv-detail-section">
+      <div class="lv-detail-section" data-detail-section="route">
         <div class="lv-section-title">Route</div>
         ${routeNameHtml}
         ${routeRows}
@@ -138,6 +138,7 @@ export function transformEventsForCalendar(events) {
     start: event.start_date,
     url: event.strava_event_url,
     extendedProps: {
+      demo_logo: event.demo_logo,
       club_info: event.club_info || { name: '', logo: '' },
       route_info: event.route_info || null,
       joined: event.joined || false,

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Strava Club Events</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="/styles.css" rel="stylesheet"/><link href="css/experiment.css" rel="stylesheet"/>
+
+</head>
+<body data-experiment="true">
+  <a class="skip-link" href="#events-content">Skip to events</a>
+  <header class="experiment-header">
+  <h1><img src="/favicon.png" alt="" class="title-icon">Strava Club Events</h1>
+      <div class="user-profile" hidden>
+        <button type="button" class="user-avatar" aria-label="Account menu" aria-expanded="false" aria-controls="profile-details">
+          <img id="user-avatar" alt="User Avatar" class="avatar-img">
+        </button>
+        <div id="profile-details" class="profile-details" inert>
+        <span id="user-name" class="user-name">Strava User</span>
+        <form action="/logout" method="post" class="logout-form">
+          <input id="logout-csrf" type="hidden" name="csrfToken">
+          <button type="submit" class="btn logout-link">
+          <svg class="btn-icon logout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Logout</span>
+          </button>
+        </form>
+        </div>
+      </div>
+  </header>
+  <div id="error-message" class="error-message" role="alert"></div>
+  <div id="auth">
+    <a href="/login" class="strava-connect-btn">
+      <img
+        src="/images/btn_strava_connect_with_orange.png"
+        srcset="/images/btn_strava_connect_with_orange.png 1x, /images/btn_strava_connect_with_orange_x2.png 2x"
+        alt="Connect with Strava"
+        class="strava-connect-img"
+      >
+    </a>
+  </div>
+
+  <!-- Navigation Bar -->
+  <div class="nav-bar hidden">
+    <div class="nav-left">
+      <div class="nav-item">
+        <button id="toggle-filters" aria-expanded="false" aria-controls="event-filters" class="btn filter-button">
+          <svg class="btn-icon filter-icon" viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+            <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+          </svg>
+          <span>Filters</span>
+          <span id="active-filter-count" class="filter-count"></span>
+        </button>
+      </div>
+      <!-- Add more nav items here -->
+      <span id="events-stats" class="events-stats"></span>
+    </div>
+    <div class="nav-right">
+      <div id="view-mode-switcher" class="view-mode-switcher">
+        <button id="btn-calendar-view" class="view-mode-btn view-mode-btn--active"
+                title="Calendar view" aria-label="Calendar view" aria-pressed="true">
+          <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+            <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM13 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2z"/>
+          </svg>
+        </button>
+        <button id="btn-list-view" class="view-mode-btn"
+                title="List view" aria-label="List view" aria-pressed="false">
+          <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+            <path fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 5A.75.75 0 012.75 9h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 9.75zm0 5a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Limits Warning (shown only when API limits are hit) -->
+  <div id="limits-warning" role="status" aria-live="polite" class="limits-warning" style="display: none;"></div>
+
+  <!-- Filter Box (initially hidden) -->
+  <div id="event-filters" class="event-filters" inert>
+    <div class="filter-group filter-group-sport-type" style="display: none;">
+      <span class="filter-group-label">Sport</span>
+      <div class="club-filter-control">
+        <button type="button" class="club-filter-trigger" id="sportTypeFilterTrigger"
+           aria-controls="sportTypeFilterDropdown"
+           aria-expanded="false"
+           aria-label="Filter by sport type">
+        <span class="club-filter-avatars" id="sportTypeFilterAvatars"></span>
+        <span class="club-filter-placeholder" id="sportTypeFilterPlaceholder">All sports</span>
+
+        <svg class="club-filter-chevron" viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
+        </svg>
+        </button>
+        <button class="club-filter-clear" id="sportTypeFilterClear" style="display:none" aria-label="Clear sport type selection" title="Clear sport type selection">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="10" height="10">
+            <line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="club-filter-dropdown" id="sportTypeFilterDropdown" role="group" aria-label="Filter sports" style="display:none">
+        <div class="club-filter-search-wrap">
+          <input type="text" class="club-filter-search" id="sportTypeFilterSearch" aria-label="Search sports" placeholder="Search sports…" autocomplete="off">
+        </div>
+        <div class="club-filter-list" id="sportTypeFilterList"></div>
+        <div class="club-filter-footer" id="sportTypeFilterFooter">Select up to 10 sports</div>
+      </div>
+    </div>
+    <div class="filter-group filter-group-clubs">
+      <span class="filter-group-label">Clubs</span>
+      <div class="club-filter-control">
+        <button type="button" class="club-filter-trigger" id="clubFilterTrigger"
+           aria-controls="clubFilterDropdown"
+           aria-expanded="false"
+           aria-label="Filter by club">
+        <span class="club-filter-avatars" id="clubFilterAvatars"></span>
+        <span class="club-filter-placeholder" id="clubFilterPlaceholder">All clubs</span>
+
+        <svg class="club-filter-chevron" viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
+        </svg>
+        </button>
+        <button class="club-filter-clear" id="clubFilterClear" style="display:none" aria-label="Clear club selection" title="Clear club selection">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="10" height="10">
+            <line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="club-filter-dropdown" id="clubFilterDropdown" role="group" aria-label="Filter clubs" style="display:none">
+        <div class="club-filter-search-wrap">
+          <input type="text" class="club-filter-search" id="clubFilterSearch" aria-label="Search clubs" placeholder="Search clubs…" autocomplete="off">
+        </div>
+        <div class="club-filter-list" id="clubFilterList"></div>
+        <div class="club-filter-footer" id="clubFilterFooter">Select up to 10 clubs</div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label class="filter-toggle">
+        <input type="checkbox" id="filter-joined" class="filter-checkbox">
+        <span class="filter-slider"></span>
+        <span class="filter-label">Show only joined events</span>
+      </label>
+    </div>
+    <button id="clear-filters" class="clear-filters-btn" title="Clear all filters" style="display: none;">
+      <span class="clear-icon">×</span> Clear filters
+    </button>
+  </div>
+  <div id="preloader" role="status">
+    <div class="spinner"></div>
+    <p>Loading your events...</p>
+  </div>
+  <main id="events-content" tabindex="-1">
+  <div id="calendar" aria-label="Event calendar"></div>
+  <div id="list-view" class="list-view hidden" aria-label="Event list"></div>
+  </main>
+
+  <script type="module" src="js/experiment-entry.js"></script>
+
+  <footer class="app-footer">
+    <div class="footer-content">
+      <p>© Valery Leontyev, 2025. <a href="/about.html">About This Service</a></p>
+      <a href="https://www.strava.com" target="_blank"><img src="/images/api_logo_pwrdBy_strava_horiz_white.png" alt="Powered by Strava" class="strava-logo"></a>
+    </div>
+  </footer>
+</body>
+</html>

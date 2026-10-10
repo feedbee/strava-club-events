@@ -16,3 +16,10 @@ see that script for prerequisites. Live Strava and real TLS proxy verification r
 There is no lint, type-check or compilation command. Build production packaging with
 `docker build -f Dockerfile.build -t strava-club-events:check .` and also check `Dockerfile`.
 CI runs the same default suite on Node 24, separately from tag-only image publication.
+
+Calendar experiment browser gate (optional): install/provide Playwright and its Chromium browser,
+then run `node --experimental-vm-modules tests/integration/calendar-experiment-smoke.mjs`.
+`PLAYWRIGHT_MODULE` may select an absolute Playwright package path; `CHROME_EXECUTABLE` may select
+an installed Chrome executable. The script starts its own ephemeral loopback server, uses only
+synthetic demo data and needs neither Strava credentials nor MongoDB. Sandbox loopback restrictions
+may require approved execution. See the migration plan for live-account checks still required.
