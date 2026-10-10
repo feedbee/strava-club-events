@@ -7,6 +7,8 @@ by Git tags; their release notes have not been reconstructed.
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-10
+
 ### Added
 - Public liveness and readiness probes at `/health/live` and `/health/ready`.
 - Shared Strava quota reservations and cooldowns for MongoDB-backed sessions.
@@ -36,3 +38,7 @@ by Git tags; their release notes have not been reconstructed.
 - Set `NODE_ENV=production`, an HTTPS `PUBLIC_URL`, `SESSION_DRIVER=mongodb`, a reachable `MONGODB_URI`, a stable session secret of at least 32 characters, and secure cookies. Trust forwarded headers only behind an isolated trusted proxy.
 - Remove `DEV_CALLBACK_REDIRECT`; OAuth callbacks must go directly to the application's `/callback`. The `/dev/token` endpoint and callback forwarding are removed.
 - Rename any previous local env file to `.env` without committing its contents.
+
+### Artifacts
+- Docker image: `feedbee/strava-club-events:0.9.0` (amd64 and arm64).
+- [Full changes](https://github.com/feedbee/strava-club-events/compare/v0.8.1...v0.9.0).
