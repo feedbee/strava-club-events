@@ -304,9 +304,11 @@ h1 img {
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 12px;
-  padding: 16px;
+  padding: 14px 16px;
 }
 .calendar-toolbar h2 {
+  grid-column: 2;
+  grid-row: 1;
   margin: 0;
   font-size: 24px;
   font-weight: 800;
@@ -315,9 +317,12 @@ h1 img {
 .calendar-modes,
 .calendar-navigation {
   display: flex;
-  gap: 4px;
+  gap: 2px;
 }
+.calendar-modes { grid-column: 1; grid-row: 1; }
 .calendar-navigation {
+  grid-column: 3;
+  grid-row: 1;
   justify-self: end;
 }
 .calendar-weekdays,
@@ -525,16 +530,6 @@ h1 img {
   }
   .event-card strong {
     font-size: 13px;
-  }
-  .calendar-toolbar {
-    grid-template-columns: 1fr;
-  }
-  .calendar-toolbar h2 {
-    grid-row: 1;
-  }
-  .calendar-modes,
-  .calendar-navigation {
-    justify-self: center;
   }
   .calendar-viewport {
     max-height: 65dvh;
@@ -865,3 +860,18 @@ h1 img {
 .event-card { position: relative; }
 .card-time { padding-right: 14px; }
 .card-joined { position: absolute; top: 6px; right: 7px; font-size: 11px; }
+
+@media (max-width: 1100px) {
+  .calendar-toolbar { grid-template-columns: minmax(0, 1fr) auto; }
+  .calendar-toolbar h2 { grid-column: 1 / -1; grid-row: 1; }
+  .calendar-modes { grid-column: 1; grid-row: 2; flex-wrap: nowrap; }
+  .calendar-navigation { grid-column: 2; grid-row: 2; }
+}
+@media (max-width: 480px) {
+  .calendar-toolbar { padding: 12px; gap: 10px; }
+  .calendar-toolbar h2 { font-size: 22px; }
+  .calendar-modes { grid-column: 1 / -1; justify-content: center; }
+  .calendar-navigation { grid-column: 1 / -1; grid-row: 3; justify-self: stretch; width: 100%; }
+  .calendar-navigation .control:nth-child(2) { flex: 1; }
+}
+.calendar-modes svg { flex-shrink: 0; }

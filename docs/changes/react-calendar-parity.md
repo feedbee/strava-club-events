@@ -36,3 +36,9 @@ These are not exact pixel copies of the native prototype.
 
 Build and default checks pass (144 tests). Calendar, time/preview and all-scenario browser gates
 pass after the sizing and date/navigation adjustments. These results belong to this increment.
+
+Toolbar correction: restored compact 2px group gaps, mode icons and responsive composition.
+Above 1100px the title and both control groups share a row. At 481–1100px the title is above
+both groups, which remain on the same row. At 480px and below navigation moves below the mode
+buttons and Today fills the available width. The toolbar browser gate verifies icon geometry,
+row placement and no horizontal overflow at eight widths between 320px and 1440px.
