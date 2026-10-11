@@ -1,15 +1,27 @@
+import { ClubLogo } from "./ClubLogo.jsx";
 import { Icon } from "./Icon.jsx";
-import React, { useId, useRef, useState } from "react";
-function Picker({ label, options, selected, onChange }) {
+import React, { useEffect, useId, useRef, useState } from "react";
+function Picker({ label, options, selected, onChange, kind }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const trigger = useRef(null);
   const id = useId();
+  const root = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const dismiss = (event) => {
+      if (!root.current?.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", dismiss);
+    return () => document.removeEventListener("pointerdown", dismiss);
+  }, [open]);
+  const chosen = options.filter((option) => selected.includes(String(option.id)));
   return (
     <div
       className="event-picker"
+      ref={root}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+        if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) setOpen(false);
       }}
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
@@ -27,11 +39,29 @@ function Picker({ label, options, selected, onChange }) {
         aria-expanded={open}
         onClick={() => setOpen(!open)}
       >
-        {selected.length
-          ? `${selected.length} selected`
-          : `All ${label.toLowerCase()}`}{" "}
-        ▾
+        {selected.length ? (
+          kind === "clubs" ? (
+            <span className="selected-clubs" aria-label={`${selected.length} selected clubs`}>
+              {chosen.slice(0, 4).map((club) => (
+                <ClubLogo key={club.id} event={{ club_info: club, demo_logo: club.demo_logo || club.logo }} />
+              ))}
+              {(selected.length > 4 || !chosen.length) && <span>+{selected.length - Math.min(chosen.length, 4)}</span>}
+            </span>
+          ) : (
+            <span className="selected-sports">
+              {chosen.map((sport) => <span className="sport-tag" key={sport.id}>{sport.name}</span>)}
+            </span>
+          )
+        ) : `All ${label.toLowerCase()}`} ▾
       </button>
+      {selected.length > 0 && (
+        <button className="picker-clear" aria-label={`Clear ${kind} filter`} onClick={() => {
+          onChange([]);
+          trigger.current.focus();
+        }}>
+          <Icon name="close" size={14} />
+        </button>
+      )}
       {open && (
         <div
           id={id}
@@ -80,7 +110,11 @@ export function EventFilters({ clubs, filters, onChange, count, meta }) {
   const opener = useRef(null);
   const sports = [
     ...new Set(clubs.map((club) => club.sport_type).filter(Boolean)),
-  ].map((name) => ({ id: name, name }));
+  ].map((id) => ({
+    id,
+    name: clubs.find((club) => club.sport_type === id && club.localized_sport_type)?.localized_sport_type ||
+      id.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase()),
+  }));
   return (
     <section
       className="event-filter-area"
@@ -108,18 +142,6 @@ export function EventFilters({ clubs, filters, onChange, count, meta }) {
       </div>
       {open && (
         <div id="react-filters" className="filter-panel">
-          <Picker
-            label="Sports"
-            options={sports}
-            selected={filters.sports}
-            onChange={(sports) => onChange({ ...filters, sports })}
-          />
-          <Picker
-            label="Clubs"
-            options={clubs}
-            selected={filters.clubs}
-            onChange={(clubs) => onChange({ ...filters, clubs })}
-          />
           <label className="joined-filter">
             <input
               type="checkbox"
@@ -131,6 +153,20 @@ export function EventFilters({ clubs, filters, onChange, count, meta }) {
             <span className="joined-switch" aria-hidden="true" />
             Show only joined events
           </label>
+          <Picker
+            label="Sports"
+            kind="sports"
+            options={sports}
+            selected={filters.sports}
+            onChange={(sports) => onChange({ ...filters, sports })}
+          />
+          <Picker
+            label="Clubs"
+            kind="clubs"
+            options={clubs}
+            selected={filters.clubs}
+            onChange={(clubs) => onChange({ ...filters, clubs })}
+          />
           {(filters.joinedOnly ||
             filters.clubs.length ||
             filters.sports.length) > 0 && (
@@ -140,6 +176,7 @@ export function EventFilters({ clubs, filters, onChange, count, meta }) {
                 onChange({ joinedOnly: false, clubs: [], sports: [] })
               }
             >
+              <Icon name="close" size={14} />
               Clear filters
             </button>
           )}

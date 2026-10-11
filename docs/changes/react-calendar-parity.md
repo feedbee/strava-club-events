@@ -42,3 +42,11 @@ Above 1100px the title and both control groups share a row. At 481–1100px the 
 both groups, which remain on the same row. At 480px and below navigation moves below the mode
 buttons and Today fills the available width. The toolbar browser gate verifies icon geometry,
 row placement and no horizontal overflow at eight widths between 320px and 1440px.
+
+Filter interaction refinement (2026-10-11): joined-only remains at the start of the filter row;
+clear-all follows Clubs. Both individual pickers and clear-all expose cross icons. Selected sports
+use display labels/tags and selected clubs use overlapping logos with initial fallback. Pointer
+clicks on label text no longer unmount the picker before the checkbox's native activation; outside
+pointer clicks and focus transitions still dismiss it. Browser coverage clicks actual label text,
+checks sport filtering with real DTO shape, verifies selection summaries and individual clears,
+and rechecks keyboard/mobile behavior. Default regression suite: 146 passing tests.

@@ -272,7 +272,7 @@ h1 img {
   display: grid;
   gap: 8px;
 }
-.event-picker:first-child .picker-options {
+.event-picker:nth-child(2) .picker-options {
   left: 0;
   right: auto;
 }
@@ -694,7 +694,7 @@ h1 img {
 }
 .joined-filter {
   position: relative;
-  margin-left: auto;
+  margin-left: 0;
   cursor: pointer;
 }
 .joined-filter > input {
@@ -875,3 +875,22 @@ h1 img {
   .calendar-navigation .control:nth-child(2) { flex: 1; }
 }
 .calendar-modes svg { flex-shrink: 0; }
+
+.picker-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 0;
+  color: #777b96;
+  padding: 4px;
+  cursor: pointer;
+}
+.selected-sports { display: flex; flex-wrap: wrap; gap: 4px; }
+.sport-tag { padding: 2px 7px; border-radius: 12px; background: #667eea; color: white; line-height: 18px; }
+.selected-clubs { display: inline-flex; align-items: center; padding-left: 4px; }
+.selected-clubs > img, .selected-clubs > .club-initial {
+  width: 20px; height: 20px; margin-left: -4px; border: 2px solid white; object-fit: cover; font-size: 10px;
+}
+.event-picker > .control { height: auto; min-height: 30px; max-width: 280px; }
+.picker-options label { cursor: pointer; }

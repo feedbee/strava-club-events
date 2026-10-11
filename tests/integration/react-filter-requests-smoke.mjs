@@ -23,19 +23,30 @@ try {
   await page.getByRole('button', { name: 'List', exact: true }).click();
   await page.getByRole('button', { name: 'Filters', exact: true }).click();
   await page.getByRole('button', { name: 'All sports', exact: false }).click();
-  await Promise.all([page.waitForResponse(response => response.url().includes('/events?')), page.getByLabel('cycling', { exact: true }).check()]);
+  await Promise.all([page.waitForResponse(response => response.url().includes('/events?')), page.locator('.picker-options label').filter({ hasText: 'Cycling' }).click()]);
   await page.waitForFunction(() => !document.querySelector('[role="status"]'));
   assert.equal(await page.locator('.event-card').count(), 42);
   assert.equal(queries.length, 2);
   await page.getByRole('button', { name: 'All clubs', exact: false }).click();
   const before = queries.length;
   await Promise.all([page.waitForResponse(response => response.url().includes('clubs=')), (async () => {
-    await page.getByLabel('Warsaw Cycling Club', { exact: true }).check();
-    await page.getByLabel('Weekend Wanderers', { exact: true }).check();
+    await page.locator('.picker-options label').filter({ hasText: 'Warsaw Cycling Club' }).click();
+    await page.locator('.picker-options label').filter({ hasText: 'Weekend Wanderers' }).click();
   })()]);
   await page.waitForFunction(() => !document.querySelector('[role="status"]'));
   assert.equal(queries.length - before, 1);
   assert.match(queries.at(-1), /clubs=1%2C2/);
+  assert.equal(await page.locator('.sport-tag').innerText(), 'Cycling');
+  assert.equal(await page.locator('.selected-clubs > img, .selected-clubs > .club-initial').count(), 2);
+  const order = await page.locator('.filter-panel').evaluate(el => [...el.children].map(child => child.className));
+  assert.equal(order[0], 'joined-filter');
+  assert.equal(order.at(-1), 'control');
+  assert.equal(await page.getByRole('button', { name: 'Clear filters', exact: true }).locator('svg').count(), 1);
+  await page.screenshot({ path: '/tmp/react-filter-selection.png' });
+  await page.getByRole('button', { name: 'Clear clubs filter', exact: true }).click();
+  assert.equal(await page.locator('.selected-clubs').count(), 0);
+  await page.getByRole('button', { name: 'Clear sports filter', exact: true }).click();
+  assert.equal(await page.locator('.sport-tag').count(), 0);
   await page.close();
   console.log('Real DTO sports filtering and batched requests passed.');
 } finally { await browser?.close(); await new Promise(resolve => server.close(resolve)); }
