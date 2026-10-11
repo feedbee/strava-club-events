@@ -5,6 +5,30 @@ move it into a dated version section when preparing a release. GitHub Release bo
 are extracted from this file, not maintained separately. Older versions are recorded
 by Git tags; their release notes have not been reconstructed.
 
+## [1.0.0] - 2026-10-11
+
+### Added
+- New responsive calendar design with Month, Week, Day and List views, hourly layouts, animated event previews and accessible event details.
+- Club and sport pickers with search, club logos and account-isolated presentation preferences.
+- Synthetic demo mode and a standalone mock backend for design development and edge-case checks.
+
+### Changed
+- The React frontend is now the primary interface at `/`; the legacy frontend and FullCalendar dependency are removed. `/next` redirects to `/`, preserving query strings.
+- Upcoming events span the next 90 days. Calendar navigation covers the complete previous month through the third following month.
+- OAuth login and logout return to the primary interface; cancellable event requests preserve current filters and distinguish loading, empty results, authentication loss and provider errors.
+- Production Docker images build the React frontend with Vite on Node.js 24.21.0.
+- Copyright notices now use 2026.
+
+### Upgrade notes
+- Local and source deployments require `npm ci --ignore-scripts` and `npm run build` before startup. Deploy the generated `public/app/` assets together with the shared `public/` tree; production Docker images include them.
+- Preserve existing encryption/signing keys and MongoDB configuration. No database migration is required.
+- Browser preferences are scoped by account and demo mode; old browser-wide preferences are not migrated.
+- Live Strava, production HTTPS proxy and real-account smoke checks remain operator checks; unfinished audit work is not expanded in this release.
+
+### Artifacts
+- Docker image: `feedbee/strava-club-events:1.0.0` (amd64 and arm64).
+- [Full changes](https://github.com/feedbee/strava-club-events/compare/v0.9.1...v1.0.0).
+
 ## [0.9.1] - 2026-10-10
 
 ### Security

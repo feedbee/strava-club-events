@@ -103,7 +103,7 @@ export function App() {
       </main>
       <footer className="service-footer">
         <p>
-          © Valery Leontyev, 2025. <a href="/about.html">About This Service</a>
+          © Valery Leontyev, 2026. <a href="/about.html">About This Service</a>
         </p>
         <a
           href="https://www.strava.com"
