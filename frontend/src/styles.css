@@ -344,7 +344,8 @@ h1 img {
   overflow: auto;
   overflow-anchor: none;
 }
-.calendar-day {
+.calendar-day,
+.calendar-padding {
   min-height: 160px;
   padding: 8px 6px;
   border-right: 1px solid #e2e3ef;
