@@ -3,8 +3,7 @@ import { stravaRequest } from '../services/strava-client.js';
 import { config } from "../config/index.js";
 import { buildEffectiveRedirect, maybeForwardDevCallback } from "../utils/dev-callback.helper.js";
 
-// Keep frontend destinations exact; never accept arbitrary redirect URLs.
-const frontendDestination = value => value === '/next/' ? '/next/' : '/';
+// Authentication always returns to the primary UI; browser redirect destinations are ignored.
 
 const OAUTH_TTL = 10 * 60 * 1000;
 const saveSession = req => new Promise((resolve, reject) => {
@@ -17,7 +16,7 @@ async function login(req, res) {
     const { clientId, redirectUri, devCallbackRedirect, stravaAuthUrl } = config;
     const state = randomBytes(32).toString('hex');
     req.session.oauth = { state, expiresAt: Date.now() + OAUTH_TTL,
-      returnTo: frontendDestination(req.query?.returnTo) };
+      returnTo: '/' };
     await saveSession(req);
     const effectiveRedirect = buildEffectiveRedirect(redirectUri, devCallbackRedirect);
     res.redirect(stravaAuthUrl(clientId, effectiveRedirect, state));
@@ -37,7 +36,7 @@ function logout(req, res) {
       !timingSafeEqual(Buffer.from(supplied), Buffer.from(expected))) {
     return res.status(403).send('Invalid logout request');
   }
-  const returnTo = frontendDestination(req.body?.returnTo);
+  const returnTo = '/';
   // Destroy the session
   req.session.destroy((err) => {
     if (err) {
@@ -66,7 +65,7 @@ async function oauthCallback(req, res) {
       Number.isFinite(transaction.expiresAt) && transaction.expiresAt > Date.now() &&
       timingSafeEqual(Buffer.from(state), Buffer.from(transaction.state));
     if (!validState) return res.status(400).send('Invalid or expired login. Please start a new login.');
-    const returnTo = frontendDestination(transaction.returnTo);
+    const returnTo = '/';
     delete req.session.oauth;
     await saveSession(req);
     if (oauthError || typeof code !== 'string' || !code || code.length > 2048) {

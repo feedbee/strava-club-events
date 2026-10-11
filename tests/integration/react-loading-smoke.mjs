@@ -11,7 +11,7 @@ try {
   const base = `http://127.0.0.1:${server.address().port}`;
   for (const mode of ['Month', 'List', 'Day']) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
-    await page.goto(base + '/next/');
+    await page.goto(base + '/');
     await page.locator('.event-card').first().waitFor();
     await page.getByRole('button', { name: mode, exact: true }).click();
     await page.getByRole('button', { name: 'Filters', exact: true }).click();

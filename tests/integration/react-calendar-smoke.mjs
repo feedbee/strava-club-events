@@ -20,7 +20,7 @@ try {
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   const base = `http://127.0.0.1:${server.address().port}`;
-  await page.goto(base + "/next/");
+  await page.goto(base + "/");
   await page.locator(".event-card").first().waitFor();
   const initialScroll = await page.locator(".calendar-viewport").evaluate(el => el.scrollTop);
   await page.getByRole("button", { name: "Month", exact: true }).click();

@@ -13,7 +13,7 @@ try {
     const page = await browser.newPage({ viewport: { width, height: 1000 } });
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    await page.goto(base + '/next/?mock=1');
+    await page.goto(base + '/?mock=1');
     await page.getByText('Mock data', { exact: true }).click();
     await page.getByLabel('Scenario', { exact: true }).waitFor();
     await Promise.all([page.waitForEvent('framenavigated'), page.getByLabel('Scenario', { exact: true }).selectOption('empty')]);

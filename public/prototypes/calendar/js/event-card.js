@@ -1,4 +1,4 @@
-import { escapeHtml, safeImageUrl } from "../../../js/html.js";
+import { escapeHtml, safeImageUrl } from "../shared/js/html.js";
 
 export function buildRideCard(event, index) {
   const p = event.extendedProps || {};

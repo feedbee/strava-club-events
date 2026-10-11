@@ -18,7 +18,7 @@ try {
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   const base = `http://127.0.0.1:${server.address().port}`;
-  await page.goto(base + "/next/");
+  await page.goto(base + "/");
   await page.locator(".event-card").first().waitFor();
   await page.getByRole("button", { name: "List", exact: true }).click();
   await page.getByRole("button", { name: "Filters", exact: true }).click();
@@ -72,7 +72,7 @@ try {
   );
   const touch=await browser.newContext({hasTouch:true,viewport:{width:320,height:900}});
   const mobile=await touch.newPage();
-  await mobile.goto(base+'/next/');await mobile.locator('.event-card').first().waitFor();
+  await mobile.goto(base+'/');await mobile.locator('.event-card').first().waitFor();
   await mobile.locator('.event-card').first().tap();await mobile.getByRole('dialog').waitFor();
   assert.equal(await mobile.locator('.event-preview').count(),0);
   await mobile.getByRole('button',{name:'Close event details'}).tap();

@@ -35,5 +35,5 @@ build/
 docker-data/
 
 
-# Compiled opt-in React frontend
-public/next/
+# Compiled React frontend
+public/app/

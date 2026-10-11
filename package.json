@@ -13,7 +13,8 @@
         "test:mongodb": "node --experimental-vm-modules --test tests/integration/*.test.js",
         "build": "vite build --config frontend/vite.config.js",
         "dev:frontend": "vite --config frontend/vite.config.js",
-        "dev:mock": "node --watch prototypes/calendar/backend/server.js"
+        "dev:mock": "node --watch prototypes/calendar/backend/server.js",
+        "pretest": "npm run build"
     },
     "dependencies": {
         "connect-mongo": "^6.0.0",

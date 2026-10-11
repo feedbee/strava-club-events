@@ -34,7 +34,7 @@ test('Occurrence window is inclusive and excludes invalid dates and duplicate in
   assert.deepEqual(Array.from(upcomingOccurrences(values, now), d => d.toISOString()), [now.toISOString(),end.toISOString()]);
   assert.equal(upcomingOccurrences(undefined, now).length, 0);
 });
-test('FullCalendar receives a distinct identity for each occurrence', async () => {
+test('Prototype presentation receives a distinct identity for each occurrence', async () => {
   const ui = await frontend();
   const result = ui.run(`transformEventsForCalendar([
     {id:'same',occurrence_id:'club:same:first',start_date:'2026-10-10T10:00:00Z'},

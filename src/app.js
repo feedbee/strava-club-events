@@ -12,7 +12,13 @@ app.use(securityHeaders);
 app.get('/health/live', health.live);
 app.get('/health/ready', health.readiness);
 
-// Public static assets do not need a session.
+// Preserve bookmarked opt-in URLs while serving React as the primary entry.
+app.get(['/next', '/next/'], (req, res) => {
+  const query = req.originalUrl.indexOf('?');
+  res.redirect(308, '/' + (query < 0 ? '' : req.originalUrl.slice(query)));
+});
+// Generated frontend and shared static assets do not need a session.
+app.use(express.static("public/app"));
 app.use(express.static("public"));
 
 // Configure middleware

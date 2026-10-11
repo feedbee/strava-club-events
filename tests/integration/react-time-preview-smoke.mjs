@@ -19,7 +19,7 @@ try {
   });
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto(`http://127.0.0.1:${server.address().port}/next/`);
+  await page.goto(`http://127.0.0.1:${server.address().port}/`);
   await page.locator(".event-card").first().waitFor();
   await page.getByRole("button", { name: "Week", exact: true }).click();
   await page.getByRole("button", { name: "Today", exact: true }).click();

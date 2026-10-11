@@ -1,8 +1,7 @@
 # Architecture and coding guidance
 
 Express serves static HTML/CSS/JavaScript from `public/` and session-authenticated API routes.
-The legacy page remains native JavaScript with FullCalendar from a pinned CDN URL.
-The opt-in frontend in `frontend/` uses React/Vite and builds static assets into `public/next/`.
+The primary frontend in `frontend/` uses React/Vite and builds static assets into `public/app/`.
 
 Routes select controllers; controllers handle HTTP shapes; reusable Strava and refresh rules belong
 in services. Middleware owns authentication, sessions and security headers. Configuration validates
@@ -15,46 +14,27 @@ Keep secret values out of logs and documentation. Use ES modules and existing he
 adding dependencies for behavior supported by Node. Preserve encryption-key compatibility and
 refresh/logout fencing when changing persistence. Add outcome-based regression checks for changes.
 
-## Browser modules
+## Primary React frontend
 
-`public/index.js` coordinates authentication, request versions, application state and view changes.
-Native ES modules in `public/js/` own API errors, safe HTML/image helpers, calendar rendering,
-list presentation, reusable multi-select behavior, filter configuration and preference validation.
-The HTML entry uses `type="module"`; no bundler or transpiler is required. Modules must use explicit
-imports rather than relying on other files' global declarations. FullCalendar remains a CDN global.
-
-`public/styles.css` imports calendar, filter, shell and list styles in that order. All public pages
-keep the shared entry point so the existing cascade is preserved. Update the responsible stylesheet
-rather than appending unrelated overrides to the entry point.
-
-Filters use native buttons and checkboxes. Collapsed panels are inert; Escape closes the active
-picker first and then the filter panel, returning focus to its opener. Dropdown re-rendering retains
-checkbox focus. Browser preferences contain only typed presentation/filter fields, never tokens.
-View mode and joined-only preferences intentionally remain browser-wide; club/sport selections are
-cleared on authentication loss. Account-specific preference storage is not part of this change.
-
-## Opt-in calendar experiment
-
-`public/prototypes/calendar/index.html` mounts the custom controller through the shared coordinator. Its interface is
-`setEvents(events)`, `updateSize()` and `destroy()`; it does not imitate FullCalendar's mutation API.
-`calendar-data.js` indexes dates, `event-card.js` renders safe compact cards, `event-preview.js`
-owns delayed hover listeners/timers, and `event-dialog.js` owns the shared detail dialog lifecycle.
-Experimental CSS is organized by component in `public/prototypes/calendar/css/experiment.css`. Demo fixtures are imported
-only when requested and use separate presentation preferences. See
-[the migration proposal](changes/calendar-production-plan.md) before moving this into the primary page.
-
-## React implementation in progress
-
-`frontend/src/App.jsx` owns session presentation; `data/auth.js` distinguishes signed-out 401 from
+`frontend/src/App.jsx` owns session presentation. `data/auth.js` distinguishes signed-out 401 from
 request failures and forwards cancellation. `components/Profile.jsx` owns account disclosure.
-The React entry now provides session presentation, event loading, filters and Month/List layouts.
-`data/events.js` validates occurrence identity, indexes local dates and applies filter intersections;
-`hooks/useEvents.js` owns cancellable requests. Calendar, card, picker and dialog components own
-React state rather than manipulating prototype markup. `TimeGrid.jsx` adds hourly Week/Day layouts. `useCardPreview.js` owns cancellable delayed
-previews rendered through React portals; active previews alone install global listeners. `/next/?demo=1` uses synthetic state without OAuth.
-`npm run dev:frontend` proxies auth/API/assets to the existing server at 127.0.0.1:3000; `npm run build`
-produces ignored `/next/` assets served by Express. Both production Dockerfiles build this frontend
-in a Node 24.21.0 stage. The existing `/` entry is unchanged until parity acceptance.
+`data/events.js` validates occurrence identity and applies filter intersections; `hooks/useEvents.js`
+owns cancellable requests. Calendar, card, picker and dialog components own React state.
+`TimeGrid.jsx` provides hourly Week/Day layouts. `useCardPreview.js` manages delayed portal previews.
+The calendar navigation spans the complete previous month through the third following month;
+provider occurrences are included only in the rolling next 90 days. `/?demo=1` uses synthetic data.
+
+Vite builds into ignored `public/app/`, with asset URLs rooted at `/`. Express serves the generated
+frontend before shared public assets. `/next` and `/next/` redirect to `/`, preserving query strings.
+Both Dockerfiles build the frontend in a Node 24.21.0 stage; local startup requires `npm run build`.
+Vite development proxies session/API/brand assets to the existing backend at 127.0.0.1:3000.
+
+## Native design reference
+
+`public/prototypes/calendar/` retains the native custom-calendar reference and synthetic fixtures.
+Its API/filter/list helpers and CSS are isolated under `shared/`. It does not depend on FullCalendar
+or a separate legacy main page. The primary UI is React; prototype state tests and browser checks
+remain labelled as development-reference coverage rather than production React verification.
 
 ## Design mock backend
 
@@ -71,7 +51,5 @@ demo keys and contains no session/token fields. Blocked storage falls back to de
 pickers handle Escape locally only while open, allowing a second Escape to close the panel.
 Native dialogs expose a labelled title and restore focus to the source occurrence after closing.
 
-OAuth return destinations are an exact allowlist: `/next/` for the opted-in React entry, otherwise
-`/`. Login stores this destination inside the server-side OAuth transaction before leaving for
-Strava. The callback validates state and uses the stored destination after session regeneration,
-never callback query parameters. POST logout accepts the same allowlist only after CSRF validation.
+OAuth and POST logout return to `/`. Callback state verification, session regeneration and CSRF
+validation remain unchanged. Browser-provided destinations cannot select external redirect URLs.

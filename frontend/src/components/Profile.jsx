@@ -104,7 +104,7 @@ export function Profile({ user, demo, onDemoLogout }) {
               : undefined
           }
         >
-          <input type="hidden" name="returnTo" value="/next/" />
+          <input type="hidden" name="returnTo" value="/" />
           <input type="hidden" name="csrfToken" value={user.csrfToken || ""} />
           <button className="control" type="submit">
             <Icon name="logout" size={14} />

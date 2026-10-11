@@ -2,7 +2,7 @@ import { buildRideCard } from "./event-card.js";
 import { createEventDialog } from "./event-dialog.js";
 import { createEventPreview } from "./event-preview.js";
 import { indexCalendarEvents } from "./calendar-data.js";
-import { getLocalDateKey } from "../../../js/event-list.js";
+import { getLocalDateKey } from "../shared/js/event-list.js";
 
 export function weekStart(date) {
   const result = new Date(date);

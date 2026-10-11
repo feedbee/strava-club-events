@@ -8,7 +8,7 @@ let browser;
 try {
   browser = await chromium.launch({ headless: true, executablePath: process.env.CHROME_EXECUTABLE });
   const page = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
-  await page.goto(`http://127.0.0.1:${server.address().port}/next/?demo=1`);
+  await page.goto(`http://127.0.0.1:${server.address().port}/?demo=1`);
   await page.getByRole('button', { name: 'Today', exact: true }).waitFor();
   await page.getByRole('button', { name: 'Today', exact: true }).click();
   await page.getByRole('button', { name: 'Previous month' }).click();

@@ -136,7 +136,7 @@ test('React login and CSRF-protected logout return to the opted-in frontend', as
   const callback = await fetch(`${base}/callback?code=test-code&state=${state}`, {
     redirect: 'manual', headers: { cookie: cookie(login) },
   });
-  assert.equal(callback.headers.get('location'), '/next/');
+  assert.equal(callback.headers.get('location'), '/');
   const sessionCookie = cookie(callback);
   const profile = await (await fetch(`${base}/me`, { headers: { cookie: sessionCookie } })).json();
   const logout = await fetch(`${base}/logout`, {
@@ -145,6 +145,6 @@ test('React login and CSRF-protected logout return to the opted-in frontend', as
     body: new URLSearchParams({ csrfToken: profile.csrfToken, returnTo: '/next/' }),
   });
   assert.equal(logout.status, 303);
-  assert.equal(logout.headers.get('location'), '/next/');
+  assert.equal(logout.headers.get('location'), '/');
   assert.equal((await fetch(`${base}/me`, { headers: { cookie: sessionCookie } })).status, 401);
 });

@@ -18,7 +18,7 @@ try {
     data.events.forEach(event => { delete event.club_info.sport_type; });
     await route.fulfill({ response, json: data });
   });
-  await page.goto(base + '/next/');
+  await page.goto(base + '/');
   await page.locator('.event-card').first().waitFor();
   await page.getByRole('button', { name: 'List', exact: true }).click();
   await page.getByRole('button', { name: 'Filters', exact: true }).click();

@@ -22,7 +22,7 @@ A modern web application that connects to Strava, fetches upcoming club events f
     - Persistent filter preferences across sessions
 
 - **Two View Modes**
-  - **Calendar view** — Built with FullCalendar, with Month, Week, and Day options
+  - **Calendar view** — Custom React calendar, with Month, Week, and Day options
   - **List view** — Chronological feed grouped by date with sticky headers; click any row to expand Club / Event / Route details
 
 - **Beautiful UI** featuring:
@@ -76,7 +76,8 @@ Use Node 24.21.0 (`nvm use`, version pinned in `.nvmrc`). `npm run dev` uses Nod
 1. Clone the repository
 2. Install dependencies: `npm ci --ignore-scripts`
 3. Create a `.env` file with your Strava API credentials
-4. Start the server: `npm start`
+4. Build the frontend: `npm run build`
+5. Start the server: `npm start`
 5. Open `http://localhost:3000` in your browser
 
 ## 📱 Features in Detail
@@ -199,7 +200,8 @@ CACHE_TTL_ROUTE=3600000    # 1 hour
    npm run dev
    ```
 
-   Use `npm start` to run without automatic server restarts.
+   Run `npm run build` before `npm start` to serve the primary React UI without automatic server restarts.
+   For frontend hot reload, use `npm run dev:frontend` alongside the backend.
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
@@ -297,12 +299,12 @@ Synthetic illustration; see [model coverage](docs/api-model-coverage.md) for the
 strava-events-calendar/
 ├── .devcontainer/     # VS Code Dev Container setup
 ├── public/            # Static frontend assets
-│   ├── index.html     # Main application UI
-│   ├── index.js       # Frontend initialization and state coordination
-│   ├── js/            # Native browser modules: calendar, list, filters, preferences, API
-│   ├── css/           # Ordered shared styles: calendar, filters, shell, list
+│   ├── app/           # Generated React build (ignored; npm run build)
+│   ├── prototypes/    # Isolated native design prototype and its dependencies
+│   ├── images/        # Shared Strava branding
 │   ├── limits.html    # API limits explanation page
-│   └── styles.css     # Shared stylesheet entry point
+│   └── info.css       # Styles for informational pages
+├── frontend/          # Primary React UI and Vite configuration
 ├── src/               # Backend source code
 │   ├── config/        # Application configuration
 │   ├── controllers/   # Request handlers
@@ -333,7 +335,7 @@ This project is licensed under the [BSD-2-Clause License](LICENSE).
 ### 🙏 Acknowledgments
 
 - Built with [Express.js](https://expressjs.com/)
-- UI powered by [FullCalendar](https://fullcalendar.io/)
+- UI built with React and Vite
 - Styled with [Inter](https://rsms.me/inter/) font
 
 HTTP responses include CSP, frame protection, nosniff and referrer/permissions policies. HSTS is enabled when `PUBLIC_URL` is HTTPS. Logout is a POST form protected by a session-bound CSRF token. The former `/dev/token` endpoint has been removed. See [HTTP security details](docs/http-security-step8.md).

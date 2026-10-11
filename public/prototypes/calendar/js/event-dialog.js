@@ -1,5 +1,5 @@
-import { escapeHtml } from "../../../js/html.js";
-import { buildListDetailPanelHtml } from "../../../js/event-list.js";
+import { escapeHtml } from "../shared/js/html.js";
+import { buildListDetailPanelHtml } from "../shared/js/event-list.js";
 
 export function createEventDialog() {
   const dialog = document.createElement("dialog");

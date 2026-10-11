@@ -147,6 +147,6 @@ for (const destination of ['/next/', 'https://evil.example', '//evil.example', '
     req.query = { code: 'code', state: new URL(start.location).searchParams.get('state'), returnTo: 'https://evil.example' };
     const done = response();
     await controller.oauthCallback(req, done);
-    assert.equal(done.location, destination === '/next/' ? '/next/' : '/');
+    assert.equal(done.location, '/');
   });
 }

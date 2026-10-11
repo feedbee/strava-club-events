@@ -11,7 +11,7 @@ try {
   const base = `http://127.0.0.1:${server.address().port}`;
   for (const width of [1440, 1100, 1000, 999, 768, 481, 480, 320]) {
     const page = await browser.newPage({ viewport: { width, height: 1000 } });
-    await page.goto(base + '/next/?mock=1');
+    await page.goto(base + '/?mock=1');
     await page.locator('.event-card').first().waitFor();
     const geometry = await page.locator('.calendar-toolbar').evaluate(el => {
       const modes = el.querySelector('.calendar-modes').getBoundingClientRect();

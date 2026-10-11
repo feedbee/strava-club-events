@@ -24,7 +24,7 @@ export function createMockApp({ now = new Date() } = {}) {
         scenario: "dense",
         authenticated: true,
         csrfToken: randomUUID(),
-        ui: "prototype",
+        ui: "react",
       });
       res.cookie("calendarMock", id, {
         httpOnly: true,
@@ -33,18 +33,19 @@ export function createMockApp({ now = new Date() } = {}) {
       });
     }
     req.mock = sessions.get(id);
-    if (req.path.startsWith("/next")) req.mock.ui = "react";
+    if (req.path === "/" || req.path.startsWith("/next")) req.mock.ui = "react";
     if (req.path.startsWith("/prototypes/calendar")) req.mock.ui = "prototype";
     res.set("Cache-Control", "no-store");
     next();
   });
   const target = (req) =>
     req.mock.ui === "react"
-      ? "/next/"
+      ? "/"
       : "/prototypes/calendar/index.html?mock=1";
-  app.get("/", (req, res) =>
-    res.redirect("/prototypes/calendar/index.html?mock=1"),
-  );
+  app.get(["/next", "/next/"], (req, res) => {
+    const query = req.originalUrl.indexOf('?');
+    res.redirect(308, '/' + (query < 0 ? '' : req.originalUrl.slice(query)));
+  });
   app.get("/__mock", (req, res) =>
     res.json({
       scenario: req.mock.scenario,
@@ -104,6 +105,7 @@ export function createMockApp({ now = new Date() } = {}) {
       await new Promise((resolve) => setTimeout(resolve, 2000));
     res.json(filterMockDataset(createMockDataset(scenario, now), req.query));
   });
+  app.use(express.static(fileURLToPath(new URL("../../../public/app/", import.meta.url))));
   app.use(
     express.static(fileURLToPath(new URL("../../../public/", import.meta.url))),
   );

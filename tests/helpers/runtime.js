@@ -115,22 +115,24 @@ export async function frontend({ fetch = async () => apiResponse({}) } = {}) {
   }
   const context = vm.createContext({
     console: quietConsole, URL, URLSearchParams, fetch, setTimeout, clearTimeout,
-    localStorage: { getItem: () => null, setItem() {} }, window: { innerWidth: 1200 },
+    localStorage: { getItem: () => null, setItem() {} }, window: { innerWidth: 1200 }, location: { search: '' },
     document: { getElementById: element, querySelector: element,
       addEventListener() {}, createElement: () => element(Symbol()), body: element('body') },
   });
+  element('body').dataset = {};
   const seen = new Set();
   async function source(url) {
     if (seen.has(url.href)) return '';
     seen.add(url.href);
+    if (url.pathname.endsWith('/continuous-calendar.js')) return 'function mountContinuousCalendar() {}\n';
     const code = await readFile(url, 'utf8');
     const imports = [...code.matchAll(/^import .* from ['"](.+)['"];$/gm)];
     let dependencies = '';
     for (const match of imports) dependencies += await source(new URL(match[1], url));
     return dependencies + code.replace(/^import .* from ['"].+['"];\n/gm, '').replace(/^export /gm, '') + '\n';
   }
-  vm.runInContext(await source(new URL('public/index.js', root)), context,
-    { filename: fileURLToPath(new URL('public/index.js', root)) });
+  vm.runInContext(await source(new URL('public/prototypes/calendar/coordinator.js', root)), context,
+    { filename: fileURLToPath(new URL('public/prototypes/calendar/coordinator.js', root)) });
   return { context, element, run: source => vm.runInContext(source, context) };
 }
 

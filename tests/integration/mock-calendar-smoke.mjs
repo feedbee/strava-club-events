@@ -18,7 +18,7 @@ try {
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   const base = `http://127.0.0.1:${server.address().port}`;
-  await page.goto(base);
+  await page.goto(base + "/prototypes/calendar/index.html?mock=1");
   await page.locator(".ride").first().waitFor();
   await page.getByText("Mock data", { exact: true }).click();
   await page.getByLabel("Scenario").selectOption("empty");
@@ -38,7 +38,7 @@ try {
   await page.getByRole("button", { name: "Logout", exact: true }).click();
   await page.getByRole("link", { name: "Connect with Strava" }).click();
   await page.locator(".ride").first().waitFor();
-  await page.goto(base + "/next/");
+  await page.goto(base + "/");
   await page.getByRole("button", { name: "Account menu" }).hover();
   await page.getByRole("button", { name: "Logout", exact: true }).click();
   await page.getByRole("link", { name: "Connect with Strava" }).click();

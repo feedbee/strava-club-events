@@ -1,11 +1,10 @@
 import { mountContinuousCalendar } from './js/continuous-calendar.js';
-import { DEFAULT_FILTER_STATE, normalizePreferences } from '../../js/preferences.js';
-import { createEventFilters } from '../../js/event-filters.js';
-import { handleApiResponse } from '../../js/api.js';
-import { escapeHtml, safeImageUrl } from '../../js/html.js';
-import { buildListCardHtml, buildListDetailPanelHtml, getLocalDateKey, getTodayDateKey, formatListViewDateHeader, transformEventsForCalendar } from '../../js/event-list.js';
-import { consumeDropdownDismissal } from '../../js/multi-select.js';
-import { mountCalendar } from '../../js/calendar.js';
+import { DEFAULT_FILTER_STATE, normalizePreferences } from './shared/js/preferences.js';
+import { createEventFilters } from './shared/js/event-filters.js';
+import { handleApiResponse } from './shared/js/api.js';
+import { escapeHtml, safeImageUrl } from './shared/js/html.js';
+import { buildListCardHtml, buildListDetailPanelHtml, getLocalDateKey, getTodayDateKey, formatListViewDateHeader, transformEventsForCalendar } from './shared/js/event-list.js';
+import { consumeDropdownDismissal } from './shared/js/multi-select.js';
 
 const isExperimentDemo = document.body.dataset.experiment && new URLSearchParams(location.search).get('demo') === '1';
 
@@ -242,9 +241,9 @@ async function loadUserProfile() {
 // -- Calendar UI --
 
 const calendarElement = document.getElementById("calendar");
-let calendarInstance = null; // Module-level variable for the FullCalendar instance
+let calendarInstance = null; // Module-level variable for the prototype calendar instance
 function buildCalendar(events) {
-  calendarInstance = (document.body.dataset.experiment ? mountContinuousCalendar : mountCalendar)(events, { transformEventsForCalendar, calendarElement, showCalendar });
+  calendarInstance = mountContinuousCalendar(events, { transformEventsForCalendar, calendarElement, showCalendar });
 }
 
 // Update calendar with filtered events
@@ -254,10 +253,10 @@ function updateCalendarWithFilteredEvents() {
   // Apply filters to raw events
   const filteredEvents = applyFilters(allEvents);
 
-  // Transform filtered events for FullCalendar
+  // Transform filtered events for prototype calendar
   const calendarEvents = transformEventsForCalendar(filteredEvents);
 
-  // Only update FullCalendar when it's visible — rendering on a hidden element
+  // Only update prototype calendar when it's visible — rendering on a hidden element
   // corrupts its internal layout. The calendar will be synced in setViewMode
   // when the user switches back.
   if (calendarInstance.setEvents) {
@@ -388,7 +387,7 @@ function setViewMode(mode) {
   if (isCal) {
     showCalendar();
     listEl.classList.add('hidden');
-    // Force FullCalendar to recalculate dimensions after being shown
+    // Force prototype calendar to recalculate dimensions after being shown
     if (calendarInstance) calendarInstance.updateSize();
     // Sync calendar with any filter changes made while in list mode
     if (calendarInstance) updateCalendarWithFilteredEvents();
@@ -457,7 +456,7 @@ async function loadEvents() {
   }
 }
 
-// Transform raw events for FullCalendar
+// Transform raw events for prototype calendar
 // -- Filtering --
 
 // Default filter state values

@@ -7,7 +7,10 @@ The server binds only to loopback and imports no production config, Strava clien
 
 Scenarios: dense calendar (84 events, seven per populated day, three simultaneous starts, joined/unjoined), empty, missing route/logo/attributes, long multilingual titles, month/year boundaries with midnight starts, twelve clubs, HTTP 503, HTTP 429 with Retry-After, and a two-second events delay. Club/sport filtering uses the same query names as production. Scenario state and synthetic login are isolated by HttpOnly SameSite cookie for each browser context; logout requires the synthetic CSRF token. Nothing changes your real Strava session on port 3000.
 
-React uses the same backend: build with `npm run build`, then open `http://127.0.0.1:8092/next/` without `demo=1`. The React calendar is still being implemented; its current shell tests the session flow. Choose scenarios on the prototype page before visiting React in the same browser. As event UI is migrated, the same fixtures exercise it through the unchanged API. For hot reload with mocks, run `npm run dev:mock -- --port 3000` instead of the real backend, then `npm run dev:frontend`.
+React is the primary UI at `http://127.0.0.1:8092/?mock=1` after `npm run build`.
+The native reference remains at `/prototypes/calendar/index.html?mock=1`. Both use the same
+cookie-isolated mock session and scenario API. For hot reload with mocks, run
+`npm run dev:mock -- --port 3000`, then `npm run dev:frontend`.
 
 Production launch remains `npm start`; the mock server is not imported or selected by production code. Existing frontend-only `?demo=1` remains available as a frozen visual reference. Prefer the mock backend for further features and API/error/loading behavior. Avoid adding separate mock implementations of UI components.
 

@@ -75,7 +75,7 @@ export function App() {
         {session.status === "ready" && !session.user && (
           <a
             className="connect"
-            href={demo ? "/next/?demo=1" : "/login?returnTo=%2Fnext%2F"}
+            href={demo ? "/?demo=1" : "/login"}
             onClick={
               demo
                 ? (event) => {

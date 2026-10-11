@@ -10,7 +10,7 @@ try {
   browser = await chromium.launch({ headless: true, executablePath: process.env.CHROME_EXECUTABLE });
   const base = `http://127.0.0.1:${server.address().port}`;
   const page = await browser.newPage();
-  await page.goto(base + '/next/');
+  await page.goto(base + '/');
   await page.locator('.event-card').first().waitFor();
   const now = new Date();
   for (const [direction, offset] of [['Next', 1], ['Next', 2], ['Previous', 1], ['Previous', 0]]) {
@@ -40,7 +40,7 @@ try {
     if (new URL(route.request().url()).searchParams.has('clubs')) return route.fulfill({ status: 400, json: { error: 'Invalid saved filter' } });
     return route.continue();
   });
-  await recovery.goto(base + '/next/');
+  await recovery.goto(base + '/');
   await recovery.getByRole('button', { name: 'Reset filters', exact: true }).click();
   await recovery.locator('.event-card').first().waitFor();
   assert.equal(await recovery.getByRole('alert').count(), 0);

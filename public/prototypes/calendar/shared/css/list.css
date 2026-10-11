@@ -1,6 +1,4 @@
-/* ===================================================
-   View Mode Switcher
-   =================================================== */
+
 .view-mode-switcher {
   display: flex;
   align-items: center;
@@ -40,9 +38,7 @@
   color: #2d3748;
 }
 
-/* ===================================================
-   List View — Container
-   =================================================== */
+
 #list-view {
   background: white;
   border-radius: 20px;
@@ -51,9 +47,7 @@
   padding-bottom: 20px;
 }
 
-/* ===================================================
-   List View — Date Group Headers
-   =================================================== */
+
 .lv-date-header {
   display: flex;
   align-items: center;
@@ -90,9 +84,7 @@
   flex-shrink: 0;
 }
 
-/* ===================================================
-   List View — Event Cards (collapsed)
-   =================================================== */
+
 .lv-group {
   padding: 0 12px 8px;
 }
@@ -195,9 +187,7 @@
   white-space: nowrap;
 }
 
-/* ===================================================
-   List View — Expanded Detail Panel
-   =================================================== */
+
 .lv-detail-panel {
   margin: 0 12px 2px;
   border: 1px solid #c7d2fe;
@@ -300,9 +290,7 @@
   margin: 0 -16px;
 }
 
-/* ===================================================
-   List View — Empty State
-   =================================================== */
+
 .lv-empty {
   display: flex;
   flex-direction: column;
@@ -320,9 +308,7 @@
   line-height: 1;
 }
 
-/* ===================================================
-   List View — Responsive
-   =================================================== */
+
 @media (max-width: 768px) {
   .lv-event-card {
     grid-template-columns: 58px 1fr;
@@ -331,11 +317,9 @@
   }
 }
 
-/* ===================================================
-   Mobile — Global UX Improvements
-   =================================================== */
+
 @media (max-width: 768px) {
-  /* Nav bar */
+
   .nav-bar {
     padding: 0 8px;
   }
@@ -345,24 +329,24 @@
     gap: 8px;
   }
 
-  /* Hide the "N events · M clubs" stat on narrow screens to prevent overflow */
+
   .events-stats {
     display: none;
   }
 
-  /* Filter button — bring to ~44px touch target */
+
   .filter-button {
     padding: 10px 12px;
     font-size: 0.9rem;
   }
 
-  /* View mode switcher — enlarge touch targets */
+
   .view-mode-btn {
     width: 40px;
     height: 40px;
   }
 
-  /* Filter panel — stack groups vertically */
+
   .event-filters {
     flex-direction: column;
     align-items: flex-start;
@@ -385,7 +369,7 @@
     font-size: 0.9rem;
   }
 
-  /* Filter dropdowns — prevent viewport overflow */
+
   .club-filter-dropdown {
     left: 0;
     right: 0;
@@ -398,7 +382,7 @@
     font-size: 0.9rem;
   }
 
-  /* List view — larger text and spacing */
+
   .lv-date-header {
     font-size: 0.82rem;
     padding: 14px 16px 6px;
@@ -435,27 +419,7 @@
     padding: 12px 12px 14px;
   }
 
-  /* FullCalendar — shrink verbose view buttons to prevent toolbar overflow */
-  .fc-toolbar .fc-button-group .fc-dayGridMonth-button,
-  .fc-toolbar .fc-button-group .fc-timeGridWeek-button,
-  .fc-toolbar .fc-button-group .fc-timeGridDay-button {
-    font-size: 0.78rem !important;
-    padding: 6px 8px !important;
-  }
 
-  /* FullCalendar toolbar — allow wrapping so nav row and view row can split */
-  .fc .fc-toolbar.fc-header-toolbar {
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 10px 12px 6px;
-  }
-
-  /* Title — much smaller on mobile so it doesn't crowd the toolbar */
-  .fc-toolbar-title {
-    font-size: 1.1rem !important;
-  }
-
-  /* Footer — stack copyright above Strava logo on narrow screens */
   .footer-content {
     flex-direction: column;
     align-items: center;

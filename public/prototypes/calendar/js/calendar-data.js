@@ -1,4 +1,4 @@
-import { getLocalDateKey } from "../../../js/event-list.js";
+import { getLocalDateKey } from "../shared/js/event-list.js";
 
 // Object identity preserves distinct occurrences even when timestamps coincide.
 export function indexCalendarEvents(events) {

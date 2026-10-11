@@ -52,3 +52,7 @@ docker-compose.yml
 coverage/
 
 # Production Dockerfiles copy only src/public; development builds include tests.
+
+# Never copy host frontend output; production builds generate their own assets.
+public/app/
+public/next/

@@ -14,7 +14,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 COPY --chown=node:node src ./src
 COPY --chown=node:node public ./public
-COPY --from=frontend-build --chown=node:node /usr/src/app/public/next ./public/next
+COPY --from=frontend-build --chown=node:node /usr/src/app/public/app ./public/app
 USER node
 EXPOSE 3000
 CMD ["node", "src/server.js"]

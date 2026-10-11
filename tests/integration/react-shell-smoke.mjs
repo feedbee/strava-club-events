@@ -20,7 +20,7 @@ try {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   const base = `http://127.0.0.1:${server.address().port}`;
-  await page.goto(`${base}/next/?demo=1&screen=login`);
+  await page.goto(`${base}/?demo=1&screen=login`);
   await page.getByRole("link", { name: "Connect with Strava" }).click();
   for (const width of [1440, 768, 320]) {
     await page.setViewportSize({ width, height: 900 });
@@ -38,12 +38,12 @@ try {
   await page.route("**/me", (route) =>
     route.fulfill({ status: 401, contentType: "application/json", body: "{}" }),
   );
-  await page.goto(`${base}/next/`);
+  await page.goto(`${base}/`);
   assert.equal(
     await page
       .getByRole("link", { name: "Connect with Strava" })
       .getAttribute("href"),
-    "/login?returnTo=%2Fnext%2F",
+    "/login",
   );
   await page.unroute("**/me");
   await page.route("**/me", (route) =>
