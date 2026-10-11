@@ -31,7 +31,7 @@ export function EventsPage({ demo, user, onAuthRequired }) {
     [data.events, data.clubs, filters],
   );
   if (data.status === "loading" && !data.loaded)
-    return <p role="status">Loading your events…</p>;
+    return <div className="initial-events-loading"><LoadingEvents /></div>;
   if (data.status === "error" && !data.loaded)
     return (
       <div role="alert">
@@ -54,7 +54,6 @@ export function EventsPage({ demo, user, onAuthRequired }) {
         count={events.length}
         meta={data.meta}
       />
-      {data.status === "loading" && <p role="status">Updating events…</p>}
       {data.status === "error" && <div className="api-warning" role="alert">
         <p>{data.message} Previously loaded events are still shown.</p>
         <button className="control" onClick={data.retry}>Try again</button>
@@ -63,6 +62,8 @@ export function EventsPage({ demo, user, onAuthRequired }) {
         {warnings.map((message) => <p key={message}>{message}</p>)}
         <a href="/limits.html" target="_blank" rel="noopener noreferrer">Learn about Strava limits ↗</a>
       </aside>}
+      <div className="calendar-loading-region" aria-busy={data.status === "loading"}>
+        <div className="calendar-content" inert={data.status === "loading"}>
       <Calendar
         events={events}
         onOpen={setSelected}
@@ -71,9 +72,23 @@ export function EventsPage({ demo, user, onAuthRequired }) {
           setPreferences((previous) => ({ ...previous, mode }))
         }
       />
+        </div>
+        {data.status === "loading" && <LoadingEvents />}
+      </div>
       {selected && (
         <EventDetails event={selected} onClose={() => setSelected(null)} />
       )}
+    </div>
+  );
+}
+
+function LoadingEvents() {
+  return (
+    <div className="events-loading-overlay" role="status" aria-live="polite">
+      <div className="events-loading-indicator">
+        <span className="events-loading-spinner" aria-hidden="true" />
+        <span>Loading events…</span>
+      </div>
     </div>
   );
 }

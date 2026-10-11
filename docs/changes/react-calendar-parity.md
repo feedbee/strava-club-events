@@ -50,3 +50,9 @@ clicks on label text no longer unmount the picker before the checkbox's native a
 pointer clicks and focus transitions still dismiss it. Browser coverage clicks actual label text,
 checks sport filtering with real DTO shape, verifies selection summaries and individual clears,
 and rechecks keyboard/mobile behavior. Default regression suite: 146 passing tests.
+
+Loading presentation (2026-10-11): refreshing filters overlays the calendar region with a light
+violet tint and a centered spinner/status label, without inserting layout-changing text above it.
+The mounted calendar is inert while updating; filters remain usable. Initial event loading uses
+the same indicator. Reduced-motion users receive a static spinner. The loading browser gate holds
+an API request and verifies equal before/during bounds, blocking and dismissal in Month/List/Day.
