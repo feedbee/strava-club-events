@@ -4,7 +4,7 @@
     "context": "..",
     "appPort": ["3000:3000"],
     "envFile": ".env",
-    "postCreateCommand": "npm ci --ignore-scripts",
+    "postCreateCommand": "npm ci --ignore-scripts && npm run build",
     "settings": {
       "terminal.integrated.defaultProfile.linux": "bash"
     },

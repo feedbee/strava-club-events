@@ -6,4 +6,5 @@ WORKDIR /workspace
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
 COPY . .
+RUN npm run build
 EXPOSE 3000
