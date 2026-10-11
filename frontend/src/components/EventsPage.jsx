@@ -27,8 +27,8 @@ export function EventsPage({ demo, user, onAuthRequired }) {
     setPreferences((previous) => ({ ...previous, ...filters }));
   const [selected, setSelected] = useState(null);
   const events = useMemo(
-    () => filterEvents(data.events, filters),
-    [data.events, filters],
+    () => filterEvents(data.events, filters, data.clubs),
+    [data.events, data.clubs, filters],
   );
   if (data.status === "loading" && !data.loaded)
     return <p role="status">Loading your events…</p>;
@@ -40,6 +40,9 @@ export function EventsPage({ demo, user, onAuthRequired }) {
         <button className="control" onClick={data.retry}>
           Try again
         </button>
+        {(filters.clubs.length > 0 || filters.sports.length > 0) && (
+          <button className="control" onClick={() => setFilters({ clubs: [], sports: [] })}>Reset filters</button>
+        )}
       </div>
     );
   return (

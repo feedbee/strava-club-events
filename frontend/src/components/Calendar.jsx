@@ -58,7 +58,8 @@ export function Calendar({
   const [expanded, setExpanded] = useState(new Set());
   const viewport = useRef(null),
     anchor = useRef(null),
-    pendingDate = useRef(dateKey(new Date()));
+    pendingDate = useRef(dateKey(new Date())),
+    programmaticScroll = useRef(false);
   const days = useMemo(() => indexByDate(events), [events]);
   const today = dateKey(new Date());
   useLayoutEffect(() => {
@@ -66,10 +67,14 @@ export function Calendar({
       const target = viewport.current.querySelector(
         `[data-date="${pendingDate.current}"]`,
       );
-      if (target)
+      if (target) {
+        const previousTop = viewport.current.scrollTop;
         viewport.current.scrollTop =
           target.offsetTop -
           viewport.current.querySelector(".calendar-days").offsetTop;
+        // No scroll event is emitted when positioning leaves the offset unchanged.
+        programmaticScroll.current = viewport.current.scrollTop !== previousTop;
+      }
       pendingDate.current = null;
     }
     if (!viewport.current || !anchor.current) return;
@@ -86,6 +91,10 @@ export function Calendar({
   }
   function scroll() {
     if (mode !== "month") return;
+    if (programmaticScroll.current) {
+      programmaticScroll.current = false;
+      return;
+    }
     const element = viewport.current;
     const visible = [...element.querySelectorAll("[data-date]")].find(
       (day) =>

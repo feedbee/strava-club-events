@@ -40,3 +40,7 @@ test("React preferences isolate athletes and demo and tolerate unavailable stora
   assert.equal(readPreferences(storage, "x").mode, "month");
   assert.doesNotThrow(() => writePreferences(storage, "x", {}));
 });
+
+test("React preferences discard club IDs rejected by the API", () => {
+  assert.deepEqual(normalizePreferences({ clubs: ["not-numeric", "42"] }).clubs, ["42"]);
+});

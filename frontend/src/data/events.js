@@ -51,12 +51,14 @@ export async function readEvents(request = fetch, signal, { clubs = [], sports =
 export function filterEvents(
   events,
   { joinedOnly = false, clubs = [], sports = [] } = {},
+  clubCatalog = [],
 ) {
+  const clubSports = new Map(clubCatalog.map((club) => [String(club.id), club.sport_type]));
   return events.filter(
     (event) =>
       (!joinedOnly || event.joined) &&
       (!clubs.length || clubs.includes(String(event.club_info?.id))) &&
-      (!sports.length || sports.includes(event.club_info?.sport_type)),
+      (!sports.length || sports.includes(clubSports.get(String(event.club_info?.id)) || event.club_info?.sport_type)),
   );
 }
 export function indexByDate(events) {

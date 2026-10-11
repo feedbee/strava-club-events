@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { normalizeEventsResponse, readEvents } from "../data/events.js";
 export function useEvents({ demo, onAuthRequired, filters }) {
   const [state, setState] = useState({
@@ -7,6 +7,7 @@ export function useEvents({ demo, onAuthRequired, filters }) {
     clubs: [],
   });
   const [attempt, setAttempt] = useState(0);
+  const lastAttempt = useRef(null);
   const clubs = filters.clubs.join(",");
   const sports = filters.sports.join(",");
   useEffect(() => {
@@ -24,7 +25,9 @@ export function useEvents({ demo, onAuthRequired, filters }) {
         sports: sports ? sports.split(",") : [],
       });
     }
-    load().then(
+    const immediate = lastAttempt.current !== attempt;
+    lastAttempt.current = attempt;
+    const start = () => load().then(
       (data) => {
         if (!controller.signal.aborted) setState({ ...data, status: "ready", loaded: true });
       },
@@ -40,7 +43,12 @@ export function useEvents({ demo, onAuthRequired, filters }) {
         }));
       },
     );
-    return () => controller.abort();
+    // Browser aborts cannot cancel provider work already started by Express.
+    const timer = setTimeout(start, immediate ? 0 : 400);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [demo, attempt, onAuthRequired, clubs, sports]);
   return { ...state, retry: () => setAttempt((value) => value + 1) };
 }

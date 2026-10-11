@@ -69,3 +69,12 @@ test("React events API preserves errors and rejects invalid response shapes", as
     /Invalid/,
   );
 });
+
+test('sport filtering resolves sport types from the real club catalog', () => {
+  const events = [
+    { club_info: { id: 1, name: 'Cyclists' } },
+    { club_info: { id: 2, name: 'Runners' } },
+  ];
+  const clubs = [{ id: 1, sport_type: 'cycling' }, { id: 2, sport_type: 'running' }];
+  assert.deepEqual(filterEvents(events, { sports: ['cycling'] }, clubs), [events[0]]);
+});

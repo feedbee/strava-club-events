@@ -20,7 +20,7 @@ export function normalizePreferences(value) {
       ? source.mode
       : "month",
     joinedOnly: source.joinedOnly === true,
-    clubs: selection(source.clubs),
+    clubs: selection(source.clubs).filter((id) => /^\d+$/.test(id)),
     sports: selection(source.sports),
   };
 }

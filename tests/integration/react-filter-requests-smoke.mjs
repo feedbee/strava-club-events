@@ -1,0 +1,41 @@
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { createMockApp } from '../../prototypes/calendar/backend/app.js';
+import { SCENARIOS } from '../../prototypes/calendar/backend/fixtures.js';
+const require = createRequire(import.meta.url);
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const server = await new Promise(resolve => { const server = createMockApp().listen(0, '127.0.0.1', () => resolve(server)); });
+let browser;
+try {
+  browser = await chromium.launch({ headless: true, executablePath: process.env.CHROME_EXECUTABLE });
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const page = await browser.newPage();
+  const queries = [];
+  await page.route('**/events*', async route => {
+    queries.push(new URL(route.request().url()).search);
+    const response = await route.fetch();
+    const data = await response.json();
+    data.events.forEach(event => { delete event.club_info.sport_type; });
+    await route.fulfill({ response, json: data });
+  });
+  await page.goto(base + '/next/');
+  await page.locator('.event-card').first().waitFor();
+  await page.getByRole('button', { name: 'List', exact: true }).click();
+  await page.getByRole('button', { name: 'Filters', exact: true }).click();
+  await page.getByRole('button', { name: 'All sports', exact: false }).click();
+  await Promise.all([page.waitForResponse(response => response.url().includes('/events?')), page.getByLabel('cycling', { exact: true }).check()]);
+  await page.waitForFunction(() => !document.querySelector('[role="status"]'));
+  assert.equal(await page.locator('.event-card').count(), 42);
+  assert.equal(queries.length, 2);
+  await page.getByRole('button', { name: 'All clubs', exact: false }).click();
+  const before = queries.length;
+  await Promise.all([page.waitForResponse(response => response.url().includes('clubs=')), (async () => {
+    await page.getByLabel('Warsaw Cycling Club', { exact: true }).check();
+    await page.getByLabel('Weekend Wanderers', { exact: true }).check();
+  })()]);
+  await page.waitForFunction(() => !document.querySelector('[role="status"]'));
+  assert.equal(queries.length - before, 1);
+  assert.match(queries.at(-1), /clubs=1%2C2/);
+  await page.close();
+  console.log('Real DTO sports filtering and batched requests passed.');
+} finally { await browser?.close(); await new Promise(resolve => server.close(resolve)); }

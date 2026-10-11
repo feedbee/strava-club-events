@@ -4,6 +4,7 @@ WORKDIR /usr/src/app
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
 COPY frontend ./frontend
+COPY public/prototypes/calendar/js/experiment-fixtures.js ./public/prototypes/calendar/js/experiment-fixtures.js
 RUN npm run build
 
 FROM node:24.21.0-alpine
