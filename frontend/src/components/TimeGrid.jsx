@@ -2,7 +2,7 @@ import React, { useLayoutEffect, useRef } from "react";
 import { dateKey } from "../data/events.js";
 import { CalendarDate } from "./CalendarDate.jsx";
 import { EventCard } from "./EventCard.jsx";
-export function TimeGrid({ date, mode, days, onOpen }) {
+export function TimeGrid({ date, mode, days, onOpen, bounds }) {
   const root = useRef(null);
   const dates = Array.from({ length: mode === "week" ? 7 : 1 }, (_, index) => {
     const d = new Date(date);
@@ -10,7 +10,7 @@ export function TimeGrid({ date, mode, days, onOpen }) {
     if (mode === "week")
       d.setDate(d.getDate() - ((d.getDay() + 6) % 7) + index);
     return d;
-  });
+  }).filter(d => !bounds || (d >= bounds.start && d <= bounds.end));
   useLayoutEffect(() => {
     const row = root.current.querySelector('[data-hour="7"]');
     if (row)

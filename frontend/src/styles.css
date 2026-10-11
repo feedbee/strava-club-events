@@ -518,6 +518,7 @@ h1 img {
   .calendar-weekdays {
     display: none;
   }
+  .calendar-padding { display: none; }
   .calendar-days {
     grid-template-columns: 1fr;
   }

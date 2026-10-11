@@ -1,4 +1,4 @@
-const WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+const WINDOW_MS = 90 * 24 * 60 * 60 * 1000;
 
 // Strava supplies concrete instants; do not invent recurrences or shift their time zone.
 export function upcomingOccurrences(values, now = new Date()) {

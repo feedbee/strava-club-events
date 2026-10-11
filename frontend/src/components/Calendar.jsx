@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { calendarBounds, clampCalendarDate } from "../data/calendar-window.js";
 import { dateKey, indexByDate } from "../data/events.js";
 import { CalendarDate } from "./CalendarDate.jsx";
 import { Icon } from "./Icon.jsx";
@@ -19,15 +20,6 @@ function monday(date) {
   const d = new Date(date);
   d.setHours(12, 0, 0, 0);
   return shift(d, -((d.getDay() + 6) % 7));
-}
-function initialRange(date) {
-  return {
-    start: shift(
-      monday(new Date(date.getFullYear(), date.getMonth(), 1, 12)),
-      -7,
-    ),
-    weeks: 8,
-  };
 }
 export function Calendar({
   events,
@@ -54,10 +46,24 @@ export function Calendar({
     return () => breakpoint.removeEventListener("change", resize);
   }, []);
   const [date, setDate] = useState(new Date());
-  const [range, setRange] = useState(() => initialRange(new Date()));
+  const bounds = calendarBounds();
+  const rangeStart = monday(bounds.start);
+  const rangeEnd = shift(monday(bounds.end), 6);
+  const rangeDays = Math.round((rangeEnd - rangeStart) / 86400000) + 1;
+  const previousDate = mode === "month"
+    ? new Date(date.getFullYear(), date.getMonth() - 1, 1, 12)
+    : shift(date, mode === "week" ? -7 : -1);
+  const nextDate = mode === "month"
+    ? new Date(date.getFullYear(), date.getMonth() + 1, 1, 12)
+    : shift(date, mode === "week" ? 7 : 1);
+  const atStart = mode === "month"
+    ? date.getFullYear() === bounds.start.getFullYear() && date.getMonth() === bounds.start.getMonth()
+    : mode === "week" ? monday(date) <= bounds.start : date <= bounds.start;
+  const atEnd = mode === "month"
+    ? date.getFullYear() === bounds.end.getFullYear() && date.getMonth() === bounds.end.getMonth()
+    : mode === "week" ? shift(monday(date), 6) >= bounds.end : date >= bounds.end;
   const [expanded, setExpanded] = useState(new Set());
   const viewport = useRef(null),
-    anchor = useRef(null),
     pendingDate = useRef(dateKey(new Date())),
     programmaticScroll = useRef(false);
   const days = useMemo(() => indexByDate(events), [events]);
@@ -77,17 +83,11 @@ export function Calendar({
       }
       pendingDate.current = null;
     }
-    if (!viewport.current || !anchor.current) return;
-    const { key, top } = anchor.current;
-    const element = viewport.current.querySelector(`[data-date="${key}"]`);
-    if (element)
-      viewport.current.scrollTop += element.getBoundingClientRect().top - top;
-    anchor.current = null;
-  }, [range, mode]);
+  }, [mode, date]);
   function navigate(next) {
-    pendingDate.current = dateKey(next);
-    setDate(next);
-    setRange(initialRange(next));
+    const target = clampCalendarDate(next, bounds);
+    pendingDate.current = dateKey(target);
+    setDate(target);
   }
   function scroll() {
     if (mode !== "month") return;
@@ -108,37 +108,6 @@ export function Calendar({
       visibleDate.getFullYear() !== date.getFullYear()
     )
       setDate(visibleDate);
-    const atTop = element.scrollTop < 80,
-      atBottom =
-        element.scrollHeight - element.scrollTop - element.clientHeight < 200;
-    if (!atTop && !atBottom) return;
-    anchor.current = {
-      key: visible.dataset.date,
-      top: visible.getBoundingClientRect().top,
-    };
-    // Do not remove a week containing keyboard focus while trimming the window.
-    const focusedDate =
-      document.activeElement.closest?.("[data-date]")?.dataset.date;
-    if (range.weeks >= 24 && focusedDate) {
-      const nextStart = atTop
-        ? shift(range.start, -28)
-        : shift(range.start, 28);
-      if (
-        focusedDate < dateKey(nextStart) ||
-        focusedDate > dateKey(shift(nextStart, 167))
-      ) {
-        anchor.current = null;
-        return;
-      }
-    }
-    setRange((previous) => ({
-      start: atTop
-        ? shift(previous.start, -28)
-        : previous.weeks >= 24
-          ? shift(previous.start, 28)
-          : previous.start,
-      weeks: Math.min(24, previous.weeks + 4),
-    }));
   }
   function day(key, entries) {
     const showAll = mode === "list" || expanded.has(key);
@@ -211,14 +180,9 @@ export function Calendar({
           <div className="calendar-navigation">
             <button
               className="control"
+              disabled={atStart}
               aria-label={`Previous ${mode}`}
-              onClick={() =>
-                navigate(
-                  mode === "month"
-                    ? new Date(date.getFullYear(), date.getMonth() - 1, 1, 12)
-                    : shift(date, mode === "week" ? -7 : -1),
-                )
-              }
+              onClick={() => navigate(previousDate)}
             >
               ←
             </button>
@@ -227,14 +191,9 @@ export function Calendar({
             </button>
             <button
               className="control"
+              disabled={atEnd}
               aria-label={`Next ${mode}`}
-              onClick={() =>
-                navigate(
-                  mode === "month"
-                    ? new Date(date.getFullYear(), date.getMonth() + 1, 1, 12)
-                    : shift(date, mode === "week" ? 7 : 1),
-                )
-              }
+              onClick={() => navigate(nextDate)}
             >
               →
             </button>
@@ -257,7 +216,7 @@ export function Calendar({
         </div>
       )}
       {mode === "week" || mode === "day" ? (
-        <TimeGrid date={date} mode={mode} days={days} onOpen={onOpen} />
+        <TimeGrid date={date} mode={mode} days={days} onOpen={onOpen} bounds={bounds} />
       ) : (
         <div
           className="calendar-viewport"
@@ -268,8 +227,10 @@ export function Calendar({
         >
           <div className="calendar-days">
             {mode === "month"
-              ? Array.from({ length: range.weeks * 7 }, (_, index) => {
-                  const key = dateKey(shift(range.start, index));
+              ? Array.from({ length: rangeDays }, (_, index) => {
+                  const key = dateKey(shift(rangeStart, index));
+                  if (key < dateKey(bounds.start) || key > dateKey(bounds.end))
+                    return <div key={key} className="calendar-padding" aria-hidden="true" />;
                   return day(key, days.get(key) || []);
                 })
               : [...days].map(([key, entries]) => day(key, entries))}

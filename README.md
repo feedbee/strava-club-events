@@ -1,6 +1,6 @@
 # Strava Club Events Calendar
 
-A modern web application that connects to Strava, fetches upcoming club events for the next 30 days, and displays them in an interactive calendar or list view with enhanced UI/UX.
+A modern web application that connects to Strava, fetches upcoming club events for the next 90 days, and displays them in an interactive calendar or list view with enhanced UI/UX.
 
 ### ✨ Features
 - **Secure Authentication** - Robust OAuth2 implementation with Strava
@@ -11,7 +11,7 @@ A modern web application that connects to Strava, fetches upcoming club events f
 
 - **Event Management**
   - Fetches events from all your Strava clubs
-  - Shows every unique upcoming occurrence in the next 30 days, including recurring events
+  - Shows every unique upcoming occurrence in the next 90 days, including recurring events
   - Displays detailed event information
   - **Smart Filtering System**
     - Filter events by join status (show only joined events)
@@ -221,7 +221,7 @@ The server expects `http://localhost:PORT/callback` (default: `http://localhost:
 #### Events
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/events` | GET | Returns `{ events, clubs, meta }` for upcoming club events (next 30 days) |
+| `/events` | GET | Returns `{ events, clubs, meta }` for upcoming club events (next 90 days) |
 | `/events?clubs=id1,id2` | GET | Filter to up to 10 specific clubs |
 | `/events?sportTypes=cycling` | GET | Filter by sport type (case-insensitive) |
 

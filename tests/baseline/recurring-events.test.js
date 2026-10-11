@@ -28,8 +28,8 @@ test('Occurrence window is inclusive and excludes invalid dates and duplicate in
   const load = await backend();
   const { upcomingOccurrences } = await load('src/utils/occurrences.js');
   const now = new Date('2026-10-10T12:00:00Z');
-  const end = new Date('2026-11-09T12:00:00Z');
-  const values = ['2026-11-09T12:00:00.001Z',end.toISOString(),now.toISOString(),
+  const end = new Date('2027-01-08T12:00:00Z');
+  const values = ['2027-01-08T12:00:00.001Z',end.toISOString(),now.toISOString(),
     '2026-10-10T14:00:00+02:00','2026-10-10T11:59:59.999Z','garbage',null,12];
   assert.deepEqual(Array.from(upcomingOccurrences(values, now), d => d.toISOString()), [now.toISOString(),end.toISOString()]);
   assert.equal(upcomingOccurrences(undefined, now).length, 0);
