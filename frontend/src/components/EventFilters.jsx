@@ -142,17 +142,6 @@ export function EventFilters({ clubs, filters, onChange, count, meta }) {
       </div>
       {open && (
         <div id="react-filters" className="filter-panel">
-          <label className="joined-filter">
-            <input
-              type="checkbox"
-              checked={filters.joinedOnly}
-              onChange={(event) =>
-                onChange({ ...filters, joinedOnly: event.target.checked })
-              }
-            />
-            <span className="joined-switch" aria-hidden="true" />
-            Show only joined events
-          </label>
           <Picker
             label="Sports"
             kind="sports"
@@ -167,11 +156,22 @@ export function EventFilters({ clubs, filters, onChange, count, meta }) {
             selected={filters.clubs}
             onChange={(clubs) => onChange({ ...filters, clubs })}
           />
+          <label className="joined-filter">
+            <input
+              type="checkbox"
+              checked={filters.joinedOnly}
+              onChange={(event) =>
+                onChange({ ...filters, joinedOnly: event.target.checked })
+              }
+            />
+            <span className="joined-switch" aria-hidden="true" />
+            Show only joined events
+          </label>
           {(filters.joinedOnly ||
             filters.clubs.length ||
             filters.sports.length) > 0 && (
             <button
-              className="control"
+              className="control clear-all-filters"
               onClick={() =>
                 onChange({ joinedOnly: false, clubs: [], sports: [] })
               }

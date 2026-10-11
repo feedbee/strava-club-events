@@ -39,8 +39,9 @@ try {
   assert.equal(await page.locator('.sport-tag').innerText(), 'Cycling');
   assert.equal(await page.locator('.selected-clubs > img, .selected-clubs > .club-initial').count(), 2);
   const order = await page.locator('.filter-panel').evaluate(el => [...el.children].map(child => child.className));
-  assert.equal(order[0], 'joined-filter');
-  assert.equal(order.at(-1), 'control');
+  assert.deepEqual(order.slice(0, 3), ['event-picker', 'event-picker', 'joined-filter']);
+  assert.equal(order.at(-1), 'control clear-all-filters');
+  assert.ok(await page.locator('.selected-clubs > img, .selected-clubs > .club-initial').evaluateAll(elements => elements.every(el => getComputedStyle(el).borderRadius === '50%')));
   assert.equal(await page.getByRole('button', { name: 'Clear filters', exact: true }).locator('svg').count(), 1);
   await page.screenshot({ path: '/tmp/react-filter-selection.png' });
   await page.getByRole('button', { name: 'Clear clubs filter', exact: true }).click();
