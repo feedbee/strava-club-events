@@ -66,10 +66,10 @@ function Picker({ label, options, selected, onChange, kind }) {
         <div
           id={id}
           className={`picker-options ${kind === "clubs" ? "club-picker-options" : ""}`}
-          style={kind === "clubs" && trigger.current && root.current ? {
+          style={open && root.current ? {
             left: Math.min(
-              trigger.current.offsetLeft,
-              innerWidth - 20 - root.current.getBoundingClientRect().left - Math.min(300, innerWidth - 40),
+              0,
+              innerWidth - 20 - root.current.getBoundingClientRect().left - Math.min(kind === "clubs" ? 300 : 220, innerWidth - 40),
             ),
           } : undefined}
           role="group"
