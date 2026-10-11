@@ -942,3 +942,16 @@ h1 img {
 }
 
 .clear-all-filters { margin-left: auto; }
+
+.club-option > input { flex-shrink: 0; }
+.club-option-logo { display: inline-flex; flex: 0 0 24px; }
+.club-option-logo > img, .club-option-logo > .club-initial {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid white;
+  object-fit: cover;
+  overflow: hidden;
+  font-size: 11px;
+}
+.club-option > span:last-child { overflow-wrap: anywhere; }

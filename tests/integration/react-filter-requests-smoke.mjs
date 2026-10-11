@@ -28,6 +28,7 @@ try {
   assert.equal(await page.locator('.event-card').count(), 42);
   assert.equal(queries.length, 2);
   await page.getByRole('button', { name: 'All clubs', exact: false }).click();
+  assert.equal(await page.locator('.club-option-logo').count(), 2);
   const before = queries.length;
   await Promise.all([page.waitForResponse(response => response.url().includes('clubs=')), (async () => {
     await page.locator('.picker-options label').filter({ hasText: 'Warsaw Cycling Club' }).click();

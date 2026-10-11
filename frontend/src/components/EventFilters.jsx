@@ -80,7 +80,7 @@ function Picker({ label, options, selected, onChange, kind }) {
               option.name.toLowerCase().includes(search.toLowerCase()),
             )
             .map((option) => (
-              <label key={option.id}>
+              <label key={option.id} className={kind === "clubs" ? "club-option" : undefined}>
                 <input
                   type="checkbox"
                   checked={selected.includes(String(option.id))}
@@ -96,7 +96,12 @@ function Picker({ label, options, selected, onChange, kind }) {
                     )
                   }
                 />
-                {option.name}
+                {kind === "clubs" && (
+                  <span className="club-option-logo" aria-hidden="true">
+                    <ClubLogo event={{ club_info: option, demo_logo: option.demo_logo || option.logo }} />
+                  </span>
+                )}
+                <span>{option.name}</span>
               </label>
             ))}
           <small>Select up to 10</small>
