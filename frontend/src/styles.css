@@ -954,4 +954,11 @@ h1 img {
   overflow: hidden;
   font-size: 11px;
 }
-.club-option > span:last-child { overflow-wrap: anywhere; }
+.club-picker-options { width: 300px; min-width: min(300px, calc(100vw - 40px)); }
+.club-option { min-width: 0; }
+.club-option > span:last-child {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

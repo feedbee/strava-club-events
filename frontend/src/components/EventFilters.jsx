@@ -65,7 +65,7 @@ function Picker({ label, options, selected, onChange, kind }) {
       {open && (
         <div
           id={id}
-          className="picker-options"
+          className={`picker-options ${kind === "clubs" ? "club-picker-options" : ""}`}
           role="group"
           aria-label={`Filter ${label.toLowerCase()}`}
         >
@@ -101,7 +101,7 @@ function Picker({ label, options, selected, onChange, kind }) {
                     <ClubLogo event={{ club_info: option, demo_logo: option.demo_logo || option.logo }} />
                   </span>
                 )}
-                <span>{option.name}</span>
+                <span title={kind === "clubs" ? option.name : undefined}>{option.name}</span>
               </label>
             ))}
           <small>Select up to 10</small>
