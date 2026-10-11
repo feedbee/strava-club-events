@@ -1,3 +1,4 @@
+import { Icon } from "./Icon.jsx";
 import React, { useEffect, useRef, useState } from "react";
 
 export function Profile({ user, demo, onDemoLogout }) {
@@ -106,6 +107,7 @@ export function Profile({ user, demo, onDemoLogout }) {
           <input type="hidden" name="returnTo" value="/next/" />
           <input type="hidden" name="csrfToken" value={user.csrfToken || ""} />
           <button className="control" type="submit">
+            <Icon name="logout" size={14} />
             Logout
           </button>
         </form>
