@@ -2,8 +2,9 @@ import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { stravaRequest } from '../services/strava-client.js';
 import { config } from "../config/index.js";
 import { buildEffectiveRedirect, maybeForwardDevCallback } from "../utils/dev-callback.helper.js";
+import { initializeMobileAuth } from '../services/mobile-auth-runtime.js';
 
-// Authentication always returns to the primary UI; browser redirect destinations are ignored.
+// Web authentication returns to the primary UI. Mobile returns use a fixed callback and proof-bound handoff.
 
 const OAUTH_TTL = 10 * 60 * 1000;
 const saveSession = req => new Promise((resolve, reject) => {
@@ -16,7 +17,7 @@ async function login(req, res) {
     const { clientId, redirectUri, devCallbackRedirect, stravaAuthUrl } = config;
     const state = randomBytes(32).toString('hex');
     req.session.oauth = { state, expiresAt: Date.now() + OAUTH_TTL,
-      returnTo: '/' };
+      returnTo: '/', ...(req.mobileLogin ? { mobile: req.mobileLogin } : {}) };
     await saveSession(req);
     const effectiveRedirect = buildEffectiveRedirect(redirectUri, devCallbackRedirect);
     res.redirect(stravaAuthUrl(clientId, effectiveRedirect, state));
@@ -69,6 +70,7 @@ async function oauthCallback(req, res) {
     delete req.session.oauth;
     await saveSession(req);
     if (oauthError || typeof code !== 'string' || !code || code.length > 2048) {
+      if (transaction.mobile) return res.redirect(`stravaclubevents://auth/callback?error=cancelled&state=${transaction.mobile.state}`);
       return res.status(400).send('Authentication cancelled or invalid. Please start a new login.');
     }
 
@@ -117,6 +119,10 @@ async function oauthCallback(req, res) {
     }
     
     await saveSession(req);
+    if (transaction.mobile) {
+      const handoff = await (await initializeMobileAuth()).handoff(req.sessionID, transaction.mobile.challenge);
+      return res.redirect(`stravaclubevents://auth/callback?code=${handoff}&state=${transaction.mobile.state}`);
+    }
     res.redirect(returnTo);
   } catch (error) {
     if (rotatedSession && req.session) {
