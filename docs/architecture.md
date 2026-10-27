@@ -6,6 +6,10 @@ The primary frontend in `frontend/` uses React/Vite and builds static assets int
 The independently installed Expo/React Native client is in `mobile/`; pure event, preference and
 date rules live in `shared/` with compatibility exports from the web data modules. Native UI and
 storage do not import browser DOM code. See [mobile development](mobile.md) for build/rollout steps.
+Native event/profile DTOs are projected and validated by `shared/mobile-events.js` for both API
+responses and persisted snapshots. Snapshot coverage includes provider club caps and failed clubs.
+Native credential mutations are serialized; a durable sign-out marker fences restoration when
+Keychain deletion fails. The iOS target is 17+ for permissionless calendar-composer export.
 
 `/mobile/*` adds proof-bound OAuth handoffs and opaque bearer credentials, hashed in `mobile_auth`
 with explicit expiry and a MongoDB TTL cleanup index. A credential points to the existing encrypted

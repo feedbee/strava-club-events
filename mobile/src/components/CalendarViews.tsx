@@ -72,7 +72,7 @@ export function TimeGrid({ date, mode, events, open }: { date: Date; mode: Extra
           const items = available ? events.filter(event => dateKey(new Date(event.start_date)) === dateKey(day)) : [];
           return <View key={dateKey(day)} style={{ width: columnWidth, opacity: available ? 1 : 0.4 }}>
             <View style={styles.dayHeader}><Text style={ui.label}>{day.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric' })}</Text><Text style={ui.muted}>{items.length} events</Text></View>
-            <View style={{ height: 24 * 72, borderLeftWidth: 1, borderColor: colors.border }}>
+            <View style={{ height: 24 * 72 + 60, borderLeftWidth: 1, borderColor: colors.border }}>
               {Array.from({ length: 24 }, (_, hour) => <View key={hour} style={[styles.hourLine, { top: hour * 72 }]} />)}
               {timeSlots(items).map(({ event, minute, column, columns }) => <Pressable key={event.key} accessibilityRole="button"
                 accessibilityLabel={`${dateLabel(day)}, ${new Date(event.start_date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}, ${event.title}, ${event.club_info.name}`}

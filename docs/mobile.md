@@ -5,7 +5,7 @@ Default backend: **https://str.valera.ws**. No new hosted server is required.
 
 ## Install on your USB-connected iPhone
 
-Requirements: Xcode with the iOS platform installed, CocoaPods, Node 24.21.0 (or owner-permitted
+Requirements: iPhone on iOS 17 or later, Xcode with the iOS platform installed, CocoaPods, Node 24.21.0 (or owner-permitted
 Node 26), Apple Developer membership and an unlocked/trusted iPhone with Developer Mode enabled.
 Xcode must already have your Apple account under Settings → Accounts.
 
@@ -39,6 +39,9 @@ Keep the phone and Mac on a reachable network; permit the Mac's local-network pr
 build loads JavaScript from Metro. USB installation alone does not guarantee Metro connectivity.
 Use the development client's displayed server URL/QR code if it does not reconnect automatically.
 Rebuild after changing native dependencies, plugins, permissions, bundle IDs or the URL scheme.
+After updating to the review fixes, run `npx expo prebuild --platform ios` once before rebuilding
+so an existing generated Xcode project receives the explicit iOS17 deployment target. Native
+folders are generated; keep lasting configuration in `app.config.js` rather than manual edits.
 Expo Go is not the acceptance target for this app.
 
 ### Standalone device build
@@ -236,7 +239,9 @@ App Review submission. Neither build method deploys the backend.
   filters cannot pretend that a restricted saved subset includes other clubs.
 - Sign-out clears account snapshot/credential; a late request cannot repopulate the old snapshot.
   Network failure during logout may leave the server session until its normal expiry, and the
-  client explains that revocation could not be confirmed.
+  client explains that revocation could not be confirmed. A durable sign-out marker also prevents
+  restoration if Keychain deletion fails. If both marker storage and deletion fail, reconnecting
+  is blocked until retrying local cleanup succeeds.
 - Share opens the sheet without sending automatically. Calendar export opens the system editor;
   confirm/cancel there. The proposed one-hour duration is editable and explicitly a placeholder.
   Export is a single occurrence, not a subscription or a two-way synchronization.
@@ -259,13 +264,15 @@ npm run typecheck
 npm run export
 ```
 
-Implementation verification completed on 2026-10-27: 160 default checks, 13 disposable MongoDB checks,
-three React hook lifecycle tests (early snapshot, 401/network distinction, stale-request fencing),
+Implementation/review verification on 2026-10-27: 166 default checks, 13 disposable MongoDB checks,
+ten mobile auth/lifecycle tests (including durable sign-out, cancellation and stale-request fencing),
 mobile TypeScript, iOS/Android Metro export, and an unsigned iOS Simulator Release build passed.
 Both production Dockerfiles also built successfully, and the Alpine image served the mobile
 capability endpoint on Node 24.21.0 with synthetic configuration and disposable MongoDB.
 The simulator launched the welcome screen. Physical-device login, Share/calendar interactions,
 Android native build and TestFlight upload have not been verified here.
+See [independent review findings and fixes](reviews/mobile-independent-review.md) for reproductions
+and the limits of the independent verification.
 
 Dependency audit found an existing server `body-parser` high-severity advisory and mobile
 Expo CLI toolchain advisories involving `node-forge`/`zod`. The latter are build tooling, not the

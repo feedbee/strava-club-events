@@ -13,7 +13,14 @@ by Git tags; their release notes have not been reconstructed.
 - Proof-bound mobile OAuth handoffs and revocable app credentials backed by the existing encrypted server sessions; expiring mobile authentication records use the existing MongoDB database.
 - iPhone installation and TestFlight preparation instructions in `docs/mobile.md`.
 
+### Fixed
+- Native event/profile data and offline snapshots are validated before rendering; incomplete club coverage remains visible after filter changes.
+- Sign-out is durable despite Keychain deletion failures, credential writes/deletes are serialized, and abandoned login credentials are revoked.
+- Concurrent mobile-login throttling uses each atomic MongoDB increment rather than a later shared counter.
+- Mobile loading cancels obsolete profile requests, and late-night hourly cards remain within scrollable content.
+
 ### Upgrade notes
+- The mobile iOS target is explicitly iOS 17+ to support calendar export without reading the user's calendars. Regenerate existing native projects before rebuilding.
 - Mobile sign-in requires deploying the additive backend update. Preserve the existing Strava callback, signing/encryption keys and MongoDB settings; the server creates the `mobile_auth` collection and its TTL index at startup.
 - The mobile project installs independently in `mobile/`. Shared frontend rules are now in `shared/`, included in both Docker frontend build stages.
 - Production deployment, TestFlight upload, real-account mobile sign-in and physical-device system actions remain operator steps; no release has been published.
