@@ -48,3 +48,14 @@ React preferences/details gate: build first, then optionally run
 `tests/integration/react-preferences-smoke.mjs`. It checks reload persistence, filter search,
 sequential Escape behavior, modal labelling/focus restoration, narrow picker bounds and touch
 card/profile interaction. Pure preference validation/isolation is included in `npm test`.
+
+Mobile: from `mobile/`, run `npm ci --ignore-scripts`, `npm test`, `npm run typecheck` and `npm run export`
+for iOS/Android Metro bundles. Native iOS verification uses Xcode/Expo on macOS; an exported JS
+bundle is not a signed device/TestFlight build. Root checks cover proof-bound handoffs, bearer
+HTTP behavior, parser limits and pure snapshot/calendar rules. Disposable MongoDB checks include
+atomic cross-adapter redemption, expiry and revocation. See [mobile testing](mobile.md) for
+physical-device acceptance and the production-backend deployment prerequisite.
+The independent mobile tests execute the real React loading hook with substituted network/storage
+boundaries, covering immediate snapshot display, 401 versus network failure, stale responses and
+unmounted-request persistence. They use react-test-renderer (currently deprecated upstream), not a
+native device or calendar/share-sheet simulation.

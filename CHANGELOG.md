@@ -5,6 +5,19 @@ move it into a dated version section when preparing a release. GitHub Release bo
 are extracted from this file, not maintained separately. Older versions are recorded
 by Git tags; their release notes have not been reconstructed.
 
+## [Unreleased]
+
+### Added
+- Expo/React Native mobile client for iOS and Android with List, Month, Week and Day views, club/sport/joined filters, event details, manual refresh and a bounded account-isolated offline snapshot.
+- Native event sharing and user-confirmed export to the system calendar, with an editable placeholder duration.
+- Proof-bound mobile OAuth handoffs and revocable app credentials backed by the existing encrypted server sessions; expiring mobile authentication records use the existing MongoDB database.
+- iPhone installation and TestFlight preparation instructions in `docs/mobile.md`.
+
+### Upgrade notes
+- Mobile sign-in requires deploying the additive backend update. Preserve the existing Strava callback, signing/encryption keys and MongoDB settings; the server creates the `mobile_auth` collection and its TTL index at startup.
+- The mobile project installs independently in `mobile/`. Shared frontend rules are now in `shared/`, included in both Docker frontend build stages.
+- Production deployment, TestFlight upload, real-account mobile sign-in and physical-device system actions remain operator steps; no release has been published.
+
 ## [1.0.0] - 2026-10-11
 
 ### Added

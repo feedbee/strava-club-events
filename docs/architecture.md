@@ -3,6 +3,16 @@
 Express serves static HTML/CSS/JavaScript from `public/` and session-authenticated API routes.
 The primary frontend in `frontend/` uses React/Vite and builds static assets into `public/app/`.
 
+The independently installed Expo/React Native client is in `mobile/`; pure event, preference and
+date rules live in `shared/` with compatibility exports from the web data modules. Native UI and
+storage do not import browser DOM code. See [mobile development](mobile.md) for build/rollout steps.
+
+`/mobile/*` adds proof-bound OAuth handoffs and opaque bearer credentials, hashed in `mobile_auth`
+with explicit expiry and a MongoDB TTL cleanup index. A credential points to the existing encrypted
+Express session; a middleware bridge loads it only on protected mobile routes. Cookie-only requests
+cannot authenticate those routes. Provider refresh coordination and logout fencing remain shared.
+Strava tokens never enter the native app. Mobile POSTs require bounded uncompressed JSON.
+
 Routes select controllers; controllers handle HTTP shapes; reusable Strava and refresh rules belong
 in services. Middleware owns authentication, sessions and security headers. Configuration validates
 process environment. Cache adapters implement memory or MongoDB persistence. Sessions use memory

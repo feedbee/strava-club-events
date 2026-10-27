@@ -1,6 +1,6 @@
 # React Native mobile client
 
-Status: approved by owner on 2026-10-26; implementation in progress. Deployment/upload remain separate.
+Status: approved on 2026-10-26; implementation completed on 2026-10-27. Deployment, physical-device acceptance and upload remain separate; see `docs/mobile.md` for verification and remaining checks.
 Date: 2026-10-26. Branch: `codex/mobile`.
 
 ## Objective and agreed scope

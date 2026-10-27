@@ -7,6 +7,7 @@
 - [Releases](releases.md): versioning, changelog, Docker Hub and GitHub publication.
 - [Changelog](../CHANGELOG.md): canonical user-facing release history.
 - [Local setup and configuration](../README.md).
+- [Mobile development and iPhone/TestFlight installation](mobile.md).
 
 ## Historical evidence
 The dated audit and step 2–11 reports preserve implementation and verification context.
