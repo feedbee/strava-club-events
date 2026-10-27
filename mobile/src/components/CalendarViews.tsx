@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { dateKey } from '../../../shared/events.js';
 import { calendarBounds } from '../../../shared/calendar-window.js';
 import { periodDays, timeSlots } from '../../../shared/mobile-state.js';
@@ -7,6 +7,21 @@ import { colors, ui } from '../theme';
 import { EventCard } from './EventCard';
 import type { EventOccurrence, Mode } from '../types';
 const dateLabel = (date: Date) => date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+export function AgendaList({ events, open, header, busy, refresh, unavailable }: {
+  events: EventOccurrence[]; open: (event: EventOccurrence) => void; header: React.ReactElement;
+  busy: boolean; refresh?: () => void; unavailable: boolean;
+}) {
+  return <FlatList data={events} keyExtractor={event => event.key} contentContainerStyle={ui.content}
+    initialNumToRender={12} maxToRenderPerBatch={12} windowSize={7}
+    ListHeaderComponent={header} refreshControl={refresh ? <RefreshControl refreshing={busy} onRefresh={refresh} tintColor={colors.purple} /> : undefined}
+    ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+    ListEmptyComponent={<View style={ui.card}><Text style={ui.heading}>{unavailable ? (busy ? 'Loading events' : 'Events unavailable') : 'Nothing scheduled'}</Text><Text style={ui.muted}>{unavailable ? (busy ? 'Connecting to your clubs…' : 'Refresh to try again.') : 'Try another date or adjust your filters.'}</Text></View>}
+    renderItem={({ item, index }) => <View style={{ gap: 10 }}>
+      {(index === 0 || dateKey(new Date(events[index - 1].start_date)) !== dateKey(new Date(item.start_date))) &&
+        <Text accessibilityRole="header" style={[ui.label, { marginTop: 10 }]}>{dateLabel(new Date(item.start_date))}</Text>}
+      <EventCard event={item} open={open} />
+    </View>} />;
+}
 export function Agenda({ events, open, empty = 'No events here. Try another date or adjust your filters.' }: {
   events: EventOccurrence[]; open: (event: EventOccurrence) => void; empty?: string;
 }) {

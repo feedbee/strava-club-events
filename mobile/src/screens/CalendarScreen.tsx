@@ -5,7 +5,7 @@ import { filterEvents } from '../../../shared/events.js';
 import { calendarBounds, clampCalendarDate } from '../../../shared/calendar-window.js';
 import { eventWarnings } from '../../../shared/event-warnings.js';
 import { movePeriod } from '../../../shared/mobile-state.js';
-import { Agenda, Month, TimeGrid } from '../components/CalendarViews';
+import { AgendaList, Month, TimeGrid } from '../components/CalendarViews';
 import { Button, ModalHeader } from '../components/Controls';
 import { useEvents } from '../data/useEvents';
 import { savePreferences } from '../data/storage';
@@ -34,6 +34,14 @@ export function CalendarScreen({ credential, initialPreferences, signOut }: {
   const next = clampCalendarDate(movePeriod(date, preferences.mode, 1), bounds);
   const filterCount = preferences.clubs.length + preferences.sports.length + Number(preferences.joinedOnly);
   const periodTitle = date.toLocaleDateString('en-GB', preferences.mode === 'month' ? { month: 'long', year: 'numeric' } : { day: 'numeric', month: 'short', year: 'numeric' });
+  const notices = <View style={{ gap: 12, marginBottom: 12 }}>
+        {result.syncedAt && <Text style={ui.muted}>Last synced {new Date(result.syncedAt).toLocaleString('en-GB')}{result.saved ? ' · Saved data may be out of date' : ''}</Text>}
+        {result.busy && <View style={ui.row}><ActivityIndicator color={colors.purple} /><Text style={ui.muted}>Loading your events…</Text></View>}
+        {!!result.message && <View accessibilityRole="alert" style={ui.notice}><Text style={ui.text}>{result.message}</Text></View>}
+        {!!storageMessage && <Text style={ui.muted}>{storageMessage}</Text>}
+        {!result.covered && <View style={ui.notice}><Text style={ui.text}>Saved data does not cover all selected clubs or sports. Connect and refresh to load this selection.</Text></View>}
+        {eventWarnings(result.data.meta, preferences.clubs).map(message => <View key={message} style={ui.notice}><Text style={ui.muted}>{message}</Text></View>)}
+  </View>;
   return <View style={ui.screen}>
     <View style={ui.header}><View><Text style={ui.headerTitle}>Club Events</Text><Text style={{ color: '#ede6ff', fontSize: 12, marginTop: 3 }}>{credential ? 'Your next adventure' : 'Demo · sample events'}</Text></View>
       <Button title={credential?.user.firstname?.charAt(0) || 'Account'} label="Open account" onPress={() => setProfileOpen(true)} /></View>
@@ -51,17 +59,11 @@ export function CalendarScreen({ credential, initialPreferences, signOut }: {
         <Button title="Today" onPress={() => setDate(clampCalendarDate(new Date(), bounds))} />
         <Button title="›" label="Next period" disabled={+date === +next} onPress={() => setDate(next)} />
       </View>}
-      <ScrollView contentContainerStyle={ui.content} refreshControl={credential ? <RefreshControl refreshing={result.busy} onRefresh={() => void result.refresh()} tintColor={colors.purple} /> : undefined}>
-        {result.syncedAt && <Text style={ui.muted}>Last synced {new Date(result.syncedAt).toLocaleString('en-GB')}{result.saved ? ' · Saved data may be out of date' : ''}</Text>}
-        {result.busy && <View style={ui.row}><ActivityIndicator color={colors.purple} /><Text style={ui.muted}>Loading your events…</Text></View>}
-        {!!result.message && <View accessibilityRole="alert" style={ui.notice}><Text style={ui.text}>{result.message}</Text></View>}
-        {!!storageMessage && <Text style={ui.muted}>{storageMessage}</Text>}
-        {!result.covered && <View style={ui.notice}><Text style={ui.text}>Saved data does not cover all selected clubs or sports. Connect and refresh to load this selection.</Text></View>}
-        {eventWarnings(result.data.meta, preferences.clubs).map(message => <View key={message} style={ui.notice}><Text style={ui.muted}>{message}</Text></View>)}
-        {!events.length && credential && result.syncedAt === null ? <View style={ui.card}><Text style={ui.heading}>{result.busy ? 'Loading events' : 'Events unavailable'}</Text><Text style={ui.muted}>{result.busy ? 'Connecting to your clubs…' : 'Refresh to try again.'}</Text></View> : preferences.mode === 'list' ? <Agenda events={events} open={setDetails} /> :
-          preferences.mode === 'month' ? <Month date={date} select={setDate} events={events} open={setDetails} /> :
+      {preferences.mode === 'list' ? <AgendaList events={events} open={setDetails} header={notices} busy={result.busy} refresh={credential ? () => void result.refresh() : undefined} unavailable={!!credential && result.syncedAt === null} /> : <ScrollView contentContainerStyle={ui.content} refreshControl={credential ? <RefreshControl refreshing={result.busy} onRefresh={() => void result.refresh()} tintColor={colors.purple} /> : undefined}>
+        {notices}
+        {!events.length && credential && result.syncedAt === null ? <View style={ui.card}><Text style={ui.heading}>{result.busy ? 'Loading events' : 'Events unavailable'}</Text><Text style={ui.muted}>{result.busy ? 'Connecting to your clubs…' : 'Refresh to try again.'}</Text></View> : preferences.mode === 'month' ? <Month date={date} select={setDate} events={events} open={setDetails} /> :
             <TimeGrid date={date} mode={preferences.mode} events={events} open={setDetails} />}
-      </ScrollView>
+      </ScrollView>}
     </View>
     {details && <EventDetails event={details} close={() => setDetails(null)} demo={!credential} />}
     {filtersOpen && <Filters value={preferences} clubs={result.data.clubs} apply={update} close={() => setFiltersOpen(false)} />}
