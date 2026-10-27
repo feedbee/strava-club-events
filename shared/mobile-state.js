@@ -1,10 +1,21 @@
-import { normalizeEventsResponse } from './events.js';
+import { normalizeMobileEvents } from './mobile-events.js';
 
 export const SNAPSHOT_MAX = 2 * 1024 * 1024;
 export const SNAPSHOT_AGE = 24 * 60 * 60 * 1000;
-export function filterCoverage(saved, requested) {
-  return ['clubs', 'sports'].every(key => !saved[key]?.length ||
+export function filterCoverage(saved, requested, data) {
+  const withinFilters = ['clubs', 'sports'].every(key => !saved[key]?.length ||
     (requested[key]?.length > 0 && requested[key].every(value => saved[key].includes(value))));
+  if (!withinFilters || !data) return withinFilters;
+  const matches = (club, filters) => (!filters.clubs?.length || filters.clubs.includes(String(club.id))) &&
+    (!filters.sports?.length || filters.sports.includes(club.sport_type));
+  const candidates = data.clubs.filter(club => matches(club, saved));
+  const processed = data.meta?.clubs_limited ? candidates.slice(0, data.meta.clubs_processed ?? 0) : candidates;
+  const failed = new Set((data.meta?.errors || []).map(error => String(error.club_id)));
+  const covered = new Set(processed.filter(club => !failed.has(String(club.id))).map(club => String(club.id)));
+  if (requested.clubs?.length && requested.clubs.some(club => !data.clubs.some(item => String(item.id) === club))) return false;
+  if (!requested.clubs?.length && data.meta?.clubs_fetch_limited) return false;
+  if (data.meta?.clubs_failed && !data.meta.errors?.length) return false;
+  return data.clubs.filter(club => matches(club, requested)).every(club => covered.has(String(club.id)));
 }
 export function makeSnapshot(data, context, now = Date.now()) {
   const text = JSON.stringify({ version: 1, ...context, syncedAt: now, data });
@@ -19,8 +30,7 @@ export function restoreSnapshot(text, context, now = Date.now()) {
         !Number.isFinite(value.syncedAt) || now < value.syncedAt || now - value.syncedAt > SNAPSHOT_AGE ||
         !value.filters || !['clubs', 'sports'].every(key => Array.isArray(value.filters[key]) &&
           value.filters[key].length <= 10 && value.filters[key].every(item => typeof item === 'string'))) return null;
-    const data = normalizeEventsResponse(value.data);
-    if (data.events.some(event => typeof event.occurrence_id !== 'string' || typeof event.title !== 'string' || !event.club_info)) return null;
+    const data = normalizeMobileEvents(value.data);
     return { ...value, data };
   } catch { return null; }
 }

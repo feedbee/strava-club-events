@@ -39,8 +39,8 @@ export function CalendarScreen({ credential, initialPreferences, signOut }: {
         {result.busy && <View style={ui.row}><ActivityIndicator color={colors.purple} /><Text style={ui.muted}>Loading your events…</Text></View>}
         {!!result.message && <View accessibilityRole="alert" style={ui.notice}><Text style={ui.text}>{result.message}</Text></View>}
         {!!storageMessage && <Text style={ui.muted}>{storageMessage}</Text>}
-        {!result.covered && <View style={ui.notice}><Text style={ui.text}>Saved data does not cover all selected clubs or sports. Connect and refresh to load this selection.</Text></View>}
-        {eventWarnings(result.data.meta, preferences.clubs).map(message => <View key={message} style={ui.notice}><Text style={ui.muted}>{message}</Text></View>)}
+        {!result.covered && <View style={ui.notice}><Text style={ui.text}>{result.saved ? 'Saved' : 'Loaded'} data does not cover all selected clubs or sports. Connect and refresh to load this selection.</Text></View>}
+        {eventWarnings(result.data.meta, result.sourceFilters.clubs).map(message => <View key={message} style={ui.notice}><Text style={ui.muted}>{message}</Text></View>)}
   </View>;
   return <View style={ui.screen}>
     <View style={ui.header}><View><Text style={ui.headerTitle}>Club Events</Text><Text style={{ color: '#ede6ff', fontSize: 12, marginTop: 3 }}>{credential ? 'Your next adventure' : 'Demo · sample events'}</Text></View>

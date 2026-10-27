@@ -37,3 +37,22 @@ test('Simultaneous event cards occupy separate lanes and export has editable pla
   assert.match(exported.notes, /Duration is a placeholder/);
   assert.equal(exported.recurrenceRule, undefined);
 });
+test('Valid JSON snapshots reject corrupt club and nested event fields before rendering', () => {
+  const context = { account: 'a', backend: 'https://server.test', filters };
+  for (const broken of [
+    { ...data, clubs: [null] }, { ...data, clubs: [{ id: '1', name: {} }] },
+    { ...data, events: [{ ...data.events[0], club_info: { id: '1', name: {} } }] },
+    { ...data, events: [{ ...data.events[0], route_info: { name: {} } }] },
+    { ...data, events: [{ ...data.events[0], address: {} }] },
+  ]) assert.equal(restoreSnapshot(makeSnapshot(broken, context, 1000), context, 2000), null);
+});
+test('Capped and partial snapshots cannot claim coverage for omitted or failed clubs', () => {
+  const clubs = Array.from({ length: 26 }, (_, i) => ({ id: String(i + 1), name: `Club ${i + 1}`, sport_type: 'cycling' }));
+  const saved = { clubs: [], sports: [] };
+  const capped = { clubs, meta: { clubs_limited: true, clubs_processed: 25 } };
+  assert.equal(filterCoverage(saved, { clubs: ['26'], sports: [] }, capped), false);
+  assert.equal(filterCoverage(saved, { clubs: ['1'], sports: [] }, capped), true);
+  assert.equal(filterCoverage(saved, saved, capped), false);
+  const partial = { clubs, meta: { errors: [{ club_id: '1' }] } };
+  assert.equal(filterCoverage(saved, { clubs: ['1'], sports: [] }, partial), false);
+});

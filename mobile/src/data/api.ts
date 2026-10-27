@@ -1,4 +1,4 @@
-import { normalizeEventsResponse } from '../../../shared/events.js';
+import { normalizeMobileEvents, normalizeMobileUser } from '../../../shared/mobile-events.js';
 import type { EventData, Preferences, User } from '../types';
 
 export function backendOrigin(value = process.env.EXPO_PUBLIC_API_URL || 'https://str.valera.ws'): string {
@@ -34,19 +34,14 @@ export async function request<T>(path: string, token?: string, body?: unknown, s
     return response.status === 204 ? undefined as T : await response.json();
   } finally { clearTimeout(timer); signal?.removeEventListener('abort', abort); }
 }
-export async function readUser(token: string): Promise<User> {
-  const data = await request<User>('/me', token);
-  if (!data || typeof data.id !== 'string' || !Number.isSafeInteger(data.athleteId)) throw new Error('Invalid profile response.');
-  return data;
+export async function readUser(token: string, signal?: AbortSignal): Promise<User> {
+  const data = await request<User>('/me', token, undefined, signal);
+  return normalizeMobileUser(data);
 }
 export async function readEvents(token: string, filters: Preferences, signal?: AbortSignal): Promise<EventData> {
   const query = new URLSearchParams();
   if (filters.clubs.length) query.set('clubs', filters.clubs.join(','));
   if (filters.sports.length) query.set('sportTypes', filters.sports.join(','));
   const raw = await request<unknown>(`/events?${query}`, token, undefined, signal);
-  const data = normalizeEventsResponse(raw) as EventData;
-  if (data.events.some(event => typeof event.occurrence_id !== 'string' || !event.club_info || typeof event.title !== 'string')) {
-    throw new Error('Invalid event response.');
-  }
-  return data;
+  return normalizeMobileEvents(raw) as EventData;
 }

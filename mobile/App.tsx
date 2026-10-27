@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StatusBar, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StatusBar, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { connect, savedCredential, clearCredential } from './src/data/auth';
@@ -14,6 +14,7 @@ export default function App() {
   const [credential, setCredential] = useState<Credential | null>(null);
   const [demo, setDemo] = useState(false); const [starting, setStarting] = useState(true);
   const [connecting, setConnecting] = useState(false); const [message, setMessage] = useState('');
+  const [cleaning, setCleaning] = useState(false); const [cleanupFailed, setCleanupFailed] = useState(false);
   const [preferences, setPreferences] = useState<Preferences>(defaults);
   useEffect(() => {
     let alive = true;
@@ -25,17 +26,24 @@ export default function App() {
     })();
     return () => { alive = false; };
   }, []);
+  async function cleanupLocalSession() {
+    setCleaning(true); setCleanupFailed(false);
+    try { await Promise.all([clearCredential(), clearSnapshot()]); }
+    catch {
+      setCleanupFailed(true);
+    } finally { setCleaning(false); }
+  }
   const signOut = useCallback((expired = false) => {
     const token = credential?.token;
     // Clear UI immediately and fence late cache writes before any network operation.
     setCredential(null); setDemo(false); setMessage(expired ? 'Your session expired. Connect with Strava again.' : '');
-    const cleanup = Promise.all([clearCredential(), clearSnapshot()]);
-    void cleanup.catch(() => Alert.alert('Device storage', 'Some local data could not be cleared. Please try signing out again before sharing this device.'));
+    void cleanupLocalSession();
     if (token && !expired) void request('/logout', token, {}).catch(() => {
       setMessage('Signed out on this device. Server revocation could not be confirmed; the old session expires automatically.');
     });
   }, [credential]);
   async function signIn() {
+    if (cleaning || cleanupFailed || connecting) return;
     setConnecting(true); setMessage('');
     try {
       const value = await connect();
@@ -57,12 +65,13 @@ export default function App() {
               <Text style={{ color: '#f1ecff', fontSize: 17, lineHeight: 25 }}>All your Strava club events, together in one calendar.</Text></View>
             <View style={[ui.card, { gap: 18 }]}>
               <Text style={ui.heading}>Make time to get out</Text><Text style={ui.text}>Browse rides, runs and meetups. Find your next event, share it, and keep a copy in your calendar.</Text>
-              <Pressable accessibilityRole="button" accessibilityLabel="Connect with Strava" disabled={connecting} accessibilityState={{ disabled: connecting }} onPress={() => void signIn()} style={{ alignSelf: 'center', opacity: connecting ? 0.5 : 1 }}>
+              <Pressable accessibilityRole="button" accessibilityLabel="Connect with Strava" disabled={connecting || cleaning || cleanupFailed} accessibilityState={{ disabled: connecting || cleaning || cleanupFailed }} onPress={() => void signIn()} style={{ alignSelf: 'center', opacity: connecting || cleaning || cleanupFailed ? 0.5 : 1 }}>
                 <Image source={require('./assets/connect-with-strava.png')} resizeMode="contain" style={{ width: 237, height: 48 }} />
               </Pressable>
               {connecting && <ActivityIndicator />}
-              {!!message && <Text accessibilityRole="alert" style={ui.text}>{message}</Text>}
-              <Button title="Explore the demo" disabled={connecting} onPress={() => { setPreferences(defaults); setDemo(true); }} />
+              {(cleanupFailed || !!message) && <Text accessibilityRole="alert" style={ui.text}>{cleanupFailed ? 'Sign-out could not be saved on this device. Retry before reconnecting or sharing the device.' : message}</Text>}
+              {cleanupFailed && <Button title="Retry sign-out" onPress={() => void cleanupLocalSession()} />}
+              <Button title="Explore the demo" disabled={connecting || cleaning || cleanupFailed} onPress={() => { setPreferences(defaults); setDemo(true); }} />
               <Text style={ui.muted}>Connect securely through Strava. Your Strava password stays with Strava.</Text>
             </View>
             <Image source={require('./assets/powered-by-strava.png')} resizeMode="contain" style={{ width: 180, height: 32, alignSelf: 'center' }} accessibilityLabel="Powered by Strava" />

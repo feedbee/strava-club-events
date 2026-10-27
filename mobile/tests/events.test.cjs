@@ -78,3 +78,18 @@ test('Older filters cannot overwrite newer results or snapshots; unmounted reque
   await unmounted.unmount(); await act(async () => pending.resolve(data('late')));
   assert.equal(unmounted.writes.length, 0);
 });
+test('Changing filters cancels profile validation and prevents an obsolete events request', async t => {
+  const gate = deferred(); let validations = 0; let eventRequests = 0; let oldSignal;
+  const fixture = await mount(t, { api: {
+    readUser: async (_token, signal) => {
+      if (++validations === 1) { oldSignal = signal; return gate.promise; }
+      return credential.user;
+    },
+    readEvents: async () => { eventRequests++; return data('current'); },
+  } });
+  await fixture.update({ ...filters, clubs: ['2'] });
+  assert.equal(oldSignal.aborted, true);
+  await act(async () => gate.resolve(credential.user));
+  assert.equal(eventRequests, 1);
+  assert.equal(fixture.value.data.events[0].key, 'current');
+});

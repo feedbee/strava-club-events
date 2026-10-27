@@ -38,7 +38,8 @@ export function useEvents(credential: Credential | null, filters: Preferences, o
         }
       }
       // Validate the session even when showing cached data after restarting the app.
-      await readUser(credential.token);
+      await readUser(credential.token, abort.signal);
+      if (!current()) return;
       const result = await readEvents(credential.token, currentFilters, abort.signal);
       if (!current()) return;
       const time = Date.now();
@@ -74,6 +75,6 @@ export function useEvents(credential: Credential | null, filters: Preferences, o
     });
     return () => subscription.remove();
   }, [load]);
-  const covered = demo || filterCoverage(coverage, filters);
-  return { data, busy, message, syncedAt, saved, covered, refresh: load };
+  const covered = demo || filterCoverage(coverage, filters, data);
+  return { data, busy, message, syncedAt, saved, covered, sourceFilters: coverage, refresh: load };
 }
