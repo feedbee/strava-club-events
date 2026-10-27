@@ -35,6 +35,7 @@ test('MongoDB expiry is checked before TTL deletion and concurrent throttling do
   const fresh = await auth.handoff('session-id', challenge); const { token } = await auth.exchange(fresh, verifier);
   now += 101; await assert.rejects(auth.authenticate(token), error => error.status === 401);
   const outcomes = await Promise.allSettled(Array.from({ length: 40 }, () => auth.throttle('local-test')));
-  assert.ok(outcomes.some(value => value.status === 'rejected' && value.reason.status === 429));
+  assert.equal(outcomes.filter(value => value.status === 'fulfilled').length, 30);
+  assert.equal(outcomes.filter(value => value.status === 'rejected' && value.reason.status === 429).length, 10);
   assert.equal((await collection.findOne({ kind: 'throttle' })).count, 40);
 });

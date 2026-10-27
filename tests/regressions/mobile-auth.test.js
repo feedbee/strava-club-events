@@ -50,3 +50,18 @@ test('Login throttling is bounded and expires', async () => {
   now += 60001;
   await auth.throttle('test-address');
 });
+test('Concurrent Mongo throttle returns each atomic increment rather than a later shared count', async () => {
+  const { mongoMobileStore } = await import('../../src/services/mobile-auth.js');
+  let count = 0;
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  const collection = {
+    async updateOne() { count++; if (count === 31) release(); await gate; },
+    async findOne() { return { count }; },
+    async findOneAndUpdate() { return { count: ++count }; },
+  };
+  const auth = createMobileAuth({ store: mongoMobileStore(collection), now: () => 1000 });
+  const results = await Promise.allSettled(Array.from({ length: 31 }, () => auth.throttle('test-peer')));
+  assert.equal(results.filter(result => result.status === 'fulfilled').length, 30);
+  assert.equal(results.filter(result => result.status === 'rejected').length, 1);
+});

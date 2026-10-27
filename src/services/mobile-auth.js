@@ -50,13 +50,13 @@ export function mongoMobileStore(collection) {
     find(_id, now) { return collection.findOne({ _id, kind: 'credential', expiresAt: { $gt: new Date(now) } }); },
     async remove(_id) { await collection.deleteOne({ _id }); },
     async bump(_id, expiresAt) {
+      const update = { $inc: { count: 1 }, $setOnInsert: { kind: 'throttle', expiresAt } };
       try {
-        await collection.updateOne({ _id }, { $inc: { count: 1 }, $setOnInsert: { kind: 'throttle', expiresAt } }, { upsert: true });
+        return (await collection.findOneAndUpdate({ _id }, update, { upsert: true, returnDocument: 'after' })).count;
       } catch (error) {
         if (error.code !== 11000) throw error;
-        await collection.updateOne({ _id }, { $inc: { count: 1 } });
+        return (await collection.findOneAndUpdate({ _id }, update, { returnDocument: 'after' })).count;
       }
-      return (await collection.findOne({ _id })).count;
     },
   };
 }
