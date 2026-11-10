@@ -12,12 +12,15 @@ by Git tags; their release notes have not been reconstructed.
 - Native event sharing and user-confirmed export to the system calendar, with an editable placeholder duration.
 - Proof-bound mobile OAuth handoffs and revocable app credentials backed by the existing encrypted server sessions; expiring mobile authentication records use the existing MongoDB database.
 - iPhone installation and TestFlight preparation instructions in `docs/mobile.md`.
+- Native Android Release APK/AAB verification, a USB loopback helper, local upload-key signing and instructions for Google Play Internal testing alongside TestFlight without requiring an Expo/EAS account.
+- Optional paired EAS testing profiles with a shared HTTPS backend and remote build-number increments; local iOS/Android build numbers can be set in the ignored mobile `.env`.
 
 ### Fixed
 - Native event/profile data and offline snapshots are validated before rendering; incomplete club coverage remains visible after filter changes.
 - Sign-out is durable despite Keychain deletion failures, credential writes/deletes are serialized, and abandoned login credentials are revoked.
 - Concurrent mobile-login throttling uses each atomic MongoDB increment rather than a later shared counter.
 - Mobile loading cancels obsolete profile requests, and late-night hourly cards remain within scrollable content.
+- Release configuration rejects an accidental local HTTP backend before store bundling; Android enables the selected light theme and excludes unused calendar, contacts, storage, microphone and overlay permissions.
 
 ### Upgrade notes
 - The mobile iOS target is explicitly iOS 17+ to support calendar export without reading the user's calendars. Regenerate existing native projects before rebuilding.

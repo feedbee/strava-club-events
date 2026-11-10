@@ -10,6 +10,10 @@ Native event/profile DTOs are projected and validated by `shared/mobile-events.j
 responses and persisted snapshots. Snapshot coverage includes provider club caps and failed clubs.
 Native credential mutations are serialized; a durable sign-out marker fences restoration when
 Keychain deletion fails. The iOS target is 17+ for permissionless calendar-composer export.
+Android is generated from the same managed config and has a local signed-store build wrapper;
+upload-key values are passed to Gradle through its environment, never through CLI password flags.
+Android USB forwarding is a development-only route to the Mac. Paired store testing uses the
+same hosted HTTPS backend; `eas.json` has an optional shared `testing` profile for both stores.
 
 `/mobile/*` adds proof-bound OAuth handoffs and opaque bearer credentials, hashed in `mobile_auth`
 with explicit expiry and a MongoDB TTL cleanup index. A credential points to the existing encrypted

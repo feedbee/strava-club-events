@@ -2,6 +2,8 @@
 
 The client lives in `mobile/` and has its own package-lock. The web/backend install is unchanged.
 Default backend: **https://str.valera.ws**. No new hosted server is required.
+For Android USB development, signed Google Play bundles and paired TestFlight/Internal testing,
+follow [the distribution guide](mobile-distribution.md). Expo/EAS cloud accounts are optional.
 
 ## Install on your USB-connected iPhone
 
@@ -180,11 +182,13 @@ npx expo run:android --device
 Android and iOS share the TypeScript application. Calendar export launches a user-confirmed system
 editor; the app does not request calendar read/write access or read reminders. No calendar app,
 a cancelled editor or denied access must not be reported as a successful save.
-Android native compilation/device interaction still needs verification on an Android SDK host.
+Native APK/AAB compilation and Release launch on an Android emulator were verified on 2026-11-10.
+For a local backend over USB, use the documented `android:usb`/`start:usb` workflow; for Play
+submission use `build:android:store` with your upload key. See [the distribution guide](mobile-distribution.md).
 
 ## TestFlight
 
-The app includes `mobile/eas.json` development, preview and production profiles. **No binary has
+The app includes `mobile/eas.json` development, preview, production and testing profiles. **No binary has
 been uploaded and no App Store Connect app, signing certificate or Expo project has been created.**
 The following steps are performed by the owner when ready to upload.
 
@@ -270,7 +274,8 @@ mobile TypeScript, iOS/Android Metro export, and an unsigned iOS Simulator Relea
 Both production Dockerfiles also built successfully, and the Alpine image served the mobile
 capability endpoint on Node 24.21.0 with synthetic configuration and disposable MongoDB.
 The simulator launched the welcome screen. Physical-device login, Share/calendar interactions,
-Android native build and TestFlight upload have not been verified here.
+TestFlight upload has not been verified here. Android native compilation and emulator launch
+were subsequently verified on 2026-11-10; see [distribution verification](mobile-distribution.md).
 See [independent review findings and fixes](reviews/mobile-independent-review.md) for reproductions
 and the limits of the independent verification.
 
