@@ -9,7 +9,11 @@
     "android": "expo run:android --device",
     "typecheck": "tsc --noEmit",
     "export": "expo export --platform ios --platform android",
-    "test": "node --experimental-vm-modules --test tests/*.test.cjs"
+    "test": "node --experimental-vm-modules --test tests/*.test.cjs",
+    "android:usb": "node scripts/android-usb.cjs",
+    "start:usb": "expo start --dev-client --localhost",
+    "build:android:store": "node scripts/build-android-store.cjs",
+    "android:release": "expo run:android --device --variant release"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -20,6 +24,7 @@
     "expo-dev-client": "~58.0.15",
     "expo-linear-gradient": "~58.0.3",
     "expo-secure-store": "~58.0.2",
+    "expo-system-ui": "~58.0.7",
     "expo-web-browser": "~58.0.6",
     "react": "19.3.0",
     "react-native": "0.88.0",

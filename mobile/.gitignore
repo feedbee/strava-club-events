@@ -9,3 +9,8 @@ dist/
 *.p12
 *.mobileprovision
 credentials.json
+signing/
+*.jks
+*.keystore
+*.p8
+artifacts/
