@@ -14,7 +14,7 @@ function fixture(t) {
 }
 test('Store packaging requires explicit upload credentials and a valid explicit version code', t => {
   const { root, env } = fixture(t);
-  assert.throws(() => storeEnvironment({}, root), /Set these values/);
+  assert.throws(() => storeEnvironment({}, root), /MOBILE_ANDROID_VERSION_CODE/);
   for (const version of ['0', '2.5', 'NaN', '2100000001']) assert.throws(() => storeEnvironment({ ...env, MOBILE_ANDROID_VERSION_CODE: version }, root), /VERSION_CODE/);
   assert.throws(() => storeEnvironment({ ...env, ANDROID_UPLOAD_STORE_FILE: 'missing' }, root), /does not exist/);
 });
@@ -27,4 +27,20 @@ test('Store build rejects local HTTP and maps signing credentials into Gradle en
   assert.equal(result['ORG_GRADLE_PROJECT_android.injected.signing.store.file'], path.join(root, 'upload.p12'));
   assert.equal(result['ORG_GRADLE_PROJECT_android.injected.signing.store.password'], env.ANDROID_UPLOAD_STORE_PASSWORD);
   assert.equal(result.EXPO_PUBLIC_API_URL, 'https://str.valera.ws');
+});
+
+test('Store build uses the local upload key with empty passwords', t => {
+  const { root, env } = fixture(t);
+  const local = path.join(root, '.local');
+  fs.mkdirSync(local);
+  fs.renameSync(path.join(root, 'upload.p12'), path.join(local, 'upload.p12'));
+  fs.writeFileSync(path.join(local, 'android.json'), JSON.stringify({
+    storeFile: 'upload.p12', storePassword: '', keyAlias: 'local', keyPassword: '',
+  }));
+
+  const result = storeEnvironment(env, root);
+  assert.equal(result['ORG_GRADLE_PROJECT_android.injected.signing.store.file'], path.join(local, 'upload.p12'));
+  assert.equal(result['ORG_GRADLE_PROJECT_android.injected.signing.key.alias'], 'local');
+  assert.equal(result['ORG_GRADLE_PROJECT_android.injected.signing.store.password'], '');
+  assert.equal(result['ORG_GRADLE_PROJECT_android.injected.signing.key.password'], '');
 });

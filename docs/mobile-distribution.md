@@ -22,6 +22,57 @@ Before testing real accounts, run this branch's backend locally or deploy its mo
 to the shared server. Both apps use `/mobile/*`, the same callback scheme and the same API DTOs.
 An unchanged older server will not support mobile login.
 
+## Mobile runner
+
+Run these commands from the repository root. Install root and mobile dependencies with
+`npm ci --ignore-scripts` in each directory first.
+
+```sh
+npm run mobile -- --help
+# Choose a local target. The runner starts the API if needed:
+npm run mobile -- run ios simulator
+npm run mobile -- run ios device
+npm run mobile -- run android emulator
+npm run mobile -- run android device
+
+# Build for the stores, then upload separately:
+npm run mobile -- build ios
+npm run mobile -- build android
+npm run mobile -- upload ios mobile/artifacts/ios/1/export/YourApp.ipa
+npm run mobile -- upload android           # displays the manual Internal testing steps
+```
+
+Start the Android emulator from Device Manager first. When more than one eligible Android
+target is connected, append its ADB serial to the command. For iOS, optionally append the
+device name or UDID. Leave one Metro instance running at a time. If the development client
+opens its launcher, open the Metro link printed by Expo.
+
+The runner checks port 4317 and reuses a ready Club Events development backend with the
+matching OAuth origin. If nothing is listening, it offers to start the backend, waits for it,
+and stops that instance when Metro exits. Use `npm run mobile -- backend` to keep a separate
+backend running in watch mode. If the port is occupied, set `MOBILE_LOCAL_API_PORT` in
+`mobile/.env`. Android forwards that port and Metro's 8081 through ADB.
+
+For a physical iPhone, USB installs the app. The iPhone reaches Metro over the local network.
+Set `MOBILE_IOS_DEVICE_API_URL` in `mobile/.env` to the Mac's LAN IP and the selected
+port, e.g. `http://192.168.1.50:4317`. The runner uses that origin for the backend callback.
+If Strava rejects the LAN callback, use an HTTPS tunnel to port 4317 (or your configured port)
+and register the tunnel hostname with Strava. Stop a separately running backend before switching
+between LAN and loopback targets so that the next run can start it with the right origin.
+
+Build numbers are reserved automatically and independently for iOS and Android in
+`mobile/.local/build-numbers/`, which Git ignores. A failed build may leave a gap.
+Keep this directory when moving to another Mac. If needed, use `--build-number N` once to
+raise the counter above builds already uploaded from elsewhere.
+
+Both store build commands force `https://str.valera.ws`. For iOS, sign in to Xcode,
+set `MOBILE_IOS_TEAM_ID` in `mobile/.env` and register the bundle ID in App Store Connect.
+The runner exports a signed IPA to `mobile/artifacts/ios/<build-number>/export/`.
+To upload it from the terminal, set `APP_STORE_CONNECT_KEY_ID` and
+`APP_STORE_CONNECT_ISSUER_ID` in `mobile/.env` and put the matching
+`AuthKey_<key-id>.p8` under `~/.appstoreconnect/private_keys/`.
+After Apple processes the upload, assign the build to your internal group in TestFlight.
+
 ## Android over USB, with a local backend
 
 Use Node 24.21.0 (or the owner's permitted Node 26), Java 21 and Android Studio with its SDK installed.
@@ -83,41 +134,27 @@ not enough. The same helper also works with a single emulator when desired.
 
 ## Local signed Android bundle for Google Play
 
-The package ID is **ws.valera.clubevents**, matching the provisional iOS bundle ID. Confirm the
+The Android package ID is **ws.valera.sportclubevents**. Confirm the
 identifier before creating its Play Console entry; if a previous application with that package
 already exists, use its existing upload key and increasing versionCode. Do not replace its key.
 
-### One-time upload-key setup
+### Local upload key
 
-If this is a new Android app and you do not already have an upload key, generate one yourself in
-an owner-controlled directory outside the repository, for example:
+The store build reads `mobile/.local/android.json`. Set `storeFile` (relative to the
+JSON file or absolute), `storePassword`, `keyAlias` and `keyPassword`. For a passwordless
+PKCS12 upload key, set both password fields to empty strings. Keep the JSON and keystore
+in the Git-ignored `mobile/.local/` directory with file permissions `600`. Back up both
+files and reuse the same upload key for updates.
 
-```sh
-mkdir -p /Users/feedbee/keys
-keytool -genkeypair -v -storetype PKCS12 \
-  -keystore /Users/feedbee/keys/clubevents-upload.p12 \
-  -alias clubevents-upload -keyalg RSA -keysize 2048 -validity 10000
-```
-
-Keytool asks for the password and certificate details interactively. Save the key and password
-securely and keep an offline backup. Reuse the same upload key for future updates. This signing
-key is distinct from Strava credentials. The agent has not generated a permanent owner upload key.
-
-### Build with the upload key
-
-In `mobile/.env`, set your actual values (this file is ignored; never commit or paste its contents):
+In `mobile/.env`, set:
 
 ```dotenv
 EXPO_PUBLIC_API_URL=https://str.valera.ws
 MOBILE_ANDROID_VERSION_CODE=1
-ANDROID_UPLOAD_STORE_FILE=/Users/feedbee/keys/clubevents-upload.p12
-ANDROID_UPLOAD_STORE_PASSWORD="your actual keystore password"
-ANDROID_UPLOAD_KEY_ALIAS=clubevents-upload
-ANDROID_UPLOAD_KEY_PASSWORD="your actual key password"
 ```
 
 Use a version code greater than every previously uploaded build. PKCS12 normally uses the same
-password for the store and private key. Use absolute key paths; `.env` values do not expand `~`.
+password for the store and private key.
 If SDK discovery needs an override, also set ANDROID_HOME in this same `.env`.
 
 ```sh
@@ -128,6 +165,10 @@ npm run build:android:store
 
 The wrapper validates the HTTPS backend, versionCode, required signing fields and key file,
 regenerates Android from managed config, and builds a signed Release AAB plus a matching APK.
+If Gradle times out waiting for the journal cache, check the owner PID from the error.
+On macOS, `lsof -a -p PID -d cwd` can show the daemon version under `~/.gradle/daemon/`.
+Check its status with the matching Gradle version's `--status`. If the daemon is idle,
+run `--stop` with that version, then retry the build.
 Signing values are sent as Gradle environment properties, not command-line password arguments;
 they are not EXPO_PUBLIC variables and are not embedded in the JavaScript bundle. Do not run
 Gradle with verbose property/environment dumps when signing.
@@ -147,7 +188,7 @@ controls only Android's internal build number; no server release/version publica
 
 ### Upload to Internal testing
 
-1. Open Google Play Console. Create/select the app with package `ws.valera.clubevents`. Keep the
+1. Open Google Play Console. Create/select **Strava Club Events** with package `ws.valera.sportclubevents`. Keep the
    identifier consistent with the AAB; package IDs cannot be changed for an existing Play app.
 2. Under **Test and release → Testing → Internal testing**, create a release and upload your AAB.
    Complete Play App Signing setup and the tasks currently required by your account/dashboard.

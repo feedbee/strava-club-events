@@ -14,7 +14,8 @@
         "build": "vite build --config frontend/vite.config.js",
         "dev:frontend": "vite --config frontend/vite.config.js",
         "dev:mock": "node --watch prototypes/calendar/backend/server.js",
-        "pretest": "npm run build"
+        "pretest": "npm run build",
+        "mobile": "node scripts/mobile.cjs"
     },
     "dependencies": {
         "connect-mongo": "^6.0.0",

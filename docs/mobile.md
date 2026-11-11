@@ -25,7 +25,7 @@ team selection fails, open `mobile/ios/ClubEvents.xcworkspace` in Xcode, select 
 target → Signing & Capabilities → your Team → Automatically manage signing, and rerun the command.
 You can also select the iPhone in Xcode and press Run.
 
-The provisional application ID is **ws.valera.clubevents**. Confirm it is available in your team
+The provisional application ID is **ws.valera.sportclubevents**. Confirm it is available in your team
 before registering the app in App Store Connect. Change `ios.bundleIdentifier` and
 `android.package` in `mobile/app.config.js` if necessary. The OAuth scheme must remain
 `stravaclubevents` unless both server and app callback constants are changed together.
@@ -199,7 +199,7 @@ The following steps are performed by the owner when ready to upload.
 
 1. Generate the project with `cd mobile && npx expo prebuild --platform ios`. Open
    `mobile/ios/ClubEvents.xcworkspace` after pods are installed by `npx expo run:ios`.
-2. Select your Team and confirm `ws.valera.clubevents` is your intended registered bundle ID.
+2. Select your Team and confirm `ws.valera.sportclubevents` is your intended registered bundle ID.
    Create the matching app in App Store Connect under your account.
 3. Select a generic **Any iOS Device** destination, then **Product → Archive**. Archive embeds
    the Release JavaScript bundle, so Metro is not required for TestFlight users.

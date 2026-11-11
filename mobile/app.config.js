@@ -23,7 +23,7 @@ module.exports = {
     name: 'Strava Club Events', slug: 'strava-club-events', version,
     scheme: 'stravaclubevents', orientation: 'portrait', userInterfaceStyle: 'light', icon: './assets/icon.png',
     ios: {
-      bundleIdentifier: 'ws.valera.clubevents', supportsTablet: false,
+      bundleIdentifier: 'ws.valera.sportclubevents', supportsTablet: false,
       ...(iosBuild ? { buildNumber: iosBuild } : {}),
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
@@ -32,7 +32,7 @@ module.exports = {
       },
     },
     android: {
-      package: 'ws.valera.clubevents',
+      package: 'ws.valera.sportclubevents',
       ...(androidBuild ? { versionCode: Number(androidBuild) } : {}),
       blockedPermissions: ['android.permission.READ_CALENDAR', 'android.permission.WRITE_CALENDAR',
         'android.permission.READ_CONTACTS', 'android.permission.RECORD_AUDIO',
@@ -49,6 +49,7 @@ module.exports = {
         }] },
       }],
       ['expo-calendar', { writeOnlyAccess: true, remindersPermission: false,
-        calendarPermission: false, writeOnlyCalendarPermission: 'Add a club event using the calendar editor.' }]],
+        calendarPermission: 'Add club events you choose to your calendar using the iOS calendar editor.',
+        writeOnlyCalendarPermission: 'Add club events you choose to your calendar using the iOS calendar editor.' }]],
   },
 };

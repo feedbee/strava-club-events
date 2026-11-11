@@ -9,17 +9,34 @@ function sdkPath(env = process.env) {
   return sdk;
 }
 function storeEnvironment(env, root) {
-  const required = ['ANDROID_UPLOAD_STORE_FILE', 'ANDROID_UPLOAD_STORE_PASSWORD', 'ANDROID_UPLOAD_KEY_ALIAS', 'ANDROID_UPLOAD_KEY_PASSWORD', 'MOBILE_ANDROID_VERSION_CODE'];
-  if (required.some(key => !env[key])) throw new Error(`Set these values in mobile/.env: ${required.join(', ')}.`);
-  if (!/^[1-9]\d*$/.test(env.MOBILE_ANDROID_VERSION_CODE) || Number(env.MOBILE_ANDROID_VERSION_CODE) > 2100000000) throw new Error('MOBILE_ANDROID_VERSION_CODE must be an integer from 1 to 2100000000.');
+  if (!/^[1-9]\d*$/.test(env.MOBILE_ANDROID_VERSION_CODE) || Number(env.MOBILE_ANDROID_VERSION_CODE) > 2100000000) throw new Error('Set MOBILE_ANDROID_VERSION_CODE in mobile/.env to an integer from 1 to 2100000000.');
   let url;
   try { url = new URL(env.EXPO_PUBLIC_API_URL || 'https://str.valera.ws'); } catch { throw new Error('Invalid EXPO_PUBLIC_API_URL.'); }
   if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash || url.pathname !== '/') throw new Error('Store builds require an HTTPS backend origin in EXPO_PUBLIC_API_URL.');
-  const file = path.resolve(root, env.ANDROID_UPLOAD_STORE_FILE);
+  const configPath = path.join(root, '.local', 'android.json');
+  let signing = {
+    storeFile: env.ANDROID_UPLOAD_STORE_FILE,
+    storePassword: env.ANDROID_UPLOAD_STORE_PASSWORD,
+    keyAlias: env.ANDROID_UPLOAD_KEY_ALIAS,
+    keyPassword: env.ANDROID_UPLOAD_KEY_PASSWORD,
+  };
+  let signingDir = root;
+  if (fs.existsSync(configPath)) {
+    try { signing = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch {
+      throw new Error('Could not read mobile/.local/android.json.');
+    }
+    signingDir = path.dirname(configPath);
+  }
+  if (typeof signing?.storeFile !== 'string' || !signing.storeFile ||
+      typeof signing.keyAlias !== 'string' || !signing.keyAlias ||
+      typeof signing.storePassword !== 'string' || typeof signing.keyPassword !== 'string') {
+    throw new Error('Set storeFile, storePassword, keyAlias and keyPassword in mobile/.local/android.json.');
+  }
+  const file = path.resolve(signingDir, signing.storeFile);
   if (!fs.existsSync(file) || !fs.statSync(file).isFile()) throw new Error('The configured Android upload keystore does not exist.');
   const result = { ...env };
-  for (const [suffix, value] of Object.entries({ 'store.file': file, 'store.password': env.ANDROID_UPLOAD_STORE_PASSWORD,
-    'key.alias': env.ANDROID_UPLOAD_KEY_ALIAS, 'key.password': env.ANDROID_UPLOAD_KEY_PASSWORD })) {
+  for (const [suffix, value] of Object.entries({ 'store.file': file, 'store.password': signing.storePassword,
+    'key.alias': signing.keyAlias, 'key.password': signing.keyPassword })) {
     result[`ORG_GRADLE_PROJECT_android.injected.signing.${suffix}`] = value;
   }
   return result;

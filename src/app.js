@@ -4,6 +4,7 @@ import { secureSessionMiddleware } from "./middleware/session.middleware.js";
 import { securityHeaders } from './middleware/security.middleware.js';
 import { health } from './services/health.js';
 import { mobileSession } from './middleware/mobile.middleware.js';
+import { config } from './config/index.js';
 
 // Create Express app
 const app = express();
@@ -11,7 +12,10 @@ app.disable('x-powered-by');
 app.use(securityHeaders);
 // Probes must remain available when session persistence is unavailable.
 app.get('/health/live', health.live);
-app.get('/health/ready', health.readiness);
+app.get('/health/ready', (req, res) => {
+  if (process.env.NODE_ENV === 'development') res.set('X-Club-Events-Local-Origin', config.publicUrl);
+  return health.readiness(req, res);
+});
 
 // Preserve bookmarked opt-in URLs while serving React as the primary entry.
 app.get(['/next', '/next/'], (req, res) => {
