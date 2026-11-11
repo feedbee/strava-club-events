@@ -19,18 +19,49 @@ function serializeCredential<T>(task: () => Promise<T>): Promise<T> {
 }
 const random = () => Array.from(Crypto.getRandomBytes(32), byte => byte.toString(16).padStart(2, '0')).join('');
 export async function savedCredential(): Promise<Credential | null> {
+  const version = credentialVersion;
+  let credential: Credential;
   try {
     if (await AsyncStorage.getItem(SIGNED_OUT)) return null;
     const raw = await SecureStore.getItemAsync(KEY);
     if (!raw) return null;
     const value = JSON.parse(raw);
     if (value.backend !== API_URL || !/^[a-f0-9]{64}$/.test(value.token) ||
-        !Number.isFinite(Date.parse(value.expiresAt)) || Date.parse(value.expiresAt) <= Date.now() ||
-        typeof value.user?.id !== 'string' || !Number.isSafeInteger(value.user?.athleteId)) {
-      await SecureStore.deleteItemAsync(KEY); return null;
-    }
-    return { token: value.token, expiresAt: value.expiresAt, user: normalizeMobileUser(value.user) };
+        !Number.isFinite(Date.parse(value.expiresAt)) ||
+        typeof value.user?.id !== 'string' || !Number.isSafeInteger(value.user?.athleteId)) return null;
+    credential = { token: value.token, expiresAt: value.expiresAt, user: normalizeMobileUser(value.user) };
   } catch { return null; }
+  if (version !== credentialVersion) return null;
+  if (Date.parse(credential.expiresAt) > Date.now()) return credential;
+
+  let expiresAt = credential.expiresAt;
+  try {
+    await readUser(credential.token, undefined, renewed => {
+      if (Date.parse(renewed) > Date.parse(expiresAt)) expiresAt = renewed;
+    });
+  } catch (error) {
+    if (version !== credentialVersion) return null;
+    if (!(error instanceof ApiError && error.status === 401)) throw error;
+    await clearCredential();
+    return null;
+  }
+  if (version !== credentialVersion) return null;
+  await persistRenewedExpiry(credential.token, expiresAt).catch(() => {});
+  return version === credentialVersion ? { ...credential, expiresAt } : null;
+}
+export function persistRenewedExpiry(token: string, expiresAt: string): Promise<void> {
+  const version = credentialVersion;
+  return serializeCredential(async () => {
+    if (version !== credentialVersion || await AsyncStorage.getItem(SIGNED_OUT)) return;
+    const raw = await SecureStore.getItemAsync(KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (version !== credentialVersion || saved.backend !== API_URL || saved.token !== token ||
+        !(Date.parse(expiresAt) > Date.parse(saved.expiresAt))) return;
+    await SecureStore.setItemAsync(KEY, JSON.stringify({ ...saved, expiresAt }), {
+      keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+    });
+  });
 }
 export function clearCredential(): Promise<void> {
   credentialVersion++;
@@ -53,7 +84,7 @@ async function performConnect(): Promise<Credential | null> {
     const capability = await request<{ version: number; callback: string }>('/capabilities');
     if (capability.version !== 1 || capability.callback !== CALLBACK) throw new Error('This server does not support this mobile app yet.');
   } catch (error) {
-    if (error instanceof ApiError && error.status === 404) throw new Error('The server needs the mobile backend update before you can connect. You can try the demo now.');
+    if (error instanceof ApiError && error.status === 404) throw new Error('The server needs the mobile backend update before you can connect.');
     throw error;
   }
   const verifier = random(); const state = random();
@@ -71,8 +102,11 @@ async function performConnect(): Promise<Credential | null> {
   const session = await request<{ token: string; expiresAt: string }>('/exchange', undefined, { code, verifier });
   if (!/^[a-f0-9]{64}$/.test(session.token) || !Number.isFinite(Date.parse(session.expiresAt))) throw new Error('Invalid mobile session response.');
   try {
-    const user = await readUser(session.token);
-    const credential = { ...session, user };
+    let expiresAt = session.expiresAt;
+    const user = await readUser(session.token, undefined, renewed => {
+      if (Date.parse(renewed) > Date.parse(expiresAt)) expiresAt = renewed;
+    });
+    const credential = { ...session, expiresAt, user };
     await serializeCredential(async () => {
       if (version !== credentialVersion) throw new Error('Sign-in was cancelled. Please try again.');
       await SecureStore.setItemAsync(KEY, JSON.stringify({ ...credential, backend: API_URL }), {

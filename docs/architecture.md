@@ -18,7 +18,9 @@ same hosted HTTPS backend; `eas.json` has an optional shared `testing` profile f
 `/mobile/*` adds proof-bound OAuth handoffs and opaque bearer credentials, hashed in `mobile_auth`
 with explicit expiry and a MongoDB TTL cleanup index. A credential points to the existing encrypted
 Express session; a middleware bridge loads it only on protected mobile routes. Cookie-only requests
-cannot authenticate those routes. Provider refresh coordination and logout fencing remain shared.
+cannot authenticate those routes. Successful mobile profile and event responses renew the
+credential for another `SESSION_MAX_AGE` without an absolute cap. Provider refresh coordination
+and logout fencing remain shared.
 Strava tokens never enter the native app. Mobile POSTs require bounded uncompressed JSON.
 
 Routes select controllers; controllers handle HTTP shapes; reusable Strava and refresh rules belong

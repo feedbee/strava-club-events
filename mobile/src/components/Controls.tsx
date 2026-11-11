@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Typography';
 import { colors, ui } from '../theme';
 export function Button({ title, onPress, disabled = false, primary = false, selected = false, label }: {
   title: string; onPress: () => void; disabled?: boolean; primary?: boolean; selected?: boolean; label?: string;
@@ -11,8 +12,8 @@ export function Button({ title, onPress, disabled = false, primary = false, sele
     <Text style={[styles.text, (primary || selected) && { color: 'white' }]}>{title}</Text>
   </Pressable>;
 }
-export function ModalHeader({ title, close }: { title: string; close: () => void }) {
-  return <View style={[ui.row, styles.modalHeader]}><Text accessibilityRole="header" style={[ui.heading, { flex: 1 }]}>{title}</Text><Button title="Done" onPress={close} /></View>;
+export function ModalHeader({ title, close, closeTitle = 'Done' }: { title: string; close: () => void; closeTitle?: string }) {
+  return <View style={[ui.row, styles.modalHeader]}><Text accessibilityRole="header" style={[ui.heading, { flex: 1 }]}>{title}</Text><Button title={closeTitle} onPress={close} /></View>;
 }
 const styles = StyleSheet.create({
   button: { minHeight: 44, minWidth: 44, paddingHorizontal: 14, paddingVertical: 11, borderRadius: 12,

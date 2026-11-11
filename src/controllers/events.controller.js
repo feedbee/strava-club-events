@@ -45,6 +45,8 @@ async function getEvents(req, res) {
     // Get all events across all clubs with route request limiting
     const { events, clubs, meta } = await getAllUserClubsEvents(token, userId, { filterClubIds, filterSportTypes });
 
+    // Only renew after a successful event load. Recheck expiry and revocation before sending the data.
+    if (req.renewMobileSession && !await req.renewMobileSession()) return;
     res.json({ events, clubs, meta });
   } catch (error) {
     const limited = error.status === 429;

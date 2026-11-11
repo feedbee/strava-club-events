@@ -4,11 +4,13 @@ const { load } = require('./helpers.cjs');
 const origin = 'https://backend.test';
 const user = { id: 'strava_1', athleteId: 1, firstname: 'Test' };
 const session = { token: 'a'.repeat(64), expiresAt: new Date(Date.now() + 3600000).toISOString() };
+class ApiError extends Error {
+  constructor(message, status) { super(message); this.status = status; }
+}
 async function fixture(overrides = {}) {
   const dto = await import('../../shared/mobile-events.js');
   const secure = new Map([['club-events-session', JSON.stringify({ ...session, backend: origin, user })]]);
   const local = new Map(); const revoked = [];
-  class ApiError extends Error {}
   const auth = await load('src/data/auth.ts', {
     '../../../shared/mobile-events.js': dto,
     'expo-crypto': { getRandomBytes: () => new Uint8Array(32).fill(1), CryptoDigestAlgorithm: { SHA256: 'sha256' }, digestStringAsync: async () => 'b'.repeat(64) },
@@ -73,4 +75,40 @@ test('Logout during sign-in prevents a delayed credential from becoming restorab
   await assert.rejects(pending, /cancelled/);
   assert.equal(await auth.savedCredential(), null);
   assert.deepEqual(revoked, [session.token]);
+});
+
+test('Renewed expiry survives restart without shortening or restoring a logged-out credential', async () => {
+  const { auth } = await fixture();
+  const renewed = new Date(Date.parse(session.expiresAt) + 3600000).toISOString();
+  await auth.persistRenewedExpiry(session.token, renewed);
+  await auth.persistRenewedExpiry(session.token, session.expiresAt);
+  assert.equal((await auth.savedCredential()).expiresAt, renewed);
+  await auth.clearCredential();
+  await auth.persistRenewedExpiry(session.token, renewed);
+  assert.equal(await auth.savedCredential(), null);
+});
+
+test('A stale local deadline waits for the server and retains the token while offline', async () => {
+  let offline = true;
+  const renewed = new Date(Date.now() + 7200000).toISOString();
+  const { auth, secure } = await fixture({ api: { readUser: async (_token, _signal, onRenewed) => {
+    if (offline) throw new Error('Offline');
+    onRenewed(renewed);
+    return user;
+  } } });
+  secure.set('club-events-session', JSON.stringify({ ...session, backend: origin, user, expiresAt: new Date(0).toISOString() }));
+  await assert.rejects(auth.savedCredential(), /Offline/);
+  assert.ok(secure.has('club-events-session'));
+  offline = false;
+  assert.equal((await auth.savedCredential()).expiresAt, renewed);
+  assert.equal(JSON.parse(secure.get('club-events-session')).expiresAt, renewed);
+});
+
+test('A server rejection clears a credential with a stale local deadline', async () => {
+  const { auth, secure } = await fixture({ api: { readUser: async () => {
+    throw new ApiError('Expired', 401);
+  } } });
+  secure.set('club-events-session', JSON.stringify({ ...session, backend: origin, user, expiresAt: new Date(0).toISOString() }));
+  assert.equal(await auth.savedCredential(), null);
+  assert.equal(secure.has('club-events-session'), false);
 });

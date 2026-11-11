@@ -23,7 +23,7 @@ export function normalizeMobileUser(value) {
 // Network and local storage are both untrusted boundaries. Project only native DTO fields.
 export function normalizeMobileEvents(value) {
   if (!object(value) || !Array.isArray(value.events) || !Array.isArray(value.clubs)) return invalid();
-  const clubs = value.clubs.map(club => ({ ...record(club, ['name', 'sport_type', 'localized_sport_type']), id: id(club.id) }));
+  const clubs = value.clubs.map(club => ({ ...record(club, ['name', 'sport_type', 'localized_sport_type', 'logo']), id: id(club.id) }));
   if (new Set(clubs.map(club => club.id)).size !== clubs.length) return invalid();
   const events = value.events.map(event => {
     if (!object(event) || typeof event.occurrence_id !== 'string' || !event.occurrence_id ||

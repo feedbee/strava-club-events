@@ -28,8 +28,9 @@ export async function mobileExchange(req, res) {
     res.json(await auth.exchange(req.body?.code, req.body?.verifier));
   } catch (error) { mobileError(res, error); }
 }
-export function mobileMe(req, res) {
+export async function mobileMe(req, res) {
   if (!req.session?.user || !req.session.tokens?.access_token) return res.status(401).json({ error: 'Mobile session expired' });
+  if (!await req.renewMobileSession()) return;
   const { id, athleteId, username, firstname, lastname, profile_pic } = req.session.user;
   res.json({ id, athleteId, username, firstname, lastname, profile_pic });
 }

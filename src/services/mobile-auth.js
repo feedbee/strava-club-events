@@ -27,6 +27,12 @@ export function memoryMobileStore() {
       const record = records.get(id);
       return record?.kind === 'credential' && +record.expiresAt > now ? record : null;
     },
+    async renew(id, now, expiresAt) {
+      const record = records.get(id);
+      if (record?.kind !== 'credential' || +record.expiresAt <= now) return null;
+      if (+expiresAt > +record.expiresAt) record.expiresAt = expiresAt;
+      return record;
+    },
     async remove(id) { records.delete(id); },
     async bump(id, expiresAt, now) {
       prune(now);
@@ -48,6 +54,13 @@ export function mongoMobileStore(collection) {
       return collection.findOneAndDelete({ _id, kind: 'handoff', challenge, expiresAt: { $gt: new Date(now) } });
     },
     find(_id, now) { return collection.findOne({ _id, kind: 'credential', expiresAt: { $gt: new Date(now) } }); },
+    renew(_id, now, expiresAt) {
+      return collection.findOneAndUpdate(
+        { _id, kind: 'credential', expiresAt: { $gt: new Date(now) } },
+        { $max: { expiresAt } },
+        { returnDocument: 'after' },
+      );
+    },
     async remove(_id) { await collection.deleteOne({ _id }); },
     async bump(_id, expiresAt) {
       const update = { $inc: { count: 1 }, $setOnInsert: { kind: 'throttle', expiresAt } };
@@ -92,6 +105,13 @@ export function createMobileAuth({ store, now = Date.now, sessionAge = 86400000 
       const record = await store.find(`credential:${digest(token)}`, now());
       if (!record) throw denied();
       return record;
+    },
+    async renew(token) {
+      if (!valid(token)) throw denied();
+      const time = now();
+      const record = await store.renew(`credential:${digest(token)}`, time, new Date(time + sessionAge));
+      if (!record) throw denied();
+      return record.expiresAt.toISOString();
     },
     async revoke(token) {
       if (valid(token)) await store.remove(`credential:${digest(token)}`);

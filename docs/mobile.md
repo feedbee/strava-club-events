@@ -57,7 +57,6 @@ npx expo run:ios --device --configuration Release
 
 This is a local device install, **not** a TestFlight upload. Development signing may be selected
 by Expo/Xcode for a local install; App Store distribution signing is a separate step.
-The app's demo works immediately, including sample calendar export and system Share.
 
 ## Production backend update
 
@@ -102,11 +101,15 @@ The collection contains three record kinds:
 | Kind | Contents | Lifetime |
 | --- | --- | --- |
 | Handoff | Hash of one-use code, challenge, session ID | 60 seconds; atomic removal on successful exchange |
-| Credential | Hash of app credential, session ID | Fixed `SESSION_MAX_AGE` from exchange, 24h by default |
+| Credential | Hash of app credential, session ID | Rolling `SESSION_MAX_AGE`, 24h by default |
 | Throttle | Hashed network peer and minute bucket, count | Until the end of that minute |
 
-Every authorization read checks expiry explicitly. MongoDB's eventual TTL deletion merely cleans
-up old records. The default login budget is 30 login/exchange requests per minute per network peer,
+Successful profile and event requests renew the credential and return its new expiry in
+`X-Mobile-Session-Expires-At`, which the app stores with the credential. The idle window
+uses the web's `SESSION_MAX_AGE`. It has no absolute cap while successful requests keep
+renewing it. Explicit logout revokes the credential. Failed profile or event responses do
+not renew it. Every authorization read checks expiry explicitly. MongoDB's eventual TTL
+deletion only cleans up old records. The default login budget is 30 login/exchange requests per minute per network peer,
 shared across instances. Behind a proxy this deliberately uses the directly connected peer rather
 than trusting a caller-supplied forwarded IP; testers behind the same proxy share this budget.
 
@@ -164,7 +167,7 @@ The app does not disable platform transport security globally: use a locally rea
 endpoint if iOS/Android refuses your LAN HTTP endpoint. Expo permits local networking on iOS.
 Do not change the production Strava callback domain just to test a LAN address. Real local OAuth
 also requires a callback URL registered with Strava; the easiest real-account path is the existing
-HTTPS production server after its update. Synthetic demo data needs no local backend or secrets.
+HTTPS production server after its update.
 
 Never put CLIENT_SECRET, Strava tokens or session signing/encryption keys in an EXPO_PUBLIC value.
 These variables are compiled into the app. The default HTTPS backend requires no mobile `.env`.
@@ -235,12 +238,14 @@ App Review submission. Neither build method deploys the backend.
 
 - Real sign-in, cancelled sign-in, return from Safari/system auth and session expiry.
 - List, Month, Week and Day; Today/bounded navigation; simultaneous events; club/sport/joined filters.
-- Refresh/pull-to-refresh, incomplete results and quota messages. Refresh contacts the backend;
-  its Strava cache is retained. 'Last synced' means a successful server response, not a guaranteed
-  new provider request.
+- Refresh/pull-to-refresh, incomplete results and quota messages. The app refreshes about
+  every 15 minutes in the foreground and retries the latest changed filters after a server
+  cooldown. 'Last synced' records a successful backend response, which may come from cache.
 - Cold restart in airplane mode: show the last successful snapshot immediately, mark it saved;
   retry after reconnecting. The snapshot expires after 24h and is limited to 2 MiB. Changing
-  filters cannot pretend that a restricted saved subset includes other clubs.
+  filters cannot pretend that a restricted saved subset includes other clubs. If the locally
+  stored session deadline has passed, verify the session with the server before opening the
+  calendar. A connection failure offers a retry and preserves the credential.
 - Sign-out clears account snapshot/credential; a late request cannot repopulate the old snapshot.
   Network failure during logout may leave the server session until its normal expiry, and the
   client explains that revocation could not be confirmed. A durable sign-out marker also prevents

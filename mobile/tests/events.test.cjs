@@ -17,17 +17,21 @@ async function mount(t, overrides = {}) {
   const source = transformSync(fs.readFileSync(path.join(__dirname, '../src/data/useEvents.ts'), 'utf8'), {
     filename: 'useEvents.ts', configFile: false, babelrc: false, plugins: ['@babel/plugin-transform-typescript'],
   }).code;
-  const writes = []; let expired = 0; let value; let listener;
+  const writes = []; let expired = 0; let value; let listener; let tick;
+  let appState = 'active';
   const modules = {
     react: React,
-    'react-native': { AppState: { addEventListener: (_name, handler) => { listener = handler; return { remove() {} }; } } },
+    'react-native': { AppState: { get currentState() { return appState; }, addEventListener: (_name, handler) => { listener = handler; return { remove() {} }; } } },
     '../../../shared/mobile-state.js': shared,
     './api': { API_URL: 'https://backend.test', ApiError, readUser: async () => credential.user,
       readEvents: async () => data('fresh'), ...overrides.api },
+    './auth': { persistRenewedExpiry: async () => {} },
     './storage': { loadSnapshot: async () => null, saveSnapshot: async (...args) => { writes.push(args); }, storageEpoch: () => 1, ...overrides.storage },
-    './demo': { demoData: () => data('demo') },
   };
-  const context = vm.createContext({ console, Date, Error, AbortController, setTimeout, clearTimeout });
+  const context = vm.createContext({ console, Date, Error, AbortController, setTimeout, clearTimeout,
+    setInterval: callback => { tick = callback; }, clearInterval: () => { tick = undefined; },
+    ...overrides.globals,
+  });
   const module = new vm.SourceTextModule(source, { context });
   await module.link(specifier => {
     const exports = modules[specifier];
@@ -43,7 +47,9 @@ async function mount(t, overrides = {}) {
   t.after(async () => { await act(async () => renderer.unmount()); });
   return { get value() { return value; }, get expired() { return expired; }, writes,
     async update(selected) { await act(async () => renderer.update(React.createElement(Consumer, { selected }))); },
-    async foreground() { await act(async () => listener('active')); },
+    async foreground() { await act(async () => { appState = 'active'; listener(appState); }); },
+    async background() { await act(async () => { appState = 'background'; listener(appState); }); },
+    async tick() { await act(async () => tick?.()); },
     async unmount() { await act(async () => renderer.unmount()); },
   };
 }
@@ -92,4 +98,52 @@ test('Changing filters cancels profile validation and prevents an obsolete event
   await act(async () => gate.resolve(credential.user));
   assert.equal(eventRequests, 1);
   assert.equal(fixture.value.data.events[0].key, 'current');
+});
+
+test('Automatic refresh waits for the foreground interval and respects server retry delays', async t => {
+  let now = Date.now(); let requests = 0;
+  const fixture = await mount(t, {
+    globals: { Date: class extends Date { static now() { return now; } } },
+    api: { readEvents: async () => ({ ...data('fresh'), meta: ++requests === 2 ? { retry_after: 1200 } : null }) },
+  });
+  now += 14 * 60000;
+  await fixture.tick();
+  assert.equal(requests, 1);
+  await fixture.background();
+  now += 60000;
+  await fixture.tick();
+  assert.equal(requests, 1);
+  await fixture.foreground();
+  assert.equal(requests, 2);
+  now += 15 * 60000;
+  await fixture.tick();
+  assert.equal(requests, 2);
+  now += 5 * 60000;
+  await fixture.tick();
+  assert.equal(requests, 3);
+});
+
+test('A filter change during cooldown retries the latest selection when the pause ends', async t => {
+  let now = Date.now();
+  let retry;
+  const selections = [];
+  const fixture = await mount(t, {
+    globals: {
+      Date: class extends Date { static now() { return now; } },
+      setTimeout: (callback, delay) => { retry = { callback, delay }; return retry; },
+      clearTimeout: timer => { if (retry === timer) retry = undefined; },
+    },
+    api: { readEvents: async (_token, selected) => {
+      selections.push([...selected.clubs]);
+      return { ...data('fresh'), meta: selections.length === 1 ? { retry_after: 30 } : null };
+    } },
+  });
+  await fixture.update({ ...filters, clubs: ['1'] });
+  now += 10000;
+  await fixture.update({ ...filters, clubs: ['2'] });
+  assert.deepEqual(selections, [[]]);
+  assert.equal(retry?.delay, 20000);
+  now += 20000;
+  await act(async () => retry.callback());
+  assert.deepEqual(selections, [[], ['2']]);
 });

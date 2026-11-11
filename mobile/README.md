@@ -14,7 +14,7 @@ npm run typecheck
 npm run ios
 ```
 
-The default API is `https://str.valera.ws`. Explore the demo without deploying anything.
+The default API is `https://str.valera.ws`.
 Actual sign-in requires the backend changes in this branch to be deployed there first.
 For a local backend use a development build; Android supports `npm run android:usb` plus
 `npm run start:usb` after installing the development client. Store builds require HTTPS.

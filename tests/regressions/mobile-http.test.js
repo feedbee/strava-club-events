@@ -8,7 +8,7 @@ const clientState = 'b'.repeat(64);
 const cookie = res => res.headers.get('set-cookie')?.split(';')[0];
 async function server(t) {
   const load = await backend({ env: { ENCRYPTION_KEY: 'ab'.repeat(32), SESSION_SECRET: 'test-mobile-secret-'.repeat(3) }, modules: {
-    'node-fetch': { default: async () => apiResponse({ access_token: 'provider-access', refresh_token: 'provider-refresh',
+    'node-fetch': { default: async url => apiResponse(new URL(url).pathname.endsWith('/athlete/clubs') ? [] : { access_token: 'provider-access', refresh_token: 'provider-refresh',
       expires_in: 3600, athlete: { id: 7, firstname: 'Mobile' } }) },
   } });
   const { app } = await load('src/app.js');
@@ -39,10 +39,18 @@ test('Real HTTP mobile OAuth uses proof, encrypted sessions and bearer-only prof
   const exchange = body => fetch(`${base}/mobile/exchange`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   assert.equal((await exchange({ code, verifier: 'c'.repeat(64) })).status, 401);
   const response = await exchange({ code, verifier }); assert.equal(response.status, 200);
-  const { token } = await response.json();
+  const { token, expiresAt } = await response.json();
   assert.equal((await exchange({ code, verifier })).status, 401);
   const headers = { Authorization: `Bearer ${token}` };
   const profile = await fetch(`${base}/mobile/me`, { headers }); assert.equal(profile.status, 200);
+  const renewed = Date.parse(profile.headers.get('X-Mobile-Session-Expires-At'));
+  assert.ok(renewed >= Date.parse(expiresAt));
+  const events = await fetch(`${base}/mobile/events`, { headers });
+  assert.equal(events.status, 200);
+  assert.ok(Date.parse(events.headers.get('X-Mobile-Session-Expires-At')) >= renewed);
+  const invalidFilters = await fetch(`${base}/mobile/events?clubs=invalid`, { headers });
+  assert.equal(invalidFilters.status, 400);
+  assert.equal(invalidFilters.headers.get('X-Mobile-Session-Expires-At'), null);
   const data = await profile.json(); assert.equal(data.athleteId, 7);
   assert.equal(JSON.stringify(data).includes('provider-'), false); assert.equal(data.csrfToken, undefined);
   assert.equal((await fetch(`${base}/mobile/logout`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: '{}' })).status, 204);

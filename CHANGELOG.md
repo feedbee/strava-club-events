@@ -15,7 +15,14 @@ by Git tags; their release notes have not been reconstructed.
 - Native Android Release APK/AAB verification, a USB loopback helper, local upload-key signing and instructions for Google Play Internal testing alongside TestFlight without requiring an Expo/EAS account.
 - Optional paired EAS testing profiles with a shared HTTPS backend and remote build-number increments; local iOS/Android build numbers can be set in the ignored mobile `.env`.
 
+### Changed
+- Mobile sign-in now opens a personalized Strava club calendar. Removed the built-in mobile demo.
+- Refined calendar navigation and event cards, with tappable days, swipe navigation by week in Day view, and pinned day headers and hour labels in Week view.
+- Mobile sessions use a rolling idle window. The calendar refreshes automatically in the foreground and honors server cooldowns.
+- Applied the Manrope typeface to mobile and included its license in Account.
+
 ### Fixed
+- A stale local session deadline is verified with the server before signing out. Filter changes made during a server cooldown are retried after it ends.
 - Native event/profile data and offline snapshots are validated before rendering; incomplete club coverage remains visible after filter changes.
 - Sign-out is durable despite Keychain deletion failures, credential writes/deletes are serialized, and abandoned login credentials are revoked.
 - Concurrent mobile-login throttling uses each atomic MongoDB increment rather than a later shared counter.

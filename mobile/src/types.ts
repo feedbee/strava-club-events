@@ -1,7 +1,7 @@
 export type Mode = 'list' | 'month' | 'week' | 'day';
 export interface Preferences { mode: Mode; joinedOnly: boolean; clubs: string[]; sports: string[] }
 export interface User { id: string; athleteId: number; firstname?: string; lastname?: string; username?: string; profile_pic?: string }
-export interface Club { id: string; name: string; sport_type?: string; localized_sport_type?: string }
+export interface Club { id: string; name: string; logo?: string; sport_type?: string; localized_sport_type?: string }
 export interface EventOccurrence {
   key: string; id?: string; occurrence_id: string; title: string; start_date: string; joined?: boolean;
   strava_event_url: string; club_info: { id: string; name: string; logo?: string };

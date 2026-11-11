@@ -181,8 +181,13 @@ Open `mobile/ios/ClubEvents.xcworkspace` in Xcode. Select the ClubEvents target,
 its signing configuration; create/select the matching App Store Connect application. Select
 **Any iOS Device**, **Product → Archive**, then Organizer → **Distribute App → App Store Connect →
 Upload**. After processing, add internal TestFlight testers; external testers may need Beta App
-Review and an available review/demo account. Each upload needs a new MOBILE_IOS_BUILD_NUMBER and
-regeneration so the value reaches the native project.
+Review. Each upload needs a new MOBILE_IOS_BUILD_NUMBER and regeneration so the value reaches
+the native project.
+
+Before submitting to App Review or Google Play review, prepare a dedicated Strava review account
+authorized for the deployed backend. Verify that it can sign in and has clubs with upcoming events.
+Supply its access instructions through App Store Connect or Play Console and keep the backend
+reachable for the duration of review.
 
 The ignored `.env` may contain Android signing fields as well; only EXPO_PUBLIC_* values enter the
 mobile JS bundle. No Android signing fields are referenced by the iOS app configuration.

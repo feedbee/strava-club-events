@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Alert, Linking, Modal, ScrollView, Share, Text, View } from 'react-native';
+import { Alert, Linking, Modal, ScrollView, Share, View } from 'react-native';
+import { Text } from '../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 // The permissionless system composer remains in the SDK's supported legacy module.
 import { createEventInCalendarAsync } from 'expo-calendar/legacy';
@@ -7,7 +8,7 @@ import { calendarEvent, stravaUrl } from '../../../shared/mobile-state.js';
 import { Button, ModalHeader } from '../components/Controls';
 import { ui } from '../theme';
 import type { EventOccurrence } from '../types';
-export function EventDetails({ event, close, demo }: { event: EventOccurrence; close: () => void; demo: boolean }) {
+export function EventDetails({ event, close }: { event: EventOccurrence; close: () => void }) {
   const [busy, setBusy] = useState(false);
   const date = new Date(event.start_date).toLocaleString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
   async function action(task: () => Promise<unknown>) {
@@ -21,7 +22,6 @@ export function EventDetails({ event, close, demo }: { event: EventOccurrence; c
     <SafeAreaView style={ui.modal} edges={['top', 'bottom']}>
       <ModalHeader title="Event details" close={close} />
       <ScrollView contentContainerStyle={ui.content}>
-        {demo && <View style={ui.notice}><Text style={ui.muted}>Demo event · Sharing and calendar export use sample information.</Text></View>}
         <Text style={ui.label}>{date}</Text><Text accessibilityRole="header" style={ui.title}>{event.title}</Text>
         <Text style={ui.text}>{event.club_info.name}{event.joined ? ' · ✓ Joined' : ''}</Text>
         {event.address && <View style={ui.card}><Text style={ui.label}>Meeting point</Text><Text style={ui.text}>{event.address}</Text></View>}

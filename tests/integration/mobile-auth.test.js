@@ -17,14 +17,22 @@ test('Independent MongoDB adapters atomically consume a handoff once and share r
   const { collection } = await fixture(t);
   const store1 = mongoMobileStore(collection); const store2 = mongoMobileStore(collection);
   await Promise.all([store1.init(), store2.init()]);
-  const first = createMobileAuth({ store: store1 }); const second = createMobileAuth({ store: store2 });
+  let now = Date.now();
+  const first = createMobileAuth({ store: store1, now: () => now, sessionAge: 60000 });
+  const second = createMobileAuth({ store: store2, now: () => now, sessionAge: 60000 });
   const code = await first.handoff('session-id', challenge);
   const outcomes = await Promise.allSettled(Array.from({ length: 8 }, (_, i) => (i % 2 ? first : second).exchange(code, verifier)));
   const successes = outcomes.filter(value => value.status === 'fulfilled'); assert.equal(successes.length, 1);
   const { token } = successes[0].value;
   assert.equal((await second.authenticate(token)).sessionId, 'session-id');
   assert.equal(JSON.stringify(await collection.find().toArray()).includes(token), false);
+  now += 30000;
+  const renewed = new Date(now + 60000).toISOString();
+  assert.deepEqual(await Promise.all([first.renew(token), second.renew(token)]), [renewed, renewed]);
+  now += 31000;
+  assert.equal((await second.authenticate(token)).expiresAt.toISOString(), renewed);
   await second.revoke(token);
+  await assert.rejects(first.renew(token), error => error.status === 401);
   await assert.rejects(first.authenticate(token), error => error.status === 401);
 });
 test('MongoDB expiry is checked before TTL deletion and concurrent throttling does not lose increments', async t => {
@@ -34,6 +42,7 @@ test('MongoDB expiry is checked before TTL deletion and concurrent throttling do
   await assert.rejects(auth.exchange(code, verifier), error => error.status === 401);
   const fresh = await auth.handoff('session-id', challenge); const { token } = await auth.exchange(fresh, verifier);
   now += 101; await assert.rejects(auth.authenticate(token), error => error.status === 401);
+  await assert.rejects(auth.renew(token), error => error.status === 401);
   const outcomes = await Promise.allSettled(Array.from({ length: 40 }, () => auth.throttle('local-test')));
   assert.equal(outcomes.filter(value => value.status === 'fulfilled').length, 30);
   assert.equal(outcomes.filter(value => value.status === 'rejected' && value.reason.status === 429).length, 10);

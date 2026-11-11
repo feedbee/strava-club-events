@@ -17,9 +17,10 @@ function buildNumber(name, maximum) {
 }
 const iosBuild = buildNumber('MOBILE_IOS_BUILD_NUMBER', Number.MAX_SAFE_INTEGER);
 const androidBuild = buildNumber('MOBILE_ANDROID_VERSION_CODE', 2100000000);
+const manrope = './assets/fonts/Manrope.ttf';
 module.exports = {
   expo: {
-    name: 'Club Events', slug: 'strava-club-events', version,
+    name: 'Strava Club Events', slug: 'strava-club-events', version,
     scheme: 'stravaclubevents', orientation: 'portrait', userInterfaceStyle: 'light', icon: './assets/icon.png',
     ios: {
       bundleIdentifier: 'ws.valera.clubevents', supportsTablet: false,
@@ -39,6 +40,14 @@ module.exports = {
         'android.permission.SYSTEM_ALERT_WINDOW'],
     },
     plugins: ['expo-dev-client', 'expo-web-browser', ['expo-build-properties', { ios: { deploymentTarget: '17.0' } }], ['expo-secure-store', { faceIDPermission: false }],
+      ['expo-font', {
+        ios: { fonts: [manrope] },
+        android: { fonts: [{
+          fontFamily: 'Manrope',
+          path: manrope,
+          fontDefinitions: [400, 500, 600, 700, 800].map(weight => ({ weight })),
+        }] },
+      }],
       ['expo-calendar', { writeOnlyAccess: true, remindersPermission: false,
         calendarPermission: false, writeOnlyCalendarPermission: 'Add a club event using the calendar editor.' }]],
   },

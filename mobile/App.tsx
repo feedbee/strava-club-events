@@ -1,18 +1,22 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, StatusBar, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
+import { Text } from './src/components/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { connect, savedCredential, clearCredential } from './src/data/auth';
 import { request } from './src/data/api';
 import { clearSnapshot, loadPreferences } from './src/data/storage';
 import { CalendarScreen } from './src/screens/CalendarScreen';
+import { BrandHeader, StravaAttribution } from './src/components/Brand';
 import { Button } from './src/components/Controls';
 import { ui } from './src/theme';
 import type { Credential, Preferences } from './src/types';
 const defaults: Preferences = { mode: 'list', clubs: [], sports: [], joinedOnly: false };
 export default function App() {
   const [credential, setCredential] = useState<Credential | null>(null);
-  const [demo, setDemo] = useState(false); const [starting, setStarting] = useState(true);
+  const [starting, setStarting] = useState(true);
+  const [restoreFailed, setRestoreFailed] = useState(false);
+  const [restoreAttempt, setRestoreAttempt] = useState(0);
   const [connecting, setConnecting] = useState(false); const [message, setMessage] = useState('');
   const [cleaning, setCleaning] = useState(false); const [cleanupFailed, setCleanupFailed] = useState(false);
   const [preferences, setPreferences] = useState<Preferences>(defaults);
@@ -23,9 +27,11 @@ export default function App() {
       if (!saved) await clearSnapshot().catch(() => {});
       const prefs = saved ? await loadPreferences(saved.user.id).catch(() => defaults) : defaults;
       if (alive) { setCredential(saved); setPreferences(prefs); setStarting(false); }
-    })();
+    })().catch(() => {
+      if (alive) { setRestoreFailed(true); setStarting(false); }
+    });
     return () => { alive = false; };
-  }, []);
+  }, [restoreAttempt]);
   async function cleanupLocalSession() {
     setCleaning(true); setCleanupFailed(false);
     try { await Promise.all([clearCredential(), clearSnapshot()]); }
@@ -36,7 +42,7 @@ export default function App() {
   const signOut = useCallback((expired = false) => {
     const token = credential?.token;
     // Clear UI immediately and fence late cache writes before any network operation.
-    setCredential(null); setDemo(false); setMessage(expired ? 'Your session expired. Connect with Strava again.' : '');
+    setCredential(null); setMessage(expired ? 'Your session expired. Connect with Strava again.' : '');
     void cleanupLocalSession();
     if (token && !expired) void request('/logout', token, {}).catch(() => {
       setMessage('Signed out on this device. Server revocation could not be confirmed; the old session expires automatically.');
@@ -55,27 +61,51 @@ export default function App() {
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Unable to connect. Please try again.'); }
     finally { setConnecting(false); }
   }
+  const showCalendar = !starting && !!credential;
+  const signInDisabled = connecting || cleaning || cleanupFailed || restoreFailed;
   return <SafeAreaProvider><StatusBar barStyle="light-content" /><LinearGradient colors={['#667eea', '#764ba2']} style={ui.screen}>
-    <SafeAreaView style={ui.screen} edges={['top', 'bottom']}>
-      {starting ? <View style={[ui.screen, { justifyContent: 'center', alignItems: 'center' }]}><ActivityIndicator color="white" /><Text style={{ color: 'white', marginTop: 12 }}>Opening Club Events…</Text></View> :
-        credential || demo ? <CalendarScreen key={credential?.token || 'demo'} credential={credential} initialPreferences={preferences} signOut={signOut} /> :
-          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 28, gap: 24 }}>
-            <Image source={require('./assets/icon.png')} style={{ width: 56, height: 56 }} accessibilityIgnoresInvertColors />
-            <View style={{ gap: 12 }}><Text accessibilityRole="header" style={{ color: 'white', fontSize: 38, lineHeight: 43, fontWeight: '800', letterSpacing: -1 }}>Your clubs.{ '\n' }Your next adventure.</Text>
-              <Text style={{ color: '#f1ecff', fontSize: 17, lineHeight: 25 }}>All your Strava club events, together in one calendar.</Text></View>
-            <View style={[ui.card, { gap: 18 }]}>
-              <Text style={ui.heading}>Make time to get out</Text><Text style={ui.text}>Browse rides, runs and meetups. Find your next event, share it, and keep a copy in your calendar.</Text>
-              <Pressable accessibilityRole="button" accessibilityLabel="Connect with Strava" disabled={connecting || cleaning || cleanupFailed} accessibilityState={{ disabled: connecting || cleaning || cleanupFailed }} onPress={() => void signIn()} style={{ alignSelf: 'center', opacity: connecting || cleaning || cleanupFailed ? 0.5 : 1 }}>
-                <Image source={require('./assets/connect-with-strava.png')} resizeMode="contain" style={{ width: 237, height: 48 }} />
-              </Pressable>
-              {connecting && <ActivityIndicator />}
-              {(cleanupFailed || !!message) && <Text accessibilityRole="alert" style={ui.text}>{cleanupFailed ? 'Sign-out could not be saved on this device. Retry before reconnecting or sharing the device.' : message}</Text>}
-              {cleanupFailed && <Button title="Retry sign-out" onPress={() => void cleanupLocalSession()} />}
-              <Button title="Explore the demo" disabled={connecting || cleaning || cleanupFailed} onPress={() => { setPreferences(defaults); setDemo(true); }} />
-              <Text style={ui.muted}>Connect securely through Strava. Your Strava password stays with Strava.</Text>
+    <SafeAreaView style={ui.screen} edges={showCalendar ? ['top'] : ['top', 'bottom']}>
+      {starting ? <View style={[ui.screen, { justifyContent: 'center', alignItems: 'center' }]}><ActivityIndicator color="white" /><Text style={{ color: 'white', marginTop: 12 }}>Opening Strava Club Events…</Text></View> :
+        credential ? <CalendarScreen key={credential.token} credential={credential} initialPreferences={preferences} signOut={signOut} /> :
+          <ScrollView contentContainerStyle={styles.welcome}>
+            <BrandHeader />
+            <View style={styles.welcomeCard}>
+              <Image source={require('./assets/club-ride.jpg')} resizeMode="cover" style={styles.illustration} />
+              <View style={styles.welcomeContent}>
+                <Text accessibilityRole="header" style={ui.title}>Your club events in one calendar</Text>
+                <Text style={ui.text}>Connect with Strava to see upcoming events from the clubs you belong to on Strava.</Text>
+                <Pressable accessibilityRole="button" accessibilityLabel="Connect with Strava" disabled={signInDisabled}
+                  accessibilityState={{ disabled: signInDisabled, busy: connecting }} onPress={() => void signIn()}
+                  style={[styles.connect, signInDisabled && styles.disabled]}>
+                  <Image source={require('./assets/connect-with-strava.png')} resizeMode="contain" style={styles.connectImage} />
+                </Pressable>
+                {connecting && <ActivityIndicator />}
+                {restoreFailed && <>
+                  <Text accessibilityRole="alert" style={ui.text}>Could not verify your saved session. Check your connection and try again.</Text>
+                  <Button title="Retry session check" onPress={() => {
+                    setRestoreFailed(false);
+                    setStarting(true);
+                    setRestoreAttempt(attempt => attempt + 1);
+                  }} />
+                </>}
+                {(cleanupFailed || !!message) && <Text accessibilityRole="alert" style={ui.text}>
+                  {cleanupFailed ? 'Sign-out could not be saved on this device. Retry before reconnecting or sharing the device.' : message}
+                </Text>}
+                {cleanupFailed && <Button title="Retry sign-out" onPress={() => void cleanupLocalSession()} />}
+              </View>
             </View>
-            <Image source={require('./assets/powered-by-strava.png')} resizeMode="contain" style={{ width: 180, height: 32, alignSelf: 'center' }} accessibilityLabel="Powered by Strava" />
+            <StravaAttribution onGradient />
           </ScrollView>}
     </SafeAreaView>
   </LinearGradient></SafeAreaProvider>;
 }
+
+const styles = StyleSheet.create({
+  welcome: { flexGrow: 1, justifyContent: 'center', padding: 24, gap: 12 },
+  welcomeCard: { backgroundColor: 'white', borderRadius: 20, overflow: 'hidden' },
+  illustration: { width: '100%', aspectRatio: 2, maxHeight: 240 },
+  welcomeContent: { padding: 20, gap: 14 },
+  connect: { alignSelf: 'center', width: 237, maxWidth: '100%', marginTop: 6 },
+  connectImage: { width: '100%', height: 48 },
+  disabled: { opacity: 0.5 },
+});

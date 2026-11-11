@@ -65,3 +65,19 @@ test('Concurrent Mongo throttle returns each atomic increment rather than a late
   assert.equal(results.filter(result => result.status === 'fulfilled').length, 30);
   assert.equal(results.filter(result => result.status === 'rejected').length, 1);
 });
+
+test('Renewal extends an active credential and cannot restore an expired or revoked one', async () => {
+  let now = 1000;
+  const auth = createMobileAuth({ store: memoryMobileStore(), now: () => now, sessionAge: 2000 });
+  const issue = async () => auth.exchange(await auth.handoff('session', challenge), verifier);
+  const { token } = await issue();
+  now = 2500;
+  assert.equal(await auth.renew(token), new Date(4500).toISOString());
+  now = 3100;
+  assert.equal((await auth.authenticate(token)).sessionId, 'session');
+  await auth.revoke(token);
+  await assert.rejects(auth.renew(token), error => error.status === 401);
+  const expired = await issue();
+  now += 2000;
+  await assert.rejects(auth.renew(expired.token), error => error.status === 401);
+});

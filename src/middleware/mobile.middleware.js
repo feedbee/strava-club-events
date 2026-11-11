@@ -16,8 +16,23 @@ export async function mobileSession(req, res, next) {
     const signature = createHmac('sha256', config.session.secret).update(record.sessionId).digest('base64').replace(/=+$/, '');
     req.headers.cookie = `connect.sid=${encodeURIComponent(`s:${record.sessionId}.${signature}`)}`;
     req.mobileToken = match[1];
+    req.renewMobileSession = async () => {
+      try {
+        res.set('X-Mobile-Session-Expires-At', await auth.renew(match[1]));
+        return true;
+      } catch (error) {
+        if (error.status === 401) req.session = null;
+        sendAuthError(res, error);
+        return false;
+      }
+    };
     next();
   } catch (error) {
-    res.status(error.status === 401 ? 401 : 503).json({ error: error.status === 401 ? 'Mobile session expired' : 'Mobile authentication unavailable' });
+    sendAuthError(res, error);
   }
+}
+
+function sendAuthError(res, error) {
+  const expired = error.status === 401;
+  res.status(expired ? 401 : 503).json({ error: expired ? 'Mobile session expired' : 'Mobile authentication unavailable' });
 }
