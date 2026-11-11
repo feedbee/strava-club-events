@@ -7,6 +7,8 @@ by Git tags; their release notes have not been reconstructed.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-12
+
 ### Added
 - Expo/React Native mobile client for iOS and Android with List, Month, Week and Day views, club/sport/joined filters, event details, manual refresh and a bounded account-isolated offline snapshot.
 - Native event sharing and user-confirmed export to the system calendar, with an editable placeholder duration.
@@ -29,11 +31,18 @@ by Git tags; their release notes have not been reconstructed.
 - Mobile loading cancels obsolete profile requests, and late-night hourly cards remain within scrollable content.
 - Release configuration rejects an accidental local HTTP backend before store bundling; Android enables the selected light theme and excludes unused calendar, contacts, storage, microphone and overlay permissions.
 
+### Security
+- Update the server’s HTTP parsing dependencies to patched versions of `body-parser` and `qs`.
+
 ### Upgrade notes
 - The mobile iOS target is explicitly iOS 17+ to support calendar export without reading the user's calendars. Regenerate existing native projects before rebuilding.
-- Mobile sign-in requires deploying the additive backend update. Preserve the existing Strava callback, signing/encryption keys and MongoDB settings; the server creates the `mobile_auth` collection and its TTL index at startup.
+- Mobile sign-in requires deploying the additive backend update. Preserve the existing Strava callback, signing/encryption keys and MongoDB settings; the server creates the `mobile_auth` collection and its TTL index at startup. The MongoDB user needs permission to create the index and read/write the collection. No manual data migration or new environment variables are required.
 - The mobile project installs independently in `mobile/`. Shared frontend rules are now in `shared/`, included in both Docker frontend build stages.
-- Production deployment, TestFlight upload, real-account mobile sign-in and physical-device system actions remain operator steps; no release has been published.
+- After deployment, check `/health/live`, `/health/ready` and `/mobile/capabilities` through the public HTTPS proxy, then try Strava sign-in, calendar loading and logout on a device. Store uploads and physical-device acceptance are separate.
+
+### Artifacts
+- Docker image: `feedbee/strava-club-events:1.1.0` (amd64 and arm64).
+- [Full changes](https://github.com/feedbee/strava-club-events/compare/v1.0.0...v1.1.0).
 
 ## [1.0.0] - 2026-10-11
 

@@ -284,8 +284,7 @@ were subsequently verified on 2026-11-10; see [distribution verification](mobile
 See [independent review findings and fixes](reviews/mobile-independent-review.md) for reproductions
 and the limits of the independent verification.
 
-Dependency audit found an existing server `body-parser` high-severity advisory and mobile
-Expo CLI toolchain advisories involving `node-forge`/`zod`. The latter are build tooling, not the
-native event UI; npm's proposed automatic fix downgrades Expo across many SDK versions and was
-not applied. Resolve/reassess these before a public release; no production dependency was
-silently upgraded as part of mobile work. Mobile JSON auth bodies explicitly reject compression.
+The server release updates `body-parser` and `qs` to patched versions. The historical mobile
+audit also found Expo CLI build tooling advisories involving `node-forge` and `zod`. Reassess
+those before store distribution; the server Docker image does not install the mobile project.
+Mobile JSON auth bodies explicitly reject compression.
