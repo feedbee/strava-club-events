@@ -7,6 +7,26 @@ by Git tags; their release notes have not been reconstructed.
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-12
+
+### Changed
+- On narrow web screens, Month shows a selectable date grid with event counts and an agenda for the selected day. The full Month grid remains available on wide screens.
+- List and the narrow Month agenda share detailed event cards and date headings. Cards show club, participation status and route distance and elevation when available.
+- Day shows a week strip and a header with the selected date and its event count on all screen sizes. The arrows move between weeks.
+- Hovering over compact events in Month, Week and Day opens a shared detailed preview.
+
+### Fixed
+- Align the Month toolbar breakpoint with the narrow grid. Keep weekday headers aligned with their dates when a scrollbar is visible, and return to the grid when navigating from the toolbar.
+- Keep the Week header height steady with and without today's highlight, and retain readable date and club labels in narrow views.
+
+### Upgrade notes
+- This release changes the web frontend. Existing server configuration and database schemas are compatible.
+- Live Strava and production HTTPS proxy checks remain operator checks.
+
+### Artifacts
+- Docker image: `feedbee/strava-club-events:1.1.1` (amd64 and arm64).
+- [Full changes](https://github.com/feedbee/strava-club-events/compare/v1.1.0...v1.1.1).
+
 ## [1.1.0] - 2026-11-12
 
 ### Added
