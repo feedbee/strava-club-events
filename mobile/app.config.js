@@ -33,6 +33,11 @@ module.exports = {
     },
     android: {
       package: 'ws.valera.sportclubevents',
+      icon: './assets/icon-android-legacy.png',
+      adaptiveIcon: {
+        foregroundImage: './assets/icon-android-foreground.png',
+        backgroundColor: '#EF4813',
+      },
       ...(androidBuild ? { versionCode: Number(androidBuild) } : {}),
       blockedPermissions: ['android.permission.READ_CALENDAR', 'android.permission.WRITE_CALENDAR',
         'android.permission.READ_CONTACTS', 'android.permission.RECORD_AUDIO',

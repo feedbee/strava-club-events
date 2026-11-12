@@ -7,6 +7,19 @@ by Git tags; their release notes have not been reconstructed.
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-11-12
+
+### Fixed
+- Android uses an adaptive launcher icon with an edge-to-edge orange background and the original calendar and wordmark. Older supported Android versions use a static launcher icon.
+
+### Upgrade notes
+- This patch changes the Android launcher icon. Existing server configuration and database schemas are compatible.
+
+### Artifacts
+- Signed Android App Bundle for upload to Google Play.
+- Docker image: `feedbee/strava-club-events:1.1.2` (amd64 and arm64).
+- [Full changes](https://github.com/feedbee/strava-club-events/compare/v1.1.1...v1.1.2).
+
 ## [1.1.1] - 2026-11-12
 
 ### Changed
