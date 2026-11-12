@@ -7,6 +7,8 @@ import React, {
 } from "react";
 import { calendarBounds, clampCalendarDate } from "../data/calendar-window.js";
 import { dateKey, indexByDate } from "../data/events.js";
+import { movePeriod } from "../../../shared/mobile-state.js";
+import { CalendarDatePicker, eventCountLabel } from "./CalendarDatePicker.jsx";
 import { CalendarDate } from "./CalendarDate.jsx";
 import { Icon } from "./Icon.jsx";
 import { TimeGrid } from "./TimeGrid.jsx";
@@ -50,28 +52,43 @@ export function Calendar({
   const rangeStart = monday(bounds.start);
   const rangeEnd = shift(monday(bounds.end), 6);
   const rangeDays = Math.round((rangeEnd - rangeStart) / 86400000) + 1;
-  const previousDate = mode === "month"
+  const compactMonth = narrow && mode === "month";
+  const dayMode = mode === "day";
+  const continuousMonth = mode === "month" && !narrow;
+  const navigationMode = dayMode ? "week" : mode;
+  const previousDate = continuousMonth
     ? new Date(date.getFullYear(), date.getMonth() - 1, 1, 12)
-    : shift(date, mode === "week" ? -7 : -1);
-  const nextDate = mode === "month"
+    : movePeriod(date, navigationMode, -1);
+  const nextDate = continuousMonth
     ? new Date(date.getFullYear(), date.getMonth() + 1, 1, 12)
-    : shift(date, mode === "week" ? 7 : 1);
-  const atStart = mode === "month"
-    ? date.getFullYear() === bounds.start.getFullYear() && date.getMonth() === bounds.start.getMonth()
-    : mode === "week" ? monday(date) <= bounds.start : date <= bounds.start;
-  const atEnd = mode === "month"
-    ? date.getFullYear() === bounds.end.getFullYear() && date.getMonth() === bounds.end.getMonth()
-    : mode === "week" ? shift(monday(date), 6) >= bounds.end : date >= bounds.end;
+    : movePeriod(date, navigationMode, 1);
+  function periodKey(value) {
+    if (mode === "month") return dateKey(value).slice(0, 7);
+    return dateKey(navigationMode === "week" ? monday(value) : value);
+  }
+  const atStart = periodKey(date) === periodKey(bounds.start);
+  const atEnd = periodKey(date) === periodKey(bounds.end);
   const [expanded, setExpanded] = useState(new Set());
+  const agendaViewport = useRef(null);
   const viewport = useRef(null),
-    pendingDate = useRef(dateKey(new Date())),
+    pendingDate = useRef(null),
     programmaticScroll = useRef(false);
   const days = useMemo(() => indexByDate(events), [events]);
+  const wasContinuous = useRef(false);
   const today = dateKey(new Date());
+  const selectedKey = dateKey(date);
+  const selectedEvents = days.get(selectedKey) || [];
   useLayoutEffect(() => {
-    if (viewport.current && pendingDate.current) {
+    if (!continuousMonth) {
+      programmaticScroll.current = false;
+      wasContinuous.current = false;
+      return;
+    }
+    const position = !wasContinuous.current || pendingDate.current;
+    wasContinuous.current = true;
+    if (viewport.current && position) {
       const target = viewport.current.querySelector(
-        `[data-date="${pendingDate.current}"]`,
+        `[data-date="${pendingDate.current || selectedKey}"]`,
       );
       if (target) {
         const previousTop = viewport.current.scrollTop;
@@ -83,14 +100,18 @@ export function Calendar({
       }
       pendingDate.current = null;
     }
-  }, [mode, date]);
+  }, [continuousMonth, date, selectedKey]);
   function navigate(next) {
     const target = clampCalendarDate(next, bounds);
-    pendingDate.current = dateKey(target);
+    if (continuousMonth) pendingDate.current = dateKey(target);
     setDate(target);
   }
+  function navigatePeriod(next) {
+    if (agendaViewport.current) agendaViewport.current.scrollTop = 0;
+    navigate(next);
+  }
   function scroll() {
-    if (mode !== "month") return;
+    if (!continuousMonth) return;
     if (programmaticScroll.current) {
       programmaticScroll.current = false;
       return;
@@ -110,22 +131,23 @@ export function Calendar({
       setDate(visibleDate);
   }
   function day(key, entries) {
-    const showAll = mode === "list" || expanded.has(key);
+    const detailed = mode === "list" || compactMonth;
+    const showAll = detailed || expanded.has(key);
     return (
       <section
         className={`calendar-day ${key === today ? "current-day" : ""}`}
         key={key}
         data-date={key}
       >
-        <h3>
-          <CalendarDate date={new Date(key + "T12:00:00")} long={mode === "list" || narrow} />
+        <h3 className={detailed ? "agenda-date" : undefined}>
+          <CalendarDate date={new Date(key + "T12:00:00")} long={detailed} />
         </h3>
         <div className="day-events">
           {(showAll ? entries : entries.slice(0, 5)).map((event) => (
-            <EventCard key={event.key} event={event} onOpen={onOpen} />
+            <EventCard key={event.key} event={event} onOpen={onOpen} detailed={detailed} />
           ))}
         </div>
-        {mode === "month" && entries.length > 5 && (
+        {continuousMonth && entries.length > 5 && (
           <button
             className="day-overflow"
             onClick={() =>
@@ -142,6 +164,13 @@ export function Calendar({
       </section>
     );
   }
+  const weekdayHeading = (
+    <div className="calendar-weekdays">
+      {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((name) => (
+        <span key={name}>{compactMonth ? name.slice(0, 3) : name}</span>
+      ))}
+    </div>
+  );
   return (
     <section className={`react-calendar ${mode}`} aria-label="Event calendar">
       <div className="calendar-toolbar">
@@ -156,7 +185,7 @@ export function Calendar({
               aria-pressed={mode === value}
               onClick={() => {
                 if (value === mode) return;
-                if (value === "month") pendingDate.current = dateKey(date);
+                if (value === "month" && !narrow) pendingDate.current = dateKey(date);
                 setMode(value);
                 onModeChange?.(value);
                 if (value === "list" && viewport.current) viewport.current.scrollTop = 0;
@@ -167,56 +196,57 @@ export function Calendar({
             </button>
           ))}
         </div>
-        <h2>
+        {!dayMode && <h2>
           {mode !== "list"
             ? date.toLocaleDateString("en-US", {
                 month: "long",
                 year: "numeric",
-                ...(mode === "day" ? { day: "numeric" } : {}),
               })
             : "Upcoming events"}
-        </h2>
+        </h2>}
         {mode !== "list" && (
           <div className="calendar-navigation">
             <button
               className="control"
               disabled={atStart}
-              aria-label={`Previous ${mode}`}
-              onClick={() => navigate(previousDate)}
+              aria-label={`Previous ${navigationMode}`}
+              onClick={() => navigatePeriod(previousDate)}
             >
               ←
             </button>
-            <button className="control" onClick={() => navigate(new Date())}>
+            <button className="control" onClick={() => navigatePeriod(new Date())}>
               Today
             </button>
             <button
               className="control"
               disabled={atEnd}
-              aria-label={`Next ${mode}`}
-              onClick={() => navigate(nextDate)}
+              aria-label={`Next ${navigationMode}`}
+              onClick={() => navigatePeriod(nextDate)}
             >
               →
             </button>
           </div>
         )}
       </div>
-      {mode === "month" && (
-        <div className="calendar-weekdays">
-          {[
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-            "Sunday",
-          ].map((name) => (
-            <span key={name}>{name}</span>
-          ))}
-        </div>
+      {dayMode && (
+        <>
+          <CalendarDatePicker date={date} mode={mode} days={days} bounds={bounds} onSelect={navigate} />
+          <div className="day-strip-heading">
+            <h2>{date.toLocaleDateString("en-GB", { dateStyle: "full" })}</h2>
+            <p>{eventCountLabel(selectedEvents.length)}</p>
+          </div>
+        </>
       )}
+      {continuousMonth && weekdayHeading}
       {mode === "week" || mode === "day" ? (
         <TimeGrid date={date} mode={mode} days={days} onOpen={onOpen} bounds={bounds} />
+      ) : compactMonth ? (
+        <div key="month-agenda" ref={agendaViewport} className="calendar-viewport month-agenda" tabIndex={0} aria-label="Scroll month agenda">
+          {weekdayHeading}
+          <CalendarDatePicker date={date} mode={mode} days={days} bounds={bounds} onSelect={navigate} />
+          {day(selectedKey, selectedEvents)}
+          {!selectedEvents.length && <p className="calendar-empty">No events on this date</p>}
+        </div>
       ) : (
         <div
           className="calendar-viewport"

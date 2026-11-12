@@ -17,7 +17,7 @@ export function TimeGrid({ date, mode, days, onOpen, bounds }) {
       root.current.scrollTop +=
         row.getBoundingClientRect().top -
         root.current.getBoundingClientRect().top -
-        root.current.querySelector(".time-grid-heading").offsetHeight;
+        (root.current.querySelector(".time-grid-heading")?.offsetHeight || 0);
   }, [date, mode]);
   return (
     <div
@@ -27,7 +27,7 @@ export function TimeGrid({ date, mode, days, onOpen, bounds }) {
       aria-label="Scroll hourly calendar"
       style={{ "--day-columns": dates.length }}
     >
-      <div className="time-grid-heading">
+      {mode === "week" && <div className="time-grid-heading">
         <span />
         {dates.map((d) => (
           <h3
@@ -37,7 +37,7 @@ export function TimeGrid({ date, mode, days, onOpen, bounds }) {
             <CalendarDate date={d} />
           </h3>
         ))}
-      </div>
+      </div>}
       {Array.from({ length: 24 }, (_, hour) => (
         <div className="time-grid-row" key={hour} data-hour={hour}>
           <time className="hour-label">{String(hour).padStart(2, "0")}:00</time>

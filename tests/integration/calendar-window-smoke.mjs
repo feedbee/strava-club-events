@@ -21,12 +21,12 @@ try {
   for (let i = 0; i < 4; i++) await page.getByRole('button', { name: 'Next month' }).click();
   assert.equal(await page.getByRole('button', { name: 'Next month' }).isDisabled(), true);
   await page.getByRole('button', { name: 'Day', exact: true }).click();
-  for (let i = 0; i < 30; i++) {
-    const next = page.getByRole('button', { name: 'Next day' });
+  for (let i = 0; i < 5; i++) {
+    const next = page.getByRole('button', { name: 'Next week' });
     if (await next.isDisabled()) break;
     await next.click();
   }
-  assert.equal(await page.getByRole('button', { name: 'Next day' }).isDisabled(), true);
+  assert.equal(await page.getByRole('button', { name: 'Next week' }).isDisabled(), true);
   await page.getByRole('button', { name: 'Week', exact: true }).click();
   assert.equal(await page.getByRole('button', { name: 'Next week' }).isDisabled(), true);
   await page.getByRole('button', { name: 'Month', exact: true }).click();

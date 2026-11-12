@@ -16,12 +16,28 @@ try {
     const geometry = await page.locator('.calendar-toolbar').evaluate(el => {
       const modes = el.querySelector('.calendar-modes').getBoundingClientRect();
       const navigation = el.querySelector('.calendar-navigation').getBoundingClientRect();
-      return { modesTop: modes.top, navigationTop: navigation.top, icons: [...el.querySelectorAll('.calendar-modes button svg')].map(svg => ({ width: svg.getBoundingClientRect().width, paths: svg.children.length })) };
+      const heading = el.querySelector('h2');
+      heading.textContent = 'September 2026';
+      const title = heading.getBoundingClientRect();
+      return {
+        modesTop: modes.top,
+        navigationTop: navigation.top,
+        titleBottom: title.bottom,
+        titleSharesRow: title.top >= modes.top && title.bottom <= modes.bottom,
+        titleFitsBetweenControls: title.left >= modes.right && title.right <= navigation.left,
+        icons: [...el.querySelectorAll('.calendar-modes button svg')].map(svg => ({ width: svg.getBoundingClientRect().width, paths: svg.children.length })) };
     });
     assert.equal(geometry.icons.length, width <= 999 ? 3 : 4);
     assert.ok(geometry.icons.every(icon => icon.width === 14 && icon.paths > 0));
     if (width > 480) assert.equal(geometry.modesTop, geometry.navigationTop, `Separate control rows at ${width}`);
     else assert.ok(geometry.navigationTop > geometry.modesTop);
+    if (width > 999) {
+      assert.ok(geometry.titleSharesRow, `Title moved to a separate row at ${width}px`);
+      assert.ok(geometry.titleFitsBetweenControls, `Title overlaps the controls at ${width}px`);
+    } else {
+      assert.ok(geometry.titleBottom <= geometry.modesTop, `Title did not move above the controls at ${width}px`);
+    }
+    assert.equal(await page.locator('.month-picker').count(), width <= 999 ? 1 : 0);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await page.close();
   }

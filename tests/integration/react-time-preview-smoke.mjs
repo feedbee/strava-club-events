@@ -32,8 +32,25 @@ try {
       ),
   );
   assert.ok((await page.locator(".time-today time").boundingBox()).width < 200);
+  const weekHeading = page.locator(".time-grid.week .time-grid-heading");
+  await page.evaluate(() => document.fonts.ready);
+  const currentWeekHeadingHeight = (await weekHeading.boundingBox()).height;
+  await page.getByRole("button", { name: "Next week" }).click();
+  assert.equal(await weekHeading.locator(".time-today").count(), 0);
+  assert.equal((await weekHeading.boundingBox()).height, currentWeekHeadingHeight);
+  await page.getByRole("button", { name: "Today", exact: true }).click();
   await page.getByRole("button", { name: "Day", exact: true }).click();
-  assert.equal(await page.locator(".time-grid-heading h3").count(), 1);
+  assert.equal(await page.locator(".time-grid-heading").count(), 0);
+  const dayStrip = page.getByRole("group", { name: "Choose a day this week" });
+  assert.equal(await dayStrip.getByRole("button").count(), 7);
+  const todayLabel = await dayStrip.locator('[aria-current="date"]').getAttribute("aria-label");
+  const dayHeading = page.locator(".day-strip-heading");
+  assert.equal(await dayHeading.getByRole("heading").textContent(), todayLabel);
+  assert.equal(await dayHeading.locator("p").textContent(), "7 events");
+  await page.getByRole("button", { name: "Next week" }).click();
+  assert.notEqual(await dayHeading.getByRole("heading").textContent(), todayLabel);
+  await page.getByRole("button", { name: "Previous week" }).click();
+  assert.equal(await dayHeading.getByRole("heading").textContent(), todayLabel);
   assert.equal(await page.locator('[data-hour="9"] .event-card').count(), 3);
   await page.getByRole("button", { name: "Month", exact: true }).click();
   await page.getByRole("button", { name: "Today", exact: true }).click();
@@ -49,17 +66,20 @@ try {
   }
   for (const width of [1440, 320]) {
     await page.setViewportSize({ width, height: 1000 });
-    for (const mode of ["Month", "Day", "List"]) {
+    for (const mode of width === 1440 ? ["Month", "Week", "Day"] : ["Day"]) {
       await page.locator("h1").hover();
       await page.getByRole("button", { name: mode, exact: true }).click();
       if (mode !== "List")
         await page.getByRole("button", { name: "Today", exact: true }).click();
       const card = page.locator(".react-calendar .event-card").first();
+      assert.equal(await card.locator(".card-club").isVisible(), mode === "Day");
       await card.hover();
       const r = await card.boundingBox();
       await page.locator(".event-preview").waitFor();
       const preview = await page.locator(".event-preview").boundingBox();
-      assert.equal(preview.height, 44);
+      assert.ok(preview.height > r.height);
+      assert.ok(preview.y >= 0 && preview.y + preview.height <= 1000);
+      assert.ok(await page.locator(".event-preview .detailed-card-club").isVisible());
       assert.ok(preview.width >= r.width - 1);
       assert.ok(preview.x >= 0 && preview.x + preview.width <= width);
       await page.mouse.click(preview.x + preview.width - 8, preview.y + 20);
